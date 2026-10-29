@@ -8,6 +8,7 @@ import { getKvValue } from '../../api.js';
 import { formatTokens, escapeHtml } from '../../utils.js';
 import { OFFICIAL_AI_GATEWAY_URL, AI_KV_NAMESPACE_ID } from './presets.js';
 import { getSiteByAiId, getSiteColorClass } from '../../sites.js';
+import { t, formatNumber } from '../../i18n.js';
 
 let currentMetricsData = null;
 let isMetricsLoading = false;
@@ -47,7 +48,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
             }
         }
     } catch (e) {
-        console.warn('网关 /v1/stats 端点暂未就绪或受限，已自动无缝切换直读 Cloudflare KV 命名空间:', e.message);
+        console.warn('Gateway /v1/stats is unavailable; falling back to reading Cloudflare KV directly:', e.message);
     }
 
     // 2. 兜底方案：直连 Cloudflare KV REST API (并发批量读取)
@@ -170,7 +171,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
         isMetricsLoading = false;
         return currentMetricsData;
     } catch (kvErr) {
-        console.error('直读 KV 监控统计失败:', kvErr);
+        console.error('Failed to read monitoring stats from KV:', kvErr);
         isMetricsLoading = false;
         return null;
     }
@@ -179,7 +180,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
 /**
  * 通用纯 CSS 垂直竖立柱状图生成器
  */
-export function renderVerticalBarChart({ items, maxVal, emptyText = '暂无统计数据', isDense = false }) {
+export function renderVerticalBarChart({ items, maxVal, emptyText = t('metrics.noData'), isDense = false }) {
     if (!items || items.length === 0) {
         return `<div class="empty-state" style="padding: 45px 0; font-size: 12px; color: var(--text-secondary);">${escapeHtml(emptyText)}</div>`;
     }
@@ -192,7 +193,7 @@ export function renderVerticalBarChart({ items, maxVal, emptyText = '暂无统�
             const displayHeight = val > 0 ? Math.max(barHeightPct, 6) : 2;
             // 标签、提示文字都可能来自外部请求（站点名、服务商名），一律转义后再拼进页面
             const safeLabel = escapeHtml(item.label || '');
-            const tooltipLines = Array.isArray(item.tooltipLines) ? item.tooltipLines : [`${item.fullLabel || item.label || ''}: ${val} 次`];
+            const tooltipLines = Array.isArray(item.tooltipLines) ? item.tooltipLines : [t('metrics.barTooltip', { label: item.fullLabel || item.label || '', count: formatNumber(val) })];
             const tooltipHtml = tooltipLines.map(line => escapeHtml(line)).join('<br>');
             const colorClass = item.colorClass || '';
             const plainTitle = escapeHtml(tooltipLines.join(' | '));
@@ -238,7 +239,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             peakDay = h.date ? h.date.slice(5) : '-';
         }
     });
-    const peakText = peakCount > 0 ? escapeHtml(`${peakDay} (${peakCount}次)`) : '-';
+    const peakText = peakCount > 0 ? escapeHtml(t('metrics.peak', { day: peakDay, count: formatNumber(peakCount) })) : '-';
 
     // 1. 调用走势图数据 (支持 7天 / 30天 密集柱状模式)
     const is30Days = currentMetricsDays === 30;
@@ -254,14 +255,14 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             value: hTotal,
             label,
             fullLabel: h.date || '',
-            tooltipLines: [String(h.date || ''), `总请求: ${hTotal} 次`, `成功: ${h.success || 0} | 失败: ${h.failed || 0}`, `平均延迟: ${h.avgLatencyMs || 0} ms`]
+            tooltipLines: [String(h.date || ''), t('metrics.totalRequests', { count: formatNumber(hTotal) }), t('metrics.successFailed', { success: formatNumber(h.success || 0), failed: formatNumber(h.failed || 0) }), t('metrics.avgLatency', { ms: h.avgLatencyMs || 0 })]
         };
     });
     const maxHistoryVal = Math.max(...history.map(h => h.total || 0), 10);
     const chartHtml = renderVerticalBarChart({
         items: chartItems,
         maxVal: maxHistoryVal,
-        emptyText: '暂无历史走势记录',
+        emptyText: t('metrics.noHistory'),
         isDense: is30Days
     });
 
@@ -290,7 +291,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             value: reqs,
             label: shortName,
             fullLabel: sinfo.name || sid,
-            tooltipLines: [String(sinfo.name || sid), `调用次数: ${reqs} 次`, `占比: ${pct}%`],
+            tooltipLines: [String(sinfo.name || sid), t('metrics.calls', { count: formatNumber(reqs) }), t('metrics.share', { pct })],
             colorClass
         };
     });
@@ -298,7 +299,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
     const sitesDistHtml = renderVerticalBarChart({
         items: sitesItems,
         maxVal: maxSiteVal,
-        emptyText: '暂无站点来源统计'
+        emptyText: t('metrics.noSites')
     });
 
     // 3. 模型服务商分布 (统一垂直竖立柱状图)
@@ -314,7 +315,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             value: reqs,
             label: shortName,
             fullLabel: pinfo.name || pid,
-            tooltipLines: [String(pinfo.name || pid), `请求调用: ${reqs} 次`, `负载占比: ${pct}%`],
+            tooltipLines: [String(pinfo.name || pid), t('metrics.providerCalls', { count: formatNumber(reqs) }), t('metrics.loadShare', { pct })],
             colorClass: 'provider'
         };
     });
@@ -322,7 +323,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
     const providersDistHtml = renderVerticalBarChart({
         items: providersItems,
         maxVal: maxProviderVal,
-        emptyText: '暂无服务商分布统计'
+        emptyText: t('metrics.noProviders')
     });
 
     // 实时流水表格
@@ -331,13 +332,13 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
         logsRowsHtml = `
         <tr>
             <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 36px 16px; font-size: 13px;">
-                暂无调用日志。当外部开发工具（如 VS Code）或旗下站点发起 AI 请求后，此处将实时展示调用流水。
+                ${t('metrics.noLogs')}
             </td>
         </tr>
         `;
     } else {
         logsRowsHtml = recentLogs.map(log => {
-            let siteBadge = `<span class="ai-site-badge other">${escapeHtml(log.site || '外部/其他')}</span>`;
+            let siteBadge = `<span class="ai-site-badge other">${escapeHtml(log.site || t('metrics.siteOther'))}</span>`;
             let siteClass = 'other';
             let siteDomain = '';
             const sId = String(log.siteId || '').toLowerCase();
@@ -348,14 +349,14 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 siteBadge = `<span class="ai-site-badge ${siteClass}">${escapeHtml(matchedSite.site.name)}</span>`;
                 siteDomain = (matchedSite.site.url || '').replace(/\/+$/, '');
             } else if (sId.includes('admin') || sName.includes('后台')) {
-                siteBadge = `<span class="ai-site-badge admin">管理后台</span>`;
+                siteBadge = `<span class="ai-site-badge admin">${t('metrics.siteAdmin')}</span>`;
                 siteClass = 'admin';
                 siteDomain = location.origin;
             } else if (sId.startsWith('key_') || sId.includes('dev') || sName.includes('开发') || sName.includes('master')) {
-                siteBadge = `<span class="ai-site-badge dev">${escapeHtml(log.site || '开发直通')}</span>`;
+                siteBadge = `<span class="ai-site-badge dev">${escapeHtml(log.site || t('metrics.siteDev'))}</span>`;
                 siteClass = 'dev';
             } else if (sId.includes('local') || sName.includes('本地')) {
-                siteBadge = `<span class="ai-site-badge local">本地调试</span>`;
+                siteBadge = `<span class="ai-site-badge local">${t('metrics.siteLocal')}</span>`;
                 siteClass = 'local';
             }
 
@@ -368,7 +369,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                     if (siteDomain) {
                         // 页面路径由站点前端上报，可能被伪造，拼链接前必须转义
                         const safeUrl = escapeHtml(siteDomain + rawPath);
-                        pageHtml = `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: none; font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 500;" title="在新标签页中打开: ${safeUrl}">${safePath}</a>`;
+                        pageHtml = `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: none; font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 500;" title="${escapeHtml(t('metrics.openNewTabUrl', { url: siteDomain + rawPath }))}">${safePath}</a>`;
                     } else {
                         pageHtml = `<code style="font-family: var(--font-mono, monospace); font-size: 12px;">${safePath}</code>`;
                     }
@@ -377,12 +378,12 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 }
             }
 
-            let clientBadge = `<span class="ai-client-badge unauth">匿名游客</span>`;
+            let clientBadge = `<span class="ai-client-badge unauth">${t('metrics.clientAnon')}</span>`;
             if (log.client === 'master') {
-                clientBadge = `<span class="ai-client-badge master">开发者直通</span>`;
+                clientBadge = `<span class="ai-client-badge master">${t('metrics.clientMaster')}</span>`;
             } else if (log.client === 'auth') {
-                const userText = escapeHtml(log.user || '已登录');
-                clientBadge = `<span class="ai-client-badge auth site-${siteClass}" title="用户: ${userText}">${userText}</span>`;
+                const userText = escapeHtml(log.user || t('metrics.clientAuthDefault'));
+                clientBadge = `<span class="ai-client-badge auth site-${siteClass}" title="${escapeHtml(t('metrics.userTitle', { user: log.user || t('metrics.clientAuthDefault') }))}">${userText}</span>`;
             } else if (log.client && log.client !== 'unauth') {
                 clientBadge = `<span class="ai-client-badge master" title="${escapeHtml(log.client)}">${escapeHtml(log.client)}</span>`;
             }
@@ -391,16 +392,16 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             if (log.status >= 200 && log.status < 300) {
                 if (log.fallback) {
                     const fbNote = log.error ? escapeHtml(log.error) : '';
-                    statusBadge = `<span class="ai-status-badge fallback"${fbNote ? ` title="${fbNote}"` : ''}>容灾降级 (${escapeHtml(log.status)})</span>`;
+                    statusBadge = `<span class="ai-status-badge fallback"${fbNote ? ` title="${fbNote}"` : ''}>${escapeHtml(t('metrics.statusFallback', { status: log.status }))}</span>`;
                     if (fbNote) {
                         statusBadge += `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; max-width: 260px; white-space: normal; line-height: 1.4;">${fbNote}</div>`;
                     }
                 } else {
-                    statusBadge = `<span class="ai-status-badge success">正常直通 (${escapeHtml(log.status)})</span>`;
+                    statusBadge = `<span class="ai-status-badge success">${escapeHtml(t('metrics.statusOk', { status: log.status }))}</span>`;
                 }
             } else {
                 const safeErr = escapeHtml(log.error || '');
-                statusBadge = `<span class="ai-status-badge error" title="${safeErr}">调用失败 (${escapeHtml(log.status)})</span>`;
+                statusBadge = `<span class="ai-status-badge error" title="${safeErr}">${escapeHtml(t('metrics.statusError', { status: log.status }))}</span>`;
                 if (safeErr) {
                     statusBadge += `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; max-width: 260px; white-space: normal; line-height: 1.4;">${safeErr}</div>`;
                 }
@@ -408,7 +409,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
 
             const timeStr = escapeHtml(log.date ? `${String(log.date).slice(5)} ${log.time || ''}` : (log.time || '-'));
             const tokenCount = log.tokens || 0;
-            const tokenTag = `<span class="ai-token-tag" title="提示词: ${Number(log.promptTokens) || 0} / 生成: ${Number(log.completionTokens) || 0}">${escapeHtml(formatTokens(Number(tokenCount) || 0))}</span>`;
+            const tokenTag = `<span class="ai-token-tag" title="${escapeHtml(t('metrics.tokenTitle', { prompt: Number(log.promptTokens) || 0, completion: Number(log.completionTokens) || 0 }))}">${escapeHtml(formatTokens(Number(tokenCount) || 0))}</span>`;
 
             return `
             <tr>
@@ -416,8 +417,8 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 <td>${siteBadge}</td>
                 <td>${pageHtml}</td>
                 <td>${clientBadge}</td>
-                <td style="font-weight: 500;">${escapeHtml(log.provider || '未知服务商')}</td>
-                <td><code style="font-size: 12px; font-weight: 600;">${escapeHtml(log.model || 'Bao-Default')}</code></td>
+                <td style="font-weight: 500;">${escapeHtml(log.provider || t('metrics.unknownProvider'))}</td>
+                <td><code style="font-size: 12px; font-weight: 600;">${escapeHtml(log.model || '-')}</code></td>
                 <td>${tokenTag}</td>
                 <td style="font-family: monospace; font-size: 12px;">${Number(log.latencyMs) || 0} ms</td>
                 <td>${statusBadge}</td>
@@ -429,36 +430,36 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
     return `
     <div class="ai-metrics-cards-grid">
         <div class="ai-metric-card">
-            <div class="ai-metric-label">今日 Token 消耗</div>
+            <div class="ai-metric-label">${t('metrics.todayTokens')}</div>
             <div class="ai-metric-value" id="metric-today-tokens">${formatTokens(today.totalTokens || 0)}</div>
             <div class="ai-metric-sub">
-                <span>近 7 天累计 ${formatTokens(summary.totalTokens || 0)}</span>
+                <span>${t('metrics.tokens7d', { count: formatTokens(summary.totalTokens || 0) })}</span>
             </div>
         </div>
 
         <div class="ai-metric-card">
-            <div class="ai-metric-label">接口调用成功率</div>
+            <div class="ai-metric-label">${t('metrics.successRate')}</div>
             <div class="ai-metric-value" id="metric-success-rate">${escapeHtml(summary.successRate)}%</div>
             <div class="ai-metric-sub">
-                <span class="ai-metric-tag normal">今日 ${escapeHtml(today.total || 0)} 次</span>
-                <span class="ai-metric-tag ${today.failed > 0 ? 'error' : 'normal'}">${today.failed > 0 ? `失败 ${escapeHtml(today.failed)}` : `成功 ${escapeHtml(today.success || 0)}`}</span>
-                <span style="font-size: 11px; color: var(--text-secondary);">(7天 ${escapeHtml(summary.totalRequests)}次)</span>
+                <span class="ai-metric-tag normal">${escapeHtml(t('metrics.todayCount', { count: formatNumber(today.total || 0) }))}</span>
+                <span class="ai-metric-tag ${today.failed > 0 ? 'error' : 'normal'}">${today.failed > 0 ? escapeHtml(t('metrics.failedN', { count: formatNumber(today.failed) })) : escapeHtml(t('metrics.successN', { count: formatNumber(today.success || 0) }))}</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">${escapeHtml(t('metrics.requests7d', { count: formatNumber(summary.totalRequests || 0) }))}</span>
             </div>
         </div>
 
         <div class="ai-metric-card">
-            <div class="ai-metric-label">容灾降级频次</div>
+            <div class="ai-metric-label">${t('metrics.fallbackFreq')}</div>
             <div class="ai-metric-value" id="metric-fallback-count">${escapeHtml(today.fallbackCount || 0)}</div>
             <div class="ai-metric-sub">
-                <span class="ai-metric-tag ${today.fallbackCount > 0 ? 'warning' : 'normal'}">近 7 天共 ${escapeHtml(summary.totalFallback)} 次</span>
+                <span class="ai-metric-tag ${today.fallbackCount > 0 ? 'warning' : 'normal'}">${escapeHtml(t('metrics.fallback7d', { count: formatNumber(summary.totalFallback || 0) }))}</span>
             </div>
         </div>
 
         <div class="ai-metric-card">
-            <div class="ai-metric-label">平均响应延迟</div>
+            <div class="ai-metric-label">${t('metrics.avgLatencyTitle')}</div>
             <div class="ai-metric-value" id="metric-avg-latency">${escapeHtml(summary.avgLatencyMs)} ms</div>
             <div class="ai-metric-sub">
-                <span>全网链路平均响应首包耗时</span>
+                <span>${t('metrics.avgLatencyDesc')}</span>
             </div>
         </div>
     </div>
@@ -467,45 +468,45 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
         <div class="ai-card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="ai-card-header-flex">
-                    <h3 class="ai-card-title" style="margin: 0;">调用走势图</h3>
+                    <h3 class="ai-card-title" style="margin: 0;">${t('metrics.trendTitle')}</h3>
                     <div class="ai-trend-switcher capsule-tabs capsule-tabs--sm" data-capsule-tabs="ai-trend-days">
-                        <button type="button" class="ai-trend-switch-btn ${currentMetricsDays === 7 ? 'active' : ''}" data-days="7">7天</button>
-                        <button type="button" class="ai-trend-switch-btn ${currentMetricsDays === 30 ? 'active' : ''}" data-days="30">30天</button>
+                        <button type="button" class="ai-trend-switch-btn ${currentMetricsDays === 7 ? 'active' : ''}" data-days="7">${t('metrics.days', { days: 7 })}</button>
+                        <button type="button" class="ai-trend-switch-btn ${currentMetricsDays === 30 ? 'active' : ''}" data-days="30">${t('metrics.days', { days: 30 })}</button>
                     </div>
                 </div>
                 ${chartHtml}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
-                <span>${currentMetricsDays}天累计: <strong style="color: var(--text-primary); font-family: var(--font-mono);">${escapeHtml(summary.totalRequests || 0)}</strong> 次</span>
-                <span>单日最高: <strong style="color: var(--primary-color); font-family: var(--font-mono);">${peakText}</strong></span>
+                <span>${t('metrics.daysTotal', { days: currentMetricsDays, count: escapeHtml(formatNumber(summary.totalRequests || 0)) })}</span>
+                <span>${t('metrics.dayPeak', { peak: peakText })}</span>
             </div>
         </div>
 
         <div class="ai-card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="ai-card-header-flex">
-                    <h3 class="ai-card-title" style="margin: 0;">来源站点分布</h3>
-                    <span class="ai-card-sub-info">调用柱状占比</span>
+                    <h3 class="ai-card-title" style="margin: 0;">${t('metrics.sitesTitle')}</h3>
+                    <span class="ai-card-sub-info">${t('metrics.sitesSub')}</span>
                 </div>
                 ${sitesDistHtml}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
-                <span>覆盖渠道: <strong style="color: var(--text-primary); font-family: var(--font-mono);">${siteEntries.length}</strong> 个</span>
-                <span>主要流量: <strong style="color: var(--primary-color);">${escapeHtml(siteEntries[0]?.[1]?.name || siteEntries[0]?.[0] || '-')}</strong></span>
+                <span>${t('metrics.channels', { count: siteEntries.length })}</span>
+                <span>${t('metrics.topSite', { name: escapeHtml(siteEntries[0]?.[1]?.name || siteEntries[0]?.[0] || '-') })}</span>
             </div>
         </div>
 
         <div class="ai-card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="ai-card-header-flex">
-                    <h3 class="ai-card-title" style="margin: 0;">模型服务商分布</h3>
-                    <span class="ai-card-sub-info">算力柱状占比</span>
+                    <h3 class="ai-card-title" style="margin: 0;">${t('metrics.providersTitle')}</h3>
+                    <span class="ai-card-sub-info">${t('metrics.providersSub')}</span>
                 </div>
                 ${providersDistHtml}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
-                <span>活跃上游: <strong style="color: var(--text-primary); font-family: var(--font-mono);">${providerEntries.length}</strong> 家</span>
-                <span>主力支撑: <strong style="color: var(--primary-color);">${escapeHtml(providerEntries[0]?.[1]?.name || providerEntries[0]?.[0] || '-')}</strong></span>
+                <span>${t('metrics.upstreams', { count: providerEntries.length })}</span>
+                <span>${t('metrics.topProvider', { name: escapeHtml(providerEntries[0]?.[1]?.name || providerEntries[0]?.[0] || '-') })}</span>
             </div>
         </div>
     </div>
@@ -513,11 +514,11 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
     <div class="ai-card" style="margin-top: 20px;">
         <div class="ai-card-header-flex">
             <div>
-                <h3 class="ai-card-title" style="margin-bottom: 2px;">实时请求流水 (最近 50 条)</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">捕获通过统一网关进出的每一笔模型推理请求</p>
+                <h3 class="ai-card-title" style="margin-bottom: 2px;">${t('metrics.logsTitle')}</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">${t('metrics.logsDesc')}</p>
             </div>
             <div style="display: flex; gap: 8px;">
-                <button class="btn btn-outline btn-sm" id="ai-refresh-metrics-btn">刷新数据</button>
+                <button class="btn btn-outline btn-sm" id="ai-refresh-metrics-btn">${t('metrics.refresh')}</button>
             </div>
         </div>
 
@@ -525,15 +526,15 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
             <table class="ai-table" id="ai-recent-logs-table">
                 <thead>
                     <tr>
-                        <th>时间</th>
-                        <th>来源站点</th>
-                        <th>调用页面</th>
-                        <th>调用身份</th>
-                        <th>服务商</th>
-                        <th>模型</th>
+                        <th>${t('common.time')}</th>
+                        <th>${t('metrics.colSite')}</th>
+                        <th>${t('metrics.colPage')}</th>
+                        <th>${t('metrics.colClient')}</th>
+                        <th>${t('metrics.colProvider')}</th>
+                        <th>${t('metrics.colModel')}</th>
                         <th>Tokens</th>
-                        <th>耗时</th>
-                        <th>状态</th>
+                        <th>${t('metrics.colLatency')}</th>
+                        <th>${t('metrics.colStatus')}</th>
                     </tr>
                 </thead>
                 <tbody id="ai-recent-logs-tbody">

@@ -3,6 +3,9 @@
 // 零外部依赖，使用浏览器原生 Web Crypto API
 // ============================================
 
+import { t, langHeaders } from './i18n.js';
+import { getCredentials } from './api.js';
+
 async function sha256Hex(data) {
     let buffer;
     if (typeof data === 'string') {
@@ -45,8 +48,9 @@ async function getSigningKey(secretAccessKey, dateStamp, region, service) {
 }
 
 export class R2S3Client {
-    constructor({ accountId, accessKeyId, secretAccessKey }) {
+    constructor({ accountId, accessKeyId, secretAccessKey, cfToken = '' }) {
         this.accountId = accountId;
+        this.cfToken = cfToken;
         this.accessKeyId = accessKeyId;
         this.secretAccessKey = secretAccessKey;
         this.region = 'auto';
@@ -108,10 +112,13 @@ export class R2S3Client {
 
         const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${this.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeadersStr}, Signature=${signatureHex}`;
 
+        // x-cf-token：后台登录用的 Cloudflare API Token，代理用它校验管理员（不参与签名，也不会转发给 R2）
         const finalHeaders = {
             ...reqHeaders,
             'Authorization': authorizationHeader,
-            'x-cf-account-id': this.accountId
+            'x-cf-account-id': this.accountId,
+            'x-cf-token': this.cfToken || getCredentials().apiToken || '',
+            ...langHeaders()
         };
 
         // 构造发送到本地 Pages Functions 反代路由的 URL
@@ -145,13 +152,13 @@ export class R2S3Client {
 
         if (!res.ok) {
             const errText = await res.text();
-            throw new Error(`初始化分片上传失败 (${res.status}): ${errText}`);
+            throw new Error(t('s3.initFailed', { status: res.status, msg: errText }));
         }
 
         const xmlText = await res.text();
         const match = xmlText.match(/<UploadId>(.+?)<\/UploadId>/);
         if (!match) {
-            throw new Error(`无法解析 UploadId: ${xmlText}`);
+            throw new Error(t('s3.noUploadId', { msg: xmlText }));
         }
         return match[1];
     }
@@ -198,12 +205,12 @@ export class R2S3Client {
                     etag = etag.replace(/"/g, '');
                     resolve({ partNumber, etag });
                 } else {
-                    reject(new Error(`分片 ${partNumber} 上传失败 (HTTP ${xhr.status}): ${xhr.responseText}`));
+                    reject(new Error(t('s3.partFailed', { part: partNumber, status: xhr.status, msg: xhr.responseText })));
                 }
             };
 
-            xhr.onerror = () => reject(new Error(`分片 ${partNumber} 网络异常`));
-            xhr.onabort = () => reject(new DOMException(`分片 ${partNumber} 用户取消`, 'AbortError'));
+            xhr.onerror = () => reject(new Error(t('s3.partNetwork', { part: partNumber })));
+            xhr.onabort = () => reject(new DOMException(t('s3.partCancelled', { part: partNumber }), 'AbortError'));
 
             if (signal) {
                 signal.addEventListener('abort', () => xhr.abort());
@@ -247,7 +254,7 @@ ${sortedParts.map(p => `  <Part>
 
         if (!res.ok) {
             const errText = await res.text();
-            throw new Error(`完成分片合并失败 (${res.status}): ${errText}`);
+            throw new Error(t('s3.completeFailed', { status: res.status, msg: errText }));
         }
 
         return true;

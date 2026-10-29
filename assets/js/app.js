@@ -6,8 +6,9 @@
 import { connectD1, loadSavedCredentials, logout } from './auth.js';
 import { cfRequest } from './api.js';
 import { showConfirm, showAlert, showPrompt } from './dialog.js';
-import { getSiteSortOrder, getSiteDisplayName } from './utils.js';
+import { getSiteSortOrder, getSiteDisplayName, escapeHtml } from './utils.js';
 import { getResourceNames, AI_HUB, PANEL } from './sites.js';
+import { t, getLang, setLang, applyI18n, localizedLabel } from './i18n.js';
 
 // 挂载至 window 供可能需要的位置兜底
 window.showConfirm = showConfirm;
@@ -98,7 +99,7 @@ function showToast(message, isError = false) {
     el.toast.textContent = message;
     el.toast.className = isError ? 'error show' : 'show';
     el.toast.style.cursor = 'pointer';
-    el.toast.title = '点击即可关闭';
+    el.toast.title = t('toast.clickToClose');
     toastTimer = setTimeout(() => el.toast.classList.remove('show'), isError ? 8000 : 3500);
 }
 
@@ -107,8 +108,8 @@ el.toast.addEventListener('click', () => {
     el.toast.classList.remove('show');
 });
 
-function showLoading(text = '处理中...') {
-    el.loadingText.textContent = text;
+function showLoading(text) {
+    el.loadingText.textContent = text || t('common.processing');
     el.loadingOverlay.style.display = 'flex';
 }
 
@@ -117,7 +118,9 @@ function hideLoading() {
 }
 
 function updatePagination(currentPage, totalPages, totalCount) {
-    el.pageInfo.textContent = `第 ${currentPage} / ${totalPages} 页 (共 ${totalCount} 条)`;
+    el.pageInfo.textContent = t('pager.info', { page: currentPage, total: totalPages, count: totalCount });
+    el.pageInfo.dataset.page = String(currentPage);
+    el.pageInfo.dataset.total = String(totalPages);
     el.prevPageBtn.disabled = currentPage <= 1;
     el.nextPageBtn.disabled = currentPage >= totalPages;
 }
@@ -150,7 +153,7 @@ function renderDatabaseSelector() {
     const filteredDbs = state.databases.filter(db => wanted.includes(db.name));
 
     if (filteredDbs.length === 0) {
-        el.dbList.innerHTML = '<span style="font-size: 14px; color: var(--text-secondary);">暂无匹配的数据库</span>';
+        el.dbList.innerHTML = `<span style="font-size: 14px; color: var(--text-secondary);">${t('selector.noDatabase')}</span>`;
         return;
     }
 
@@ -227,7 +230,7 @@ function prefetchStorage() {
 }
 
 async function renderStorageSelector() {
-    el.dbList.innerHTML = '<span style="font-size: 14px; color: var(--text-secondary);">正在加载存储桶...</span>';
+    el.dbList.innerHTML = `<span style="font-size: 14px; color: var(--text-secondary);">${t('selector.loadingBuckets')}</span>`;
 
     try {
         await ensureStorageBuckets();
@@ -235,7 +238,7 @@ async function renderStorageSelector() {
         el.dbList.innerHTML = '';
 
         if (state.storageBuckets.length === 0) {
-            el.dbList.innerHTML = '<span style="font-size: 14px; color: var(--text-secondary);">未找到 R2 存储桶</span>';
+            el.dbList.innerHTML = `<span style="font-size: 14px; color: var(--text-secondary);">${t('selector.noBucket')}</span>`;
             return;
         }
 
@@ -254,7 +257,7 @@ async function renderStorageSelector() {
 
         selectStorageBucket(targetBucket, false);
     } catch (err) {
-        el.dbList.innerHTML = `<span style="font-size: 14px; color: var(--danger-color);">加载存储桶失败: ${err.message}</span>`;
+        el.dbList.innerHTML = `<span style="font-size: 14px; color: var(--danger-color);">${escapeHtml(t('selector.bucketLoadFailed', { msg: err.message }))}</span>`;
     }
 }
 
@@ -320,7 +323,7 @@ async function switchCapsule(targetCapsule) {
     el.tableContainer.style.display = 'block';
 
     if (targetCapsule === 'storage') {
-        el.selectorLabel.textContent = '选择目标存储桶:';
+        el.selectorLabel.textContent = t('selector.bucket');
         el.pagination.style.display = 'none';
         el.exportBtn.style.display = 'none';
         el.batchDelBtn.style.display = 'inline-block';
@@ -329,7 +332,7 @@ async function switchCapsule(targetCapsule) {
         await renderStorageSelector();
         await CAPSULES.storage.mount(state.currentBucket);
     } else {
-        el.selectorLabel.textContent = '选择目标数据库:';
+        el.selectorLabel.textContent = t('selector.database');
         el.pagination.style.display = 'flex';
         el.exportBtn.style.display = 'inline-block';
         el.batchDelBtn.style.display = 'inline-block';
@@ -347,7 +350,7 @@ async function switchCapsule(targetCapsule) {
 async function handleLogin() {
     const accId = el.accountIdInput.value.trim();
     const token = el.apiTokenInput.value.trim();
-    if (!accId || !token) return showToast('请填写 Account ID 和 API Token', true);
+    if (!accId || !token) return showToast(t('auth.missingFields'), true);
 
     el.loginBtn.disabled = true;
     el.loginBtn.querySelector('.loader').style.display = 'block';
@@ -359,7 +362,7 @@ async function handleLogin() {
         StorageModule.setDatabases(dbs);
         enterMainSystem();
     } catch (err) {
-        showToast(`连接失败: ${err.message}`, true);
+        showToast(t('auth.connectFailed', { msg: err.message }), true);
     } finally {
         el.loginBtn.disabled = false;
         el.loginBtn.querySelector('.loader').style.display = 'none';
@@ -371,7 +374,7 @@ function enterMainSystem() {
     el.authSection.style.display = 'none';
     el.mainSection.style.display = 'block';
     if (el.logoutBtn) el.logoutBtn.style.display = 'block';
-    showToast('安全连接成功！');
+    showToast(t('auth.connected'));
 
     // 静默从 Pages 环境变量同步 R2 S3 专线上传凭据
     const savedToken = localStorage.getItem('cf_api_token');
@@ -426,8 +429,7 @@ function initGlobalEvents() {
     el.prevPageBtn.addEventListener('click', () => {
         const cur = CAPSULES[state.activeCapsule];
         if (cur?.setPage) {
-            const pageText = el.pageInfo.textContent.match(/第 (\d+) \//);
-            const curP = pageText ? parseInt(pageText[1]) : 1;
+            const curP = parseInt(el.pageInfo.dataset.page, 10) || 1;
             if (curP > 1) cur.setPage(curP - 1);
         }
     });
@@ -435,9 +437,8 @@ function initGlobalEvents() {
     el.nextPageBtn.addEventListener('click', () => {
         const cur = CAPSULES[state.activeCapsule];
         if (cur?.setPage) {
-            const pageText = el.pageInfo.textContent.match(/第 (\d+) \/ (\d+) 页/);
-            const curP = pageText ? parseInt(pageText[1]) : 1;
-            const maxP = pageText ? parseInt(pageText[2]) : 1;
+            const curP = parseInt(el.pageInfo.dataset.page, 10) || 1;
+            const maxP = parseInt(el.pageInfo.dataset.total, 10) || 1;
             if (curP < maxP) cur.setPage(curP + 1);
         }
     });
@@ -557,7 +558,7 @@ function applyPanelConfig() {
     if (appleTitle) appleTitle.setAttribute('content', title);
 
     const replyLabel = document.querySelector('label[for="reply-content"]');
-    if (replyLabel) replyLabel.textContent = `回复内容（将以「${PANEL.adminName || '站长'}」身份回复）`;
+    if (replyLabel) replyLabel.textContent = t('reply.label', { name: localizedLabel(PANEL.adminName) || t('reply.defaultAdmin') });
 
     // 没开 AI Hub 就隐藏这个栏目
     if (!AI_HUB.enabled && el.capsuleBtns.ai) {
@@ -577,7 +578,19 @@ function applyPanelConfig() {
 }
 
 // ==================== 系统总装启动 ====================
+// ==================== 界面语言 ====================
+function initLanguage() {
+    applyI18n();
+    updatePagination(1, 1, 0);
+    const btn = document.getElementById('lang-toggle-btn');
+    if (!btn) return;
+    // 按钮显示要切换到的语言
+    btn.textContent = getLang() === 'zh' ? 'EN' : '中';
+    btn.addEventListener('click', () => setLang(getLang() === 'zh' ? 'en' : 'zh'));
+}
+
 async function initSystem() {
+    initLanguage();
     applyPanelConfig();
     initTheme();
     initGlobalEvents();
@@ -594,14 +607,14 @@ async function initSystem() {
     if (saved) {
         el.accountIdInput.value = saved.accountId;
         el.apiTokenInput.value = saved.apiToken;
-        showLoading('正在自动验证已保存的凭证...');
+        showLoading(t('auth.autoVerifying'));
         try {
             const dbs = await connectD1(saved.accountId, saved.apiToken);
             state.databases = dbs;
             StorageModule.setDatabases(dbs);
             enterMainSystem();
         } catch (err) {
-            showToast(`自动登录失败: ${err.message}`, true);
+            showToast(t('auth.autoLoginFailed', { msg: err.message }), true);
         } finally {
             hideLoading();
         }

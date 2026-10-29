@@ -7,6 +7,7 @@ import { queryDatabase } from '../api.js';
 import { showConfirm, showAlert } from '../dialog.js';
 import { formatDateTime, escapeHtml } from '../utils.js';
 import { getSiteUrl, getViewTypes, PANEL } from '../sites.js';
+import { t, formatNumber, localizedLabel } from '../i18n.js';
 
 let ctx = null;
 let currentDb = { id: '', name: '' };
@@ -21,9 +22,9 @@ let typeFilter = ''; // '' 全部 | 分类 key（见 sites.config.js 的 viewTyp
 
 // 分类选项：全部 + 配置的分类 + 其他页面
 function getTypeOptions(dbName) {
-    const opts = [['', '全部类型']];
-    getViewTypes(dbName).forEach(t => opts.push([t.key, t.label || t.key]));
-    opts.push(['other', '其他页面']);
+    const opts = [['', t('stats.allTypes')]];
+    getViewTypes(dbName).forEach(type => opts.push([type.key, localizedLabel(type.label) || type.key]));
+    opts.push(['other', t('stats.otherPages')]);
     return opts;
 }
 
@@ -36,11 +37,11 @@ function buildTypeCondition(dbName, key) {
     };
     const params = [];
     if (key === 'other') {
-        const all = types.flatMap(t => t.prefixes);
+        const all = types.flatMap(item => item.prefixes);
         if (!all.length) return null;
         return { sql: `NOT ${likeAny(all, params)}`, params };
     }
-    const type = types.find(t => t.key === key);
+    const type = types.find(item => item.key === key);
     if (!type) return null;
     return { sql: likeAny(type.prefixes, params), params };
 }
@@ -67,7 +68,7 @@ function renderTypeFilter() {
 export function renderStatsTable(tbody, data, currentDbName) {
     if (!tbody) return;
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">没有找到访问量统计数据。</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${t('stats.noMatch')}</td></tr>`;
         return;
     }
 
@@ -80,7 +81,7 @@ export function renderStatsTable(tbody, data, currentDbName) {
         let urlDisplay = escapeHtml(String(item.url));
         if (domain) {
             const fullUrl = domain + (item.url.startsWith('/') ? item.url : '/' + item.url);
-            urlDisplay = `<a href="${escapeHtml(fullUrl)}" target="_blank" style="color: var(--primary-color); text-decoration: none;" title="在新标签页中打开">${urlDisplay}</a>`;
+            urlDisplay = `<a href="${escapeHtml(fullUrl)}" target="_blank" style="color: var(--primary-color); text-decoration: none;" title="${t('common.openNewTab')}">${urlDisplay}</a>`;
         }
 
         // 没有更新时间的记录显示 -，不要拿当前时间冒充
@@ -90,10 +91,10 @@ export function renderStatsTable(tbody, data, currentDbName) {
             <td style="width: 40px;"><input type="checkbox" class="row-check" value="${item.id}"></td>
             <td><strong>${item.id}</strong></td>
             <td><div class="text-ellipsis" title="${escapeHtml(String(item.url))}">${urlDisplay}</div></td>
-            <td><span class="stats-views-badge">${item.views || 0}</span></td>
+            <td><span class="stats-views-badge">${formatNumber(item.views || 0)}</span></td>
             <td class="cell-time" title="${formattedTime}">${formattedTime}</td>
             <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">删除</button>
+                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">${t('common.delete')}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -152,7 +153,7 @@ async function loadData(forceRefresh = false) {
     }
 
     if (tableData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span class="loader-inline"></span> 正在读取浏览量数据...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span class="loader-inline"></span> ${t('stats.loading')}</td></tr>`;
     } else {
         tbody.style.opacity = '0.55';
     }
@@ -196,7 +197,7 @@ async function loadData(forceRefresh = false) {
         }
     } catch (err) {
         console.error("Stats load error:", err);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger-color); padding: 2rem;">加载失败: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger-color); padding: 2rem;">${escapeHtml(t('common.loadFailed', { msg: err.message }))}</td></tr>`;
     } finally {
         tbody.style.opacity = '1';
     }
@@ -204,21 +205,21 @@ async function loadData(forceRefresh = false) {
 
 async function deleteStatsRecord(id) {
     const ok = await showConfirm({
-        title: '删除访问记录确认',
-        message: `确定要删除 ID 为 ${id} 的文章访问记录吗？此操作不可逆。`,
-        confirmText: '确认删除',
+        title: t('stats.deleteTitle'),
+        message: t('stats.deleteMessage', { id }),
+        confirmText: t('common.confirmDelete'),
         danger: true
     });
     if (!ok) return;
 
-    if (ctx?.showLoading) ctx.showLoading('正在删除...');
+    if (ctx?.showLoading) ctx.showLoading(t('common.deleting'));
     try {
         await queryDatabase(currentDb.id, `DELETE FROM article_views WHERE id = ?`, [parseInt(id)]);
         clearStatsCache();
-        if (ctx?.showToast) ctx.showToast('记录删除成功！');
+        if (ctx?.showToast) ctx.showToast(t('stats.deleted'));
         await loadData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`删除失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('common.deleteFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -239,10 +240,10 @@ export const StatsModule = {
             <tr>
                 <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
                 <th>ID</th>
-                <th>页面 URL</th>
-                <th id="sort-views-th" class="stats-sortable-header ${viewsSortClass}" title="点击切换访问量升序/降序">访问量</th>
-                <th id="sort-updated-th" class="stats-sortable-header ${updatedSortClass}" title="点击切换更新时间升序/降序">更新时间</th>
-                <th style="text-align: right;">操作</th>
+                <th>${t('stats.colUrl')}</th>
+                <th id="sort-views-th" class="stats-sortable-header ${viewsSortClass}" title="${escapeHtml(t('common.sortToggle', { label: t('stats.colViews') }))}">${t('stats.colViews')}</th>
+                <th id="sort-updated-th" class="stats-sortable-header ${updatedSortClass}" title="${escapeHtml(t('common.sortToggle', { label: t('stats.colUpdated') }))}">${t('stats.colUpdated')}</th>
+                <th style="text-align: right;">${t('common.actions')}</th>
             </tr>
         `;
 
@@ -328,27 +329,27 @@ export const StatsModule = {
     async deleteSelected() {
         const checkboxes = document.querySelectorAll('.row-check:checked');
         if (checkboxes.length === 0) {
-            return ctx?.showToast ? ctx.showToast('请先勾选要删除的记录', true) : null;
+            return ctx?.showToast ? ctx.showToast(t('stats.selectFirst'), true) : null;
         }
 
         const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
         const ok = await showConfirm({
-            title: '批量删除访问记录确认',
-            message: `确定要永久删除选中的 ${ids.length} 条访问记录吗？此操作不可逆。`,
-            confirmText: '批量删除',
+            title: t('stats.batchTitle'),
+            message: t('stats.batchMessage', { count: ids.length }),
+            confirmText: t('common.batchDelete'),
             danger: true
         });
         if (!ok) return;
 
-        if (ctx?.showLoading) ctx.showLoading(`正在批量删除 ${ids.length} 条记录...`);
+        if (ctx?.showLoading) ctx.showLoading(t('stats.batchDeleting', { count: ids.length }));
         try {
             const placeholders = ids.map(() => '?').join(',');
             await queryDatabase(currentDb.id, `DELETE FROM article_views WHERE id IN (${placeholders})`, ids);
             clearStatsCache();
-            if (ctx?.showToast) ctx.showToast('批量删除成功！');
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteSuccess'));
             await loadData(true);
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`批量删除失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteFailed', { msg: err.message }), true);
         } finally {
             if (ctx?.hideLoading) ctx.hideLoading();
         }
@@ -356,11 +357,11 @@ export const StatsModule = {
 
     exportCSV() {
         if (tableData.length === 0) {
-            showAlert({ title: '导出提示', message: '当前没有可导出的数据' });
+            showAlert({ title: t('common.exportTitle'), message: t('common.nothingToExport') });
             return;
         }
-        const headers = ['ID', '页面 URL', '访问量', '更新时间'];
-        const rows = tableData.map(c => [c.id, `"${String(c.url).replace(/"/g, '""')}"`, c.views || 0, c.updated_at || '未知']);
+        const headers = ['ID', t('stats.colUrl'), t('stats.colViews'), t('stats.colUpdated')];
+        const rows = tableData.map(c => [c.id, `"${String(c.url).replace(/"/g, '""')}"`, c.views || 0, c.updated_at || t('common.unknown')]);
         const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");

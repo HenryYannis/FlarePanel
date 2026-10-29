@@ -5,6 +5,7 @@
 // ====================================================
 
 import { showConfirm, showAlert } from '../../dialog.js';
+import { t, langHeaders } from '../../i18n.js';
 import { escapeHtml } from '../../utils.js';
 import { 
     OFFICIAL_AI_GATEWAY_URL, 
@@ -95,7 +96,7 @@ export function updateDefaultModelDropdownMenu(filterKeyword = '') {
     if (combined.length === 0) {
         menu.innerHTML = `
             <div style="padding: 12px 14px; font-size: 11px; color: var(--text-secondary); text-align: center;">
-                暂无候选模型，请先输入支持的模型或点击【自动拉取模型】
+                ${t('modal.noCandidates')}
             </div>
         `;
         return;
@@ -108,7 +109,7 @@ export function updateDefaultModelDropdownMenu(filterKeyword = '') {
     if (filtered.length === 0) {
         menu.innerHTML = `
             <div style="padding: 12px 14px; font-size: 11px; color: var(--text-secondary); text-align: center;">
-                未匹配到模型「${escapeHtml(filterKeyword)}」
+                ${escapeHtml(t('modal.noModelMatch', { kw: filterKeyword }))}
             </div>
         `;
         return;
@@ -129,7 +130,7 @@ export function updateDefaultModelDropdownMenu(filterKeyword = '') {
             }
             closeDefaultModelMenu();
             const ctx = callbacks.getContext();
-            if (ctx?.showToast) ctx.showToast(`已选首选模型: ${val}`);
+            if (ctx?.showToast) ctx.showToast(t('modal.primaryPicked', { model: val }));
         };
     });
 }
@@ -165,7 +166,7 @@ export function openProviderModal(provider) {
 
     if (!modal) return;
 
-    if (title) title.textContent = provider ? `编辑服务商「${provider.name}」` : '添加新服务商';
+    if (title) title.textContent = provider ? t('modal.editProviderTitle', { name: provider.name }) : t('ai.addProvider');
 
     if (provider) {
         if (nameInput) nameInput.value = provider.name || '';
@@ -219,14 +220,14 @@ export function renderFetchedModelBadges(filterKeyword = '') {
 
     if (countText) {
         if (kw) {
-            countText.textContent = `筛选结果: ${visibleModels.length} / ${currentFetchedModelsCache.length} 个模型 (点击添加/移除):`;
+            countText.textContent = t('modal.filterResult', { visible: visibleModels.length, total: currentFetchedModelsCache.length });
         } else {
-            countText.textContent = `已获取 ${currentFetchedModelsCache.length} 个模型 (点击标签添加/移除):`;
+            countText.textContent = t('modal.fetchedCount', { count: currentFetchedModelsCache.length });
         }
     }
 
     if (visibleModels.length === 0) {
-        listEl.innerHTML = `<div style="padding: 8px 12px; font-size: 11px; color: var(--text-secondary);">无匹配模型，请尝试更换搜索词</div>`;
+        listEl.innerHTML = `<div style="padding: 8px 12px; font-size: 11px; color: var(--text-secondary);">${t('modal.noFilterMatch')}</div>`;
         return;
     }
 
@@ -278,28 +279,28 @@ export function openTestModal() {
     const targetSelect = document.getElementById('ai-test-target-select') || document.getElementById('ai-test-target');
     if (!modal) return;
 
-    if (resultBox) resultBox.textContent = '请选择上方测试目标，点击下方【发送测试请求】开始验证...';
-    if (timing) timing.textContent = '耗时: -';
+    if (resultBox) resultBox.textContent = t('modal.testPrompt');
+    if (timing) timing.textContent = t('modal.timingEmpty');
 
     const currentAiConfig = callbacks.getConfig();
     if (targetSelect && currentAiConfig) {
-        let optionsHtml = `<option value="__AUTO__">全自动双层容灾降级链 (全网首选路由及多级故障转移)</option>`;
+        let optionsHtml = `<option value="__AUTO__">${t('modal.autoChainOption')}</option>`;
         const providers = (currentAiConfig.providers || []).filter(p => p.enabled);
         if (providers.length > 0) {
             providers.forEach(p => {
-                optionsHtml += `<optgroup label="服务商: ${escapeHtml(p.name)} (${escapeHtml(p.id)})">`;
+                optionsHtml += `<optgroup label="${escapeHtml(t('modal.providerGroup', { name: p.name, id: p.id }))}">`;
                 const pollModels = getProviderPollModels(p);
                 const pollSummary = pollModels.length > 1
-                    ? `已勾选 ${pollModels.length} 个模型轮询`
-                    : `单模型模式: ${pollModels[0] || '默认'}`;
-                optionsHtml += `<option value="provider:${p.id}">${escapeHtml(p.name)} (${pollSummary})</option>`;
+                    ? t('modal.pollMulti', { count: pollModels.length })
+                    : t('modal.pollSingle', { model: pollModels[0] || t('ai.defaultModel') });
+                optionsHtml += `<option value="provider:${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(pollSummary)})</option>`;
                 const rawModelList = (p.models || '').split(',').map(m => m.trim()).filter(Boolean);
                 rawModelList.forEach(m => {
                     const isChecked = pollModels.includes(m);
                     const rank = pollModels.indexOf(m);
-                    const roleLabel = isChecked ? (rank === 0 ? '首选' : `备用 ${rank + 1}`) : '未勾选';
+                    const roleLabel = isChecked ? (rank === 0 ? t('ai.rolePrimary') : t('ai.roleBackupN', { n: rank + 1 })) : t('modal.unchecked');
                     const scopedM = p.id ? `${p.id}/${m}` : m;
-                    optionsHtml += `<option value="model:${scopedM}">${scopedM} (${roleLabel})</option>`;
+                    optionsHtml += `<option value="model:${escapeHtml(scopedM)}">${escapeHtml(scopedM)} (${escapeHtml(roleLabel)})</option>`;
                 });
                 optionsHtml += `</optgroup>`;
             });
@@ -319,7 +320,7 @@ export function openCodeModal() {
     if (!modal || !currentAiConfig) return;
 
     const firstActiveKey = currentAiConfig.gateway?.keys?.find(k => k && k.enabled && k.key);
-    const masterKey = firstActiveKey?.key || currentAiConfig.gateway?.keys?.[0]?.key || currentAiConfig.gateway?.masterKey || 'sk-xb-...';
+    const masterKey = firstActiveKey?.key || currentAiConfig.gateway?.keys?.[0]?.key || currentAiConfig.gateway?.masterKey || 'sk-fp-...';
     const firstEnabledProvider = currentAiConfig.providers.find(p => p.enabled);
     let sampleModel = 'MiniMax-M3';
     if (firstEnabledProvider) {
@@ -330,7 +331,7 @@ export function openCodeModal() {
     const continueConfig = {
         models: [
             {
-                title: `AI 网关 - ${sampleModel}`,
+                title: t('modal.continueTitle', { model: sampleModel }),
                 provider: "openai",
                 model: sampleModel,
                 apiKey: masterKey,
@@ -362,8 +363,8 @@ export function openKeySlotModal(slotIndex) {
     const valInput = document.getElementById('ai-keyslot-val-input');
     const deleteBtn = document.getElementById('ai-delete-keyslot-btn');
 
-    if (titleEl) titleEl.textContent = hasConfig ? '管理开发者专属密钥' : '新建开发者专属密钥';
-    if (badgeEl) badgeEl.textContent = hasConfig ? `第 ${slotIndex + 1} 组` : "新建";
+    if (titleEl) titleEl.textContent = hasConfig ? t('modal.manageKeyTitle') : t('modal.newKeyTitle');
+    if (badgeEl) badgeEl.textContent = hasConfig ? t('modal.slotN', { n: slotIndex + 1 }) : t('ai.newKey');
     if (nameInput) nameInput.value = hasConfig ? k.name : '';
     if (valInput) valInput.value = hasConfig ? k.key : generateRandomKey();
     if (deleteBtn) deleteBtn.style.display = hasConfig ? 'inline-flex' : 'none';
@@ -384,52 +385,52 @@ export function ensureAiModals() {
     <!-- AI 服务商添加/编辑模态框 -->
     <div class="modal-overlay" id="ai-provider-modal" data-static="true">
         <div class="modal" style="max-width: 580px;">
-            <h3 id="ai-provider-modal-title" style="margin-bottom: 0.75rem; color: var(--text-primary);">添加/编辑大模型服务商</h3>
+            <h3 id="ai-provider-modal-title" style="margin-bottom: 0.75rem; color: var(--text-primary);">${t('modal.providerModalTitle')}</h3>
 
             <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
                 <div class="form-group">
-                    <label for="ai-provider-name-input">服务商显示名称</label>
-                    <input type="text" id="ai-provider-name-input" class="form-control" placeholder="例如: 硅基流动 SiliconFlow">
+                    <label for="ai-provider-name-input">${t('modal.providerName')}</label>
+                    <input type="text" id="ai-provider-name-input" class="form-control" placeholder="${t('modal.providerNamePlaceholder')}">
                 </div>
                 <div class="form-group">
-                    <label for="ai-provider-id-input">唯一标识 ID</label>
-                    <input type="text" id="ai-provider-id-input" class="form-control" placeholder="例如: provider_siliconflow" spellcheck="false">
+                    <label for="ai-provider-id-input">${t('modal.providerId')}</label>
+                    <input type="text" id="ai-provider-id-input" class="form-control" placeholder="${t('modal.providerIdPlaceholder')}" spellcheck="false">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="ai-provider-url-input">API Base URL (OpenAI 兼容)</label>
-                <input type="text" id="ai-provider-url-input" class="form-control" placeholder="例如: https://api.siliconflow.cn/v1" spellcheck="false">
+                <label for="ai-provider-url-input">${t('modal.baseUrl')}</label>
+                <input type="text" id="ai-provider-url-input" class="form-control" placeholder="${t('modal.baseUrlPlaceholder')}" spellcheck="false">
             </div>
 
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <label for="ai-provider-key-input" style="margin: 0;">API Key (密钥 - 明文可见)</label>
-                    <button type="button" class="btn btn-outline btn-sm" id="ai-copy-modal-key-btn" style="padding: 2px 8px; font-size: 11px;" title="复制此密钥">复制密钥</button>
+                    <label for="ai-provider-key-input" style="margin: 0;">${t('modal.apiKeyLabel')}</label>
+                    <button type="button" class="btn btn-outline btn-sm" id="ai-copy-modal-key-btn" style="padding: 2px 8px; font-size: 11px;" title="${t('modal.copyKeyTitle')}">${t('modal.copyKey')}</button>
                 </div>
-                <input type="text" id="ai-provider-key-input" class="form-control" placeholder="输入从服务商获取的 sk-..." spellcheck="false" style="font-family: monospace;">
+                <input type="text" id="ai-provider-key-input" class="form-control" placeholder="${t('modal.apiKeyPlaceholder')}" spellcheck="false" style="font-family: monospace;">
             </div>
 
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label for="ai-provider-models-input" style="margin: 0; font-weight: 600;">支持的模型列表 (英文逗号分隔，默认前 3 个自动轮询)</label>
-                    <button type="button" class="btn btn-outline btn-sm" id="ai-fetch-models-btn" style="padding: 2px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; border-color: var(--primary-color); color: var(--primary-color);" title="向服务商 API 拉取模型 ID 清单">
-                        <span id="ai-fetch-models-text">自动拉取模型</span>
+                    <label for="ai-provider-models-input" style="margin: 0; font-weight: 600;">${t('modal.modelsLabel')}</label>
+                    <button type="button" class="btn btn-outline btn-sm" id="ai-fetch-models-btn" style="padding: 2px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; border-color: var(--primary-color); color: var(--primary-color);" title="${t('modal.fetchModelsTitle')}">
+                        <span id="ai-fetch-models-text">${t('modal.fetchModels')}</span>
                     </button>
                 </div>
-                <input type="text" id="ai-provider-models-input" class="form-control" placeholder="例如: MiniMax-M3, MiniMax-Text-01, abab6.5s-chat (建议配置 3 个模型)" spellcheck="false">
+                <input type="text" id="ai-provider-models-input" class="form-control" placeholder="${t('modal.modelsPlaceholder')}" spellcheck="false">
                 <!-- 自动拉取候选面板 -->
                 <div id="ai-fetched-models-panel" style="display: none; margin-top: 8px; padding: 10px 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">
-                        <span id="ai-fetched-count-text">已拉取可用模型 (点击标签选择，默认按前 3 个自动轮询):</span>
+                        <span id="ai-fetched-count-text">${t('modal.fetchedHint')}</span>
                         <div style="display: flex; gap: 8px;">
-                            <a href="javascript:void(0)" id="ai-models-fill-all" style="color: var(--primary-color); text-decoration: none; font-size: 11px;">全选填入</a>
-                            <a href="javascript:void(0)" id="ai-models-clear" style="color: var(--text-secondary); text-decoration: none; font-size: 11px;">清空已选</a>
+                            <a href="javascript:void(0)" id="ai-models-fill-all" style="color: var(--primary-color); text-decoration: none; font-size: 11px;">${t('modal.fillAll')}</a>
+                            <a href="javascript:void(0)" id="ai-models-clear" style="color: var(--text-secondary); text-decoration: none; font-size: 11px;">${t('modal.clearSelected')}</a>
                         </div>
                     </div>
                     <div style="position: relative; margin-bottom: 8px;">
-                        <input type="text" id="ai-models-search-input" class="form-control ai-models-search-box" placeholder="搜索过滤拉取的模型 (如 deepseek, qwen, llama, v3)..." spellcheck="false">
-                        <button type="button" id="ai-models-search-clear" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 12px; color: var(--text-secondary); cursor: pointer; display: none; line-height: 1; align-items: center; justify-content: center; padding: 2px;" title="清空搜索">
+                        <input type="text" id="ai-models-search-input" class="form-control ai-models-search-box" placeholder="${t('modal.searchModelsPlaceholder')}" spellcheck="false">
+                        <button type="button" id="ai-models-search-clear" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 12px; color: var(--text-secondary); cursor: pointer; display: none; line-height: 1; align-items: center; justify-content: center; padding: 2px;" title="${t('modal.clearSearch')}" aria-label="${t('modal.clearSearch')}">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
@@ -438,10 +439,10 @@ export function ensureAiModals() {
             </div>
 
             <div class="form-group">
-                <label for="ai-provider-default-model-input">首选调用模型 (报错时自动轮询该服务商其余备用模型)</label>
+                <label for="ai-provider-default-model-input">${t('modal.primaryModelLabel')}</label>
                 <div id="ai-provider-default-model-wrapper" style="position: relative; display: flex; align-items: center;">
-                    <input type="text" id="ai-provider-default-model-input" class="form-control" placeholder="输入或点击右侧箭头选择模型" spellcheck="false" style="padding-right: 32px;">
-                    <button type="button" id="ai-provider-default-model-dropdown-btn" style="position: absolute; right: 4px; width: 26px; height: 26px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; transition: transform 0.2s ease, color 0.15s ease;" title="展开可用模型列表">
+                    <input type="text" id="ai-provider-default-model-input" class="form-control" placeholder="${t('modal.primaryModelPlaceholder')}" spellcheck="false" style="padding-right: 32px;">
+                    <button type="button" id="ai-provider-default-model-dropdown-btn" style="position: absolute; right: 4px; width: 26px; height: 26px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; transition: transform 0.2s ease, color 0.15s ease;" title="${t('modal.expandModels')}" aria-label="${t('modal.expandModels')}">
                         <svg class="dropdown-chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div id="ai-provider-default-model-menu" class="ai-dropdown-menu dropup" style="display: none;"></div>
@@ -449,8 +450,8 @@ export function ensureAiModals() {
             </div>
 
             <div class="modal-actions" style="margin-top: 24px;">
-                <button class="btn btn-outline" id="close-ai-provider-btn">取消</button>
-                <button class="btn btn-primary" id="save-ai-provider-btn">保存</button>
+                <button class="btn btn-outline" id="close-ai-provider-btn">${t('common.cancel')}</button>
+                <button class="btn btn-primary" id="save-ai-provider-btn">${t('common.save')}</button>
             </div>
         </div>
     </div>
@@ -458,31 +459,31 @@ export function ensureAiModals() {
     <!-- AI 连通性测试 Playground 模态框 -->
     <div class="modal-overlay" id="ai-test-modal" data-static="true">
         <div class="modal" style="max-width: 650px;">
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">网关链路连通性实时测速</h3>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">${t('modal.testTitle')}</h3>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-                通过 Master Key 向统一网关（<code>${OFFICIAL_AI_GATEWAY_URL}</code>）发起真实推理，可任意切换测试各服务商与指定模型。
+                ${t('modal.testDesc', { url: escapeHtml(OFFICIAL_AI_GATEWAY_URL) })}
             </p>
             
             <div class="form-group">
-                <label for="ai-test-target-select">选择测试目标（服务商 / 指定模型）</label>
+                <label for="ai-test-target-select">${t('modal.testTarget')}</label>
                 <select id="ai-test-target-select" class="form-control custom-select">
-                    <option value="__AUTO__">全自动主备容灾降级链 (默认兜底流水线)</option>
+                    <option value="__AUTO__">${t('modal.autoChainDefault')}</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="ai-test-prompt-input">测试提示词 (Prompt)</label>
-                <input type="text" id="ai-test-prompt-input" class="form-control" value="你好！请用一句话告诉我你是谁，并且输出当前时间。">
+                <label for="ai-test-prompt-input">${t('modal.testPromptLabel')}</label>
+                <input type="text" id="ai-test-prompt-input" class="form-control" value="${escapeHtml(t('modal.testPromptDefault'))}">
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <label style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-secondary);">返回响应结果</label>
-                <span id="ai-test-timing" style="font-size: 12px; font-family: monospace; color: var(--primary-color);">耗时: -</span>
+                <label style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-secondary);">${t('modal.responseLabel')}</label>
+                <span id="ai-test-timing" style="font-size: 12px; font-family: monospace; color: var(--primary-color);">${t('modal.timingEmpty')}</span>
             </div>
-            <div id="ai-test-result-box" class="ai-code-block" style="min-height: 120px; white-space: pre-wrap; font-size: 13px;">点击下方【发送测试请求】开始验证...</div>
+            <div id="ai-test-result-box" class="ai-code-block" style="min-height: 120px; white-space: pre-wrap; font-size: 13px;">${t('modal.testIdle')}</div>
 
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-ai-test-btn">取消</button>
-                <button class="btn btn-primary" id="send-ai-test-btn">发送测试请求</button>
+                <button class="btn btn-outline" id="close-ai-test-btn">${t('common.cancel')}</button>
+                <button class="btn btn-primary" id="send-ai-test-btn">${t('modal.sendTest')}</button>
             </div>
         </div>
     </div>
@@ -490,29 +491,29 @@ export function ensureAiModals() {
     <!-- AI 接入向导代码预览模态框 -->
     <div class="modal-overlay" id="ai-code-modal">
         <div class="modal" style="max-width: 720px;">
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">外部开发工具接入向导</h3>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">${t('modal.codeTitle')}</h3>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-                网关完全遵循标准 OpenAI API 格式。复制以下配置粘贴至对应的插件中即可使用：
+                ${t('modal.codeDesc')}
             </p>
 
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px;">1. VS Code Continue 插件 (<code>~/.continue/config.json</code>)</strong>
-                    <button class="btn btn-outline btn-sm copy-btn" data-target="code-continue">一键复制</button>
+                    <strong style="font-size: 13px;">${t('modal.codeContinue')}</strong>
+                    <button class="btn btn-outline btn-sm copy-btn" data-target="code-continue">${t('modal.copyAll')}</button>
                 </div>
                 <textarea id="code-continue" class="ai-code-block" style="width: 100%; height: 130px; resize: none;" readonly></textarea>
             </div>
 
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px;">2. Hermes / 终端 CLI 环境变量 (<code>.bashrc</code> / 命令行)</strong>
-                    <button class="btn btn-outline btn-sm copy-btn" data-target="code-hermes">一键复制</button>
+                    <strong style="font-size: 13px;">${t('modal.codeHermes')}</strong>
+                    <button class="btn btn-outline btn-sm copy-btn" data-target="code-hermes">${t('modal.copyAll')}</button>
                 </div>
                 <textarea id="code-hermes" class="ai-code-block" style="width: 100%; height: 75px; resize: none;" readonly></textarea>
             </div>
 
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-ai-code-btn">关闭</button>
+                <button class="btn btn-outline" id="close-ai-code-btn">${t('common.close')}</button>
             </div>
         </div>
     </div>
@@ -521,15 +522,15 @@ export function ensureAiModals() {
     <div class="modal-overlay" id="ai-keyslot-modal" data-static="true">
         <div class="modal" style="max-width: 520px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 id="ai-keyslot-modal-title" style="margin: 0; color: var(--text-primary);">配置开发者专属密钥</h3>
-                <span id="ai-keyslot-badge" class="ai-slot-badge">槽位 1</span>
+                <h3 id="ai-keyslot-modal-title" style="margin: 0; color: var(--text-primary);">${t('modal.keySlotTitle')}</h3>
+                <span id="ai-keyslot-badge" class="ai-slot-badge">${t('modal.slotBadgeDefault')}</span>
             </div>
 
             <div class="form-group">
-                <label for="ai-keyslot-name-input">平台或用途名称</label>
-                <input type="text" id="ai-keyslot-name-input" class="form-control" placeholder="例如: VS Code Continue 或 Open Code">
+                <label for="ai-keyslot-name-input">${t('modal.keyNameLabel')}</label>
+                <input type="text" id="ai-keyslot-name-input" class="form-control" placeholder="${t('modal.keyNamePlaceholder')}">
                 <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
-                    <span style="font-size: 11px; color: var(--text-secondary);">快捷填入:</span>
+                    <span style="font-size: 11px; color: var(--text-secondary);">${t('modal.quickFill')}</span>
                     <button type="button" class="btn btn-outline btn-xs ai-quick-slot-tag" data-tag="VS Code Continue" style="font-size: 11px; padding: 2px 7px;">VS Code Continue</button>
                     <button type="button" class="btn btn-outline btn-xs ai-quick-slot-tag" data-tag="Cline" style="font-size: 11px; padding: 2px 7px;">Cline</button>
                     <button type="button" class="btn btn-outline btn-xs ai-quick-slot-tag" data-tag="Open Code" style="font-size: 11px; padding: 2px 7px;">Open Code</button>
@@ -539,21 +540,21 @@ export function ensureAiModals() {
 
             <div class="form-group" style="margin-top: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label for="ai-keyslot-val-input" style="margin: 0;">API 密钥 (明文可见)</label>
+                    <label for="ai-keyslot-val-input" style="margin: 0;">${t('modal.keyValueLabel')}</label>
                     <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn btn-outline btn-sm" id="ai-copy-keyslot-btn" style="padding: 2px 8px; font-size: 11px;">复制密钥</button>
-                        <button type="button" class="btn btn-outline btn-sm" id="ai-regen-keyslot-btn" style="padding: 2px 8px; font-size: 11px;">重新生成</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="ai-copy-keyslot-btn" style="padding: 2px 8px; font-size: 11px;">${t('modal.copyKey')}</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="ai-regen-keyslot-btn" style="padding: 2px 8px; font-size: 11px;">${t('modal.regenerate')}</button>
                     </div>
                 </div>
-                <input type="text" id="ai-keyslot-val-input" class="form-control" placeholder="sk-xb-ai-..." spellcheck="false" style="font-family: monospace; font-size: 13px;">
-                <p style="font-size: 11.5px; color: var(--text-secondary); margin: 6px 0 0 0;">免受普通 IP 限额约束，全网大模型直通调用</p>
+                <input type="text" id="ai-keyslot-val-input" class="form-control" placeholder="sk-fp-..." spellcheck="false" style="font-family: monospace; font-size: 13px;">
+                <p style="font-size: 11.5px; color: var(--text-secondary); margin: 6px 0 0 0;">${t('modal.keyHint')}</p>
             </div>
 
             <div class="modal-actions-between" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; width: 100%; box-sizing: border-box;">
-                <button type="button" class="btn btn-danger" id="ai-delete-keyslot-btn" style="display: none;">删除此密钥</button>
+                <button type="button" class="btn btn-danger" id="ai-delete-keyslot-btn" style="display: none;">${t('modal.deleteKey')}</button>
                 <div style="display: flex; gap: 10px; margin-left: auto; align-items: center;">
-                    <button type="button" class="btn btn-outline" id="close-ai-keyslot-btn">取消</button>
-                    <button type="button" class="btn btn-primary" id="save-ai-keyslot-btn">保存</button>
+                    <button type="button" class="btn btn-outline" id="close-ai-keyslot-btn">${t('common.cancel')}</button>
+                    <button type="button" class="btn btn-primary" id="save-ai-keyslot-btn">${t('common.save')}</button>
                 </div>
             </div>
         </div>
@@ -660,11 +661,11 @@ export function initModalBindings() {
             const baseUrl = urlInput?.value.trim();
             const apiKey = keyInput?.value.trim();
             if (!baseUrl) {
-                return showAlert({ title: '参数缺失', message: '请先填写 API Base URL！' });
+                return showAlert({ title: t('ai.tgMissingTitle'), message: t('modal.baseUrlMissing') });
             }
 
             fetchModelsBtn.disabled = true;
-            if (fetchModelsText) fetchModelsText.textContent = '拉取中...';
+            if (fetchModelsText) fetchModelsText.textContent = t('modal.fetching');
 
             try {
                 let resData = null;
@@ -673,7 +674,8 @@ export function initModalBindings() {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${getCredentials().apiToken}`
+                            'Authorization': `Bearer ${getCredentials().apiToken}`,
+                            ...langHeaders()
                         },
                         body: JSON.stringify({ baseUrl, apiKey })
                     });
@@ -681,7 +683,7 @@ export function initModalBindings() {
                         resData = await proxyRes.json();
                     }
                 } catch (proxyErr) {
-                    console.warn('Functions 代理拉取未成功，尝试直连服务商:', proxyErr);
+                    console.warn('Fetching models via Functions failed; trying the provider directly:', proxyErr);
                 }
 
                 if (!resData || !resData.success) {
@@ -700,12 +702,12 @@ export function initModalBindings() {
                 }
 
                 if (!resData.success || !resData.models || resData.models.length === 0) {
-                    throw new Error(resData.error || '未能从该服务商读取到模型列表，请确认 Base URL 是否包含 /v1');
+                    throw new Error(resData.error || t('modal.noModelsFound'));
                 }
 
                 currentFetchedModelsCache = resData.models;
                 const ctx = callbacks.getContext();
-                if (ctx?.showToast) ctx.showToast(`成功获取到 ${currentFetchedModelsCache.length} 个模型！`);
+                if (ctx?.showToast) ctx.showToast(t('modal.fetchedToast', { count: currentFetchedModelsCache.length }));
 
                 const fetchedPanel = document.getElementById('ai-fetched-models-panel');
                 if (fetchedPanel) fetchedPanel.style.display = 'block';
@@ -719,10 +721,10 @@ export function initModalBindings() {
                 updateDefaultModelDropdownMenu();
 
             } catch (err) {
-                showAlert({ title: '拉取模型失败', message: `拉取模型列表失败: ${err.message}\n请检查 Base URL 与 API Key 是否有效，亦可手动填入模型 ID。`, type: 'warning' });
+                showAlert({ title: t('modal.fetchFailedTitle'), message: t('modal.fetchFailed', { msg: err.message }), type: 'warning' });
             } finally {
                 fetchModelsBtn.disabled = false;
-                if (fetchModelsText) fetchModelsText.textContent = '自动拉取模型';
+                if (fetchModelsText) fetchModelsText.textContent = t('modal.fetchModels');
             }
         };
     }
@@ -750,7 +752,7 @@ export function initModalBindings() {
                 renderFetchedModelBadges(sInput ? sInput.value : '');
                 updateDefaultModelDropdownMenu();
                 const ctx = callbacks.getContext();
-                if (ctx?.showToast) ctx.showToast(`已填入 ${targets.length} 个模型`);
+                if (ctx?.showToast) ctx.showToast(t('modal.filledN', { count: targets.length }));
             }
         };
     }
@@ -782,7 +784,7 @@ export function initModalBindings() {
             const defaultModel = defaultModelInput?.value.trim() || (models ? models.split(',')[0].trim() : '');
 
             if (!name || !id || !baseUrl) {
-                return showAlert({ title: '提示', message: '请填写完整的服务商名称、ID 和 Base URL！' });
+                return showAlert({ title: t('dialog.alertTitle'), message: t('modal.providerFieldsMissing') });
             }
 
             if (editingProviderId) {
@@ -790,7 +792,7 @@ export function initModalBindings() {
                 if (target) {
                     if (id !== editingProviderId) {
                         if (currentAiConfig.providers.some(p => p.id === id)) {
-                            return showAlert({ title: '提示', message: '该服务商 ID 已被其他服务商使用，请更换 ID！' });
+                            return showAlert({ title: t('dialog.alertTitle'), message: t('modal.providerIdTaken') });
                         }
                         target.id = id;
                         if (currentAiConfig.sitePolicy?.fallbackChain) {
@@ -814,7 +816,7 @@ export function initModalBindings() {
                 }
             } else {
                 if (currentAiConfig.providers.some(p => p.id === id)) {
-                    return showAlert({ title: '提示', message: '该服务商 ID 已存在，请更换 ID！' });
+                    return showAlert({ title: t('dialog.alertTitle'), message: t('modal.providerIdExists') });
                 }
                 currentAiConfig.providers.push({
                     id,
@@ -833,7 +835,7 @@ export function initModalBindings() {
 
             const container = document.getElementById('ai-hub-container');
             if (container) callbacks.renderAiHubView(container, currentAiConfig);
-            await callbacks.syncAiConfig(`已${editingProviderId ? '更新' : '添加'}服务商「${name}」并同步至边缘网关`, true);
+            await callbacks.syncAiConfig(t(editingProviderId ? 'modal.providerUpdated' : 'modal.providerAdded', { name }), true);
         };
     }
 
@@ -855,11 +857,11 @@ export function initModalBindings() {
             const val = keyInput ? keyInput.value.trim() : '';
             const ctx = callbacks.getContext();
             if (!val) {
-                if (ctx?.showToast) ctx.showToast('API Key 尚为空，请先输入密钥', true);
+                if (ctx?.showToast) ctx.showToast(t('modal.apiKeyEmpty'), true);
                 return;
             }
             navigator.clipboard.writeText(val).then(() => {
-                if (ctx?.showToast) ctx.showToast('API Key 已复制到剪贴板');
+                if (ctx?.showToast) ctx.showToast(t('ai.apiKeyCopied'));
             });
         };
     }
@@ -874,7 +876,7 @@ export function initModalBindings() {
             const timing = document.getElementById('ai-test-timing');
             const currentAiConfig = callbacks.getConfig();
 
-            const prompt = promptInput?.value.trim() || '你好';
+            const prompt = promptInput?.value.trim() || t('modal.defaultPrompt');
             const endpoint = OFFICIAL_AI_GATEWAY_URL;
             const masterKey = currentAiConfig.gateway.masterKey;
             const targetVal = targetSelect ? targetSelect.value : '__AUTO__';
@@ -882,21 +884,21 @@ export function initModalBindings() {
             const requestBody = {
                 messages: [{ role: 'user', content: prompt }]
             };
-            let targetLabel = '全自动主备容灾降级链';
+            let targetLabel = t('modal.targetAuto');
 
             if (targetVal && targetVal.startsWith('model:')) {
                 const targetModel = targetVal.replace('model:', '');
                 requestBody.model = targetModel;
-                targetLabel = `指定模型 [${targetModel}]`;
+                targetLabel = t('modal.targetModel', { model: targetModel });
             } else if (targetVal && targetVal.startsWith('provider:')) {
                 const providerId = targetVal.replace('provider:', '');
                 requestBody.model = providerId;
                 const p = (currentAiConfig.providers || []).find(item => item.id === providerId);
-                targetLabel = `服务商 [${p?.name || providerId}] 3 模型自动轮询`;
+                targetLabel = t('modal.targetProvider', { name: p?.name || providerId });
             }
 
-            if (resultBox) resultBox.textContent = `正在向统一网关发送测试请求 (测试目标: ${targetLabel})...`;
-            if (timing) timing.textContent = '测速中...';
+            if (resultBox) resultBox.textContent = t('modal.testSending', { target: targetLabel });
+            if (timing) timing.textContent = t('modal.testing');
             sendTestBtn.disabled = true;
 
             const startTime = Date.now();
@@ -912,19 +914,19 @@ export function initModalBindings() {
                 });
 
                 const elapsed = Date.now() - startTime;
-                if (timing) timing.textContent = `耗时: ${elapsed} ms`;
+                if (timing) timing.textContent = t('modal.timing', { ms: elapsed });
 
                 const data = await res.json();
                 if (res.ok) {
                     const answer = data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
-                    if (resultBox) resultBox.textContent = `【测试通过 200 OK | 目标: ${targetLabel} | 响应模型: ${data.model || 'Auto'}】\n\n${answer}`;
+                    if (resultBox) resultBox.textContent = `${t('modal.testOk', { target: targetLabel, model: data.model || 'Auto' })}\n\n${answer}`;
                 } else {
-                    if (resultBox) resultBox.textContent = `【返回错误 HTTP ${res.status} | 目标: ${targetLabel}】\n${JSON.stringify(data, null, 2)}\n\n提示：若您刚刚在后台新增或修改了该服务商，请先点击页面右上角【保存】同步至边缘 KV 后再行测速。`;
+                    if (resultBox) resultBox.textContent = `${t('modal.testHttpError', { status: res.status, target: targetLabel })}\n${JSON.stringify(data, null, 2)}\n\n${t('modal.testHttpHint')}`;
                 }
             } catch (err) {
                 const elapsed = Date.now() - startTime;
-                if (timing) timing.textContent = `耗时: ${elapsed} ms`;
-                if (resultBox) resultBox.textContent = `【网络连接异常 | 目标: ${targetLabel}】: ${err.message}\n提示：请确认网关域名是否可访问并且支持跨域访问。`;
+                if (timing) timing.textContent = t('modal.timing', { ms: elapsed });
+                if (resultBox) resultBox.textContent = t('modal.testNetworkError', { target: targetLabel, msg: err.message });
             } finally {
                 sendTestBtn.disabled = false;
                 callbacks.fetchAiHubMetrics(callbacks.getMetricsDays()).then(() => {
@@ -983,11 +985,11 @@ export function initModalBindings() {
             const val = keySlotValInput.value.trim();
             const ctx = callbacks.getContext();
             if (!val) {
-                if (ctx?.showToast) ctx.showToast('密钥内容为空，请先填写或重新生成', true);
+                if (ctx?.showToast) ctx.showToast(t('modal.keyEmpty'), true);
                 return;
             }
             navigator.clipboard.writeText(val).then(() => {
-                if (ctx?.showToast) ctx.showToast('密钥已成功复制到剪贴板！');
+                if (ctx?.showToast) ctx.showToast(t('modal.keyCopied'));
             });
         };
     }
@@ -995,15 +997,15 @@ export function initModalBindings() {
     if (regenKeySlotBtn && keySlotValInput) {
         regenKeySlotBtn.onclick = async () => {
             const ok = await showConfirm({
-                title: '重新生成密钥',
-                message: '确认生成新的随机密钥吗？如果保存，旧密钥将立即失效。',
-                confirmText: '确认生成'
+                title: t('modal.regenTitle'),
+                message: t('modal.regenMessage'),
+                confirmText: t('modal.regenConfirm')
             });
             if (ok) {
                 const newKey = generateRandomKey();
                 keySlotValInput.value = newKey;
                 const ctx = callbacks.getContext();
-                if (ctx?.showToast) ctx.showToast('已生成新随机密钥，请点击右下角保存生效');
+                if (ctx?.showToast) ctx.showToast(t('modal.regenDone'));
             }
         };
     }
@@ -1013,11 +1015,11 @@ export function initModalBindings() {
             const currentAiConfig = callbacks.getConfig();
             if (currentEditingSlotIndex < 0 || !currentAiConfig) return;
             const k = currentAiConfig.gateway?.keys?.[currentEditingSlotIndex];
-            const name = k?.name || `槽位 ${currentEditingSlotIndex + 1}`;
+            const name = k?.name || t('modal.slotName', { n: currentEditingSlotIndex + 1 });
             const ok = await showConfirm({
-                title: '删除此密钥',
-                message: `确认删除【${name}】吗？删除后使用该密钥的工具将无法再调用网关。`,
-                confirmText: '确认删除',
+                title: t('modal.deleteKey'),
+                message: t('modal.deleteKeyMessage', { name }),
+                confirmText: t('common.confirmDelete'),
                 danger: true
             });
             if (ok) {
@@ -1027,7 +1029,7 @@ export function initModalBindings() {
                 keySlotModal.style.display = 'none';
                 const container = document.getElementById('ai-hub-container');
                 if (container) callbacks.renderAiHubView(container, currentAiConfig);
-                await callbacks.syncAiConfig(`【${name}】已删除`, true);
+                await callbacks.syncAiConfig(t('modal.keyDeleted', { name }), true);
             }
         };
     }
@@ -1039,11 +1041,11 @@ export function initModalBindings() {
             const name = keySlotNameInput?.value.trim();
             const key = keySlotValInput?.value.trim();
             if (!name) {
-                showAlert({ title: '参数缺失', message: '请填写平台或用途名称（例如: VS Code Continue 或 Open Code）！' });
+                showAlert({ title: t('ai.tgMissingTitle'), message: t('modal.keyNameMissing') });
                 return;
             }
             if (!key) {
-                showAlert({ title: '参数缺失', message: '密钥不能为空，请填写或点击重新生成！' });
+                showAlert({ title: t('ai.tgMissingTitle'), message: t('modal.keyValueMissing') });
                 return;
             }
 
@@ -1056,7 +1058,7 @@ export function initModalBindings() {
                 newId = `key_${n}`;
             }
             if (currentAiConfig.gateway.keys.some((x, i) => i !== currentEditingSlotIndex && x && x.key === key)) {
-                showAlert({ title: '密钥重复', message: '该密钥已被其他工具使用，请重新生成一个！' });
+                showAlert({ title: t('modal.keyDupTitle'), message: t('modal.keyDup') });
                 return;
             }
             currentAiConfig.gateway.keys[currentEditingSlotIndex] = {
@@ -1071,7 +1073,7 @@ export function initModalBindings() {
             keySlotModal.style.display = 'none';
             const container = document.getElementById('ai-hub-container');
             if (container) callbacks.renderAiHubView(container, currentAiConfig);
-            await callbacks.syncAiConfig(`【${name}】配置已保存并生效`, true);
+            await callbacks.syncAiConfig(t('modal.keySaved', { name }), true);
         };
     }
 }

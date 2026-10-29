@@ -22,13 +22,23 @@
     <link rel="stylesheet" href="./assets/css/dialog.css">
     <link rel="stylesheet" href="./assets/css/capsule-tabs.css">
 
-    <!-- 关键：在 CSS 应用前立即检测主题并设置 html 类，防止闪烁 -->
+    <!-- 关键：在 CSS 应用前立即检测主题和界面语言并设置 html 类，防止闪烁 -->
     <script>
         (function () {
             var savedTheme = localStorage.getItem('fp_theme');
             var isDark = savedTheme ? (savedTheme === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
             document.documentElement.classList.add(isDark ? 'night-theme' : 'day-theme');
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+            // 界面语言：手动选择 → 浏览器语言以 zh 开头用中文 → 其他用英文（与 assets/js/i18n.js 一致）
+            var lang = null;
+            try { lang = localStorage.getItem('fp_lang'); } catch (e) {}
+            if (lang !== 'zh' && lang !== 'en') lang = String(navigator.language || '').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+            document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en-US');
+            if (lang === 'en') {
+                document.documentElement.classList.add('i18n-pending');
+                setTimeout(function () { document.documentElement.classList.remove('i18n-pending'); }, 2000);
+            }
         })();
     </script>
     <script src="./assets/js/capsule-tabs.js" defer></script>
@@ -41,7 +51,8 @@
             <span class="navbar-title">FlarePanel</span>
         </div>
         <div class="navbar-right">
-            <button id="logout-btn" class="btn btn-outline btn-sm" style="display: none;">退出登录</button>
+            <button id="lang-toggle-btn" class="btn btn-outline btn-sm lang-toggle" type="button" data-i18n-title="nav.langTitle" data-i18n-aria-label="nav.langTitle">EN</button>
+            <button id="logout-btn" class="btn btn-outline btn-sm" style="display: none;" data-i18n="nav.logout">退出登录</button>
         </div>
     </nav>
 
@@ -50,25 +61,25 @@
         
         <!-- 登录区域 -->
         <div id="auth-section" class="fade-in">
-            <h2 class="auth-title">连接到 Cloudflare</h2>
+            <h2 class="auth-title" data-i18n="auth.title">连接到 Cloudflare</h2>
             <div class="auth-desc">
-                <p>在 Cloudflare 仪表盘获取 Account ID 和 API Token。为正常管理后台各项功能，Token 需具备以下权限：</p>
+                <p data-i18n="auth.desc">在 Cloudflare 仪表盘获取 Account ID 和 API Token。为正常管理后台各项功能，Token 需具备以下权限：</p>
                 <div class="auth-permissions">
-                    <div>• <code>Account -> D1 -> Edit</code>（评论管理、账号管理、文章浏览数量）</div>
-                    <div>• <code>Account -> Workers R2 Storage -> Edit</code>（文件分享与对象存储）</div>
-                    <div>• <code>Account -> Workers KV Storage -> Edit</code>（可选，仅 AI Hub 使用）</div>
+                    <div>• <code>Account -> D1 -> Edit</code><span data-i18n="auth.permD1">（评论管理、账号管理、文章浏览数量）</span></div>
+                    <div>• <code>Account -> Workers R2 Storage -> Edit</code><span data-i18n="auth.permR2">（文件分享与对象存储）</span></div>
+                    <div>• <code>Account -> Workers KV Storage -> Edit</code><span data-i18n="auth.permKV">（可选，仅 AI Hub 使用）</span></div>
                 </div>
             </div>
             <div class="form-group">
-                <label for="accountId">Cloudflare 账户 ID (Account ID)</label>
-                <input type="text" id="accountId" class="form-control" placeholder="例如: 1234567890abcdef1234567890abcdef" spellcheck="false">
+                <label for="accountId" data-i18n="auth.accountIdLabel">Cloudflare 账户 ID (Account ID)</label>
+                <input type="text" id="accountId" class="form-control" placeholder="例如: 1234567890abcdef1234567890abcdef" data-i18n-placeholder="auth.accountIdPlaceholder" spellcheck="false">
             </div>
             <div class="form-group">
-                <label for="apiToken">API Token (API 密钥)</label>
-                <input type="password" id="apiToken" class="form-control" placeholder="例如: abcDEF1234-5678_xyz..." spellcheck="false">
+                <label for="apiToken" data-i18n="auth.apiTokenLabel">API Token (API 密钥)</label>
+                <input type="password" id="apiToken" class="form-control" placeholder="例如: abcDEF1234-5678_xyz..." data-i18n-placeholder="auth.apiTokenPlaceholder" spellcheck="false">
             </div>
             <button id="login-btn" class="btn-primary" style="margin-top: 16px;">
-                <span class="btn-text">安全连接</span>
+                <span class="btn-text" data-i18n="auth.connect">安全连接</span>
                 <div class="loader" style="display: none;"></div>
             </button>
         </div>
@@ -79,19 +90,19 @@
             <!-- 胶囊型切换按钮 (Capsule Switch - 5系统) -->
             <div class="capsule-switch-wrapper">
                 <div class="capsule-switch capsule-tabs" id="capsule-switch" data-capsule-tabs>
-                    <button id="tab-ai" class="capsule-btn active">代理网关</button>
-                    <button id="tab-storage" class="capsule-btn">文件分享</button>
-                    <button id="tab-comments" class="capsule-btn">评论管理</button>
-                    <button id="tab-stats" class="capsule-btn">浏览数量</button>
-                    <button id="tab-accounts" class="capsule-btn">账号管理</button>
+                    <button id="tab-ai" class="capsule-btn active" data-i18n="tab.ai">代理网关</button>
+                    <button id="tab-storage" class="capsule-btn" data-i18n="tab.storage">文件分享</button>
+                    <button id="tab-comments" class="capsule-btn" data-i18n="tab.comments">评论管理</button>
+                    <button id="tab-stats" class="capsule-btn" data-i18n="tab.stats">浏览数量</button>
+                    <button id="tab-accounts" class="capsule-btn" data-i18n="tab.accounts">账号管理</button>
                 </div>
             </div>
 
             <!-- 目标选择区 (数据库 / 存储桶) -->
             <div class="db-selector-wrapper" id="db-selector-wrapper">
-                <label id="selector-label" class="selector-label">选择目标数据库:</label>
+                <label id="selector-label" class="selector-label" data-i18n="selector.database">选择目标数据库:</label>
                 <div id="db-list" class="db-list-container">
-                    <span class="selector-placeholder">正在加载...</span>
+                    <span class="selector-placeholder" data-i18n="common.loading">正在加载...</span>
                 </div>
             </div>
 
@@ -105,22 +116,22 @@
                 <div class="filter-group">
                     <div class="search-group">
                         <span class="search-icon"></span>
-                        <input type="text" id="keyword-search" placeholder="搜索关键词..." class="form-control search-input">
+                        <input type="text" id="keyword-search" placeholder="搜索关键词..." class="form-control search-input" data-i18n-placeholder="toolbar.searchPlaceholder" data-i18n-aria-label="toolbar.searchPlaceholder">
                     </div>
                     <select id="url-filter" class="form-control custom-select" style="display: none;">
-                        <option value="">所有文章 URL</option>
+                        <option value="" data-i18n="toolbar.allUrls">所有文章 URL</option>
                     </select>
                 </div>
                 
                 <div class="action-group">
                     <!-- D1 数据操作 -->
-                    <button id="export-btn" class="btn btn-success" style="display: none;">导出 CSV</button>
-                    <button id="batch-del-btn" class="btn btn-danger" style="display: none;">删除选中</button>
+                    <button id="export-btn" class="btn btn-success" style="display: none;" data-i18n="toolbar.exportCsv">导出 CSV</button>
+                    <button id="batch-del-btn" class="btn btn-danger" style="display: none;" data-i18n="toolbar.deleteSelected">删除选中</button>
 
                     <!-- R2 存储桶操作 -->
-                    <button id="refresh-storage-btn" class="btn btn-outline" style="display: none;">刷新</button>
-                    <button id="new-folder-btn" class="btn btn-outline" style="display: none;">新建文件夹</button>
-                    <button id="upload-file-btn" class="btn btn-primary" style="display: none;">上传文件</button>
+                    <button id="refresh-storage-btn" class="btn btn-outline" style="display: none;" data-i18n="toolbar.refresh">刷新</button>
+                    <button id="new-folder-btn" class="btn btn-outline" style="display: none;" data-i18n="toolbar.newFolder">新建文件夹</button>
+                    <button id="upload-file-btn" class="btn btn-primary" style="display: none;" data-i18n="toolbar.upload">上传文件</button>
                     <input type="file" id="file-upload-input" style="display: none;" multiple>
                 </div>
             </div>
@@ -132,16 +143,16 @@
                         <!-- 动态渲染 -->
                     </thead>
                     <tbody id="data-tbody">
-                        <tr><td colspan="10" class="empty-state">请先选择目标</td></tr>
+                        <tr><td colspan="10" class="empty-state" data-i18n="table.selectTarget">请先选择目标</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- 分页控件 -->
             <div id="pagination" class="pagination" style="display: none;">
-                <button id="prev-page" class="btn btn-outline">上一页</button>
-                <span id="page-info" class="page-info">第 1 页</span>
-                <button id="next-page" class="btn btn-outline">下一页</button>
+                <button id="prev-page" class="btn btn-outline" data-i18n="pager.prev">上一页</button>
+                <span id="page-info" class="page-info" data-page="1" data-total="1"></span>
+                <button id="next-page" class="btn btn-outline" data-i18n="pager.next">下一页</button>
             </div>
 
             <!-- AI 智能网关控制台独立视图容器 -->
@@ -154,24 +165,24 @@
     <!-- 全局加载遮罩 -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="loader"></div>
-        <div id="loading-text">处理中...</div>
+        <div id="loading-text" data-i18n="common.processing">处理中...</div>
     </div>
 
     <!-- Toast 提示 -->
-    <div id="toast">操作成功</div>
+    <div id="toast" role="status" aria-live="polite"></div>
 
     <!-- 回复模态框 (data-static="true" 阻断误触关闭) -->
     <div class="modal-overlay" id="reply-modal" data-static="true">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">回复评论</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);" data-i18n="reply.title">回复评论</h3>
             <div id="reply-to-text" class="reply-context"></div>
             <div class="form-group">
-                <label for="reply-content">回复内容（将以「站长」身份回复）</label>
-                <textarea id="reply-content" class="form-control" rows="4" placeholder="请输入回复内容..."></textarea>
+                <label for="reply-content">回复内容</label>
+                <textarea id="reply-content" class="form-control" rows="4" placeholder="请输入回复内容..." data-i18n-placeholder="reply.placeholder"></textarea>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-reply-btn">取消</button>
-                <button class="btn btn-primary" id="submit-reply-btn">发送</button>
+                <button class="btn btn-outline" id="close-reply-btn" data-i18n="common.cancel">取消</button>
+                <button class="btn btn-primary" id="submit-reply-btn" data-i18n="reply.send">发送</button>
             </div>
         </div>
     </div>
@@ -179,18 +190,18 @@
     <!-- 重命名模态框 -->
     <div class="modal-overlay" id="rename-modal">
         <div class="modal">
-            <h3 id="rename-modal-title" style="margin-bottom: 1rem; color: var(--text-primary);">重命名</h3>
+            <h3 id="rename-modal-title" style="margin-bottom: 1rem; color: var(--text-primary);" data-i18n="rename.title">重命名</h3>
             <div class="form-group">
-                <label for="rename-old-name">当前名称</label>
+                <label for="rename-old-name" data-i18n="rename.current">当前名称</label>
                 <input type="text" id="rename-old-name" class="form-control" disabled style="opacity: 0.7;">
             </div>
             <div class="form-group">
-                <label for="rename-new-name">新名称</label>
-                <input type="text" id="rename-new-name" class="form-control" placeholder="请输入新名称...">
+                <label for="rename-new-name" data-i18n="rename.new">新名称</label>
+                <input type="text" id="rename-new-name" class="form-control" placeholder="请输入新名称..." data-i18n-placeholder="rename.placeholder">
             </div>
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-rename-btn">取消</button>
-                <button class="btn btn-primary" id="submit-rename-btn">保存</button>
+                <button class="btn btn-outline" id="close-rename-btn" data-i18n="common.cancel">取消</button>
+                <button class="btn btn-primary" id="submit-rename-btn" data-i18n="common.save">保存</button>
             </div>
         </div>
     </div>
@@ -198,18 +209,18 @@
     <!-- 移动文件模态框 -->
     <div class="modal-overlay" id="move-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">移动文件到目标目录</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);" data-i18n="move.title">移动文件到目标目录</h3>
             <div class="form-group">
-                <label for="move-source-path">源文件路径</label>
+                <label for="move-source-path" data-i18n="move.source">源文件路径</label>
                 <input type="text" id="move-source-path" class="form-control" disabled style="opacity: 0.7;">
             </div>
             <div class="form-group">
-                <label for="move-target-dir">目标目录路径 (例如: <code>apps/hantang-zhongyi/windows/</code> 或留空为根目录)</label>
-                <input type="text" id="move-target-dir" class="form-control" placeholder="输入目标目录，如 apps/android/">
+                <label for="move-target-dir" data-i18n-html="move.targetLabel">目标目录路径 (例如: <code>apps/my-app/windows/</code> 或留空为根目录)</label>
+                <input type="text" id="move-target-dir" class="form-control" placeholder="输入目标目录，如 apps/android/" data-i18n-placeholder="move.placeholder">
             </div>
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-move-btn">取消</button>
-                <button class="btn btn-primary" id="submit-move-btn">确认迁移</button>
+                <button class="btn btn-outline" id="close-move-btn" data-i18n="common.cancel">取消</button>
+                <button class="btn btn-primary" id="submit-move-btn" data-i18n="move.submit">确认迁移</button>
             </div>
         </div>
     </div>
@@ -217,18 +228,18 @@
     <!-- 新建文件夹模态框 -->
     <div class="modal-overlay" id="new-folder-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">新建文件夹</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);" data-i18n="folder.title">新建文件夹</h3>
             <div class="form-group">
-                <label for="new-folder-parent">当前所在位置</label>
+                <label for="new-folder-parent" data-i18n="folder.parent">当前所在位置</label>
                 <input type="text" id="new-folder-parent" class="form-control" disabled style="opacity: 0.7;">
             </div>
             <div class="form-group">
-                <label for="new-folder-name">文件夹名称</label>
-                <input type="text" id="new-folder-name" class="form-control" placeholder="例如: android 或 hantang-zhongyi">
+                <label for="new-folder-name" data-i18n="folder.name">文件夹名称</label>
+                <input type="text" id="new-folder-name" class="form-control" placeholder="例如: android 或 my-app" data-i18n-placeholder="folder.placeholder">
             </div>
             <div class="modal-actions">
-                <button class="btn btn-outline" id="close-new-folder-btn">取消</button>
-                <button class="btn btn-primary" id="submit-new-folder-btn">确认创建</button>
+                <button class="btn btn-outline" id="close-new-folder-btn" data-i18n="common.cancel">取消</button>
+                <button class="btn btn-primary" id="submit-new-folder-btn" data-i18n="folder.submit">确认创建</button>
             </div>
         </div>
     </div>

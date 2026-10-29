@@ -18,6 +18,7 @@ import { uploadManager } from '../upload-manager.js';
 import { showConfirm, showAlert, showPrompt } from '../dialog.js';
 import { escapeHtml, escapeAttr } from '../utils.js';
 import { getBucketDomain, getBucketDbName, getResourceNames } from '../sites.js';
+import { t, formatNumber, getLocale } from '../i18n.js';
 
 let ctx = null; // 上下文工具：{ showToast, showLoading, hideLoading }
 let databasesList = []; // 全局 D1 数据库列表，用于匹配 matchedDbId
@@ -45,12 +46,10 @@ export function formatDate(dateStr) {
     try {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return '-';
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        return `${year}/${month}/${day} ${hours}:${minutes}`;
+        return d.toLocaleString(getLocale(), {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+        });
     } catch (e) {
         return '-';
     }
@@ -93,7 +92,7 @@ async function fetchDownloadCounts(dbId, fileKeys) {
         });
         return map;
     } catch (err) {
-        console.error("加载下载统计失败:", err);
+        console.error("Failed to load download stats:", err);
         return {};
     }
 }
@@ -107,7 +106,7 @@ function renderBreadcrumbUI() {
     bar.style.display = 'flex';
 
     const segments = currentPrefix.split('/').filter(Boolean);
-    let html = `<span class="breadcrumb-item" data-path="" style="cursor: pointer; color: var(--primary-color); font-weight: 600;">根目录</span>`;
+    let html = `<span class="breadcrumb-item" data-path="" style="cursor: pointer; color: var(--primary-color); font-weight: 600;">${t('storage.root')}</span>`;
     
     let accumulated = '';
     segments.forEach((seg, idx) => {
@@ -175,7 +174,7 @@ function renderStorageTableHTML() {
     });
 
     if (filteredFolders.length === 0 && filteredFiles.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">当前目录下暂无文件或文件夹</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${t('storage.emptyDir')}</td></tr>`;
         return;
     }
 
@@ -201,9 +200,9 @@ function renderStorageTableHTML() {
                 <td style="color: var(--text-secondary); font-size: 13px;">-</td>
                 <td style="color: var(--text-secondary); font-size: 13px;">-</td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <button class="btn btn-outline btn-sm copy-link-btn" data-url="${escapeAttr(shareUrl)}" title="复制该目录受限分享链接">复制分享链接</button>
-                    <button class="btn btn-outline btn-sm rename-folder-btn" data-name="${escapeAttr(folder.name)}" data-path="${escapeAttr(folder.fullPath)}">重命名</button>
-                    <button class="btn btn-danger btn-sm delete-folder-btn" data-name="${escapeAttr(folder.name)}" data-path="${escapeAttr(folder.fullPath)}">删除</button>
+                    <button class="btn btn-outline btn-sm copy-link-btn" data-url="${escapeAttr(shareUrl)}" title="${t('storage.copyShareTitle')}">${t('storage.copyShare')}</button>
+                    <button class="btn btn-outline btn-sm rename-folder-btn" data-name="${escapeAttr(folder.name)}" data-path="${escapeAttr(folder.fullPath)}">${t('storage.rename')}</button>
+                    <button class="btn btn-danger btn-sm delete-folder-btn" data-name="${escapeAttr(folder.name)}" data-path="${escapeAttr(folder.fullPath)}">${t('common.delete')}</button>
                 </td>
             </tr>
         `;
@@ -215,8 +214,8 @@ function renderStorageTableHTML() {
         const downloadsText = file.downloads === null
             ? `<span style="color: var(--text-secondary);">…</span>`
             : file.downloads > 0
-            ? `<span class="tag" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color); font-weight: 600;">${file.downloads.toLocaleString()} 次</span>`
-            : `<span style="color: var(--text-secondary);">0 次</span>`;
+            ? `<span class="tag" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color); font-weight: 600;">${t('storage.downloads', { count: formatNumber(file.downloads) })}</span>`
+            : `<span style="color: var(--text-secondary);">${t('storage.downloads', { count: 0 })}</span>`;
         
         html += `
             <tr class="storage-file-row" data-path="${escapeAttr(file.fullPath)}">
@@ -233,10 +232,10 @@ function renderStorageTableHTML() {
                 <td>${downloadsText}</td>
                 <td style="color: var(--text-secondary); font-size: 13px;">${file.formattedDate}</td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <button class="btn btn-outline btn-sm copy-link-btn" data-url="${escapeAttr(directUrl)}" title="复制官方高速直链">复制直链</button>
-                    <button class="btn btn-outline btn-sm move-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">移动</button>
-                    <button class="btn btn-outline btn-sm rename-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">重命名</button>
-                    <button class="btn btn-danger btn-sm delete-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">删除</button>
+                    <button class="btn btn-outline btn-sm copy-link-btn" data-url="${escapeAttr(directUrl)}" title="${t('storage.copyDirectTitle')}">${t('storage.copyDirect')}</button>
+                    <button class="btn btn-outline btn-sm move-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">${t('storage.move')}</button>
+                    <button class="btn btn-outline btn-sm rename-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">${t('storage.rename')}</button>
+                    <button class="btn btn-danger btn-sm delete-file-btn" data-name="${escapeAttr(file.name)}" data-path="${escapeAttr(file.fullPath)}">${t('common.delete')}</button>
                 </td>
             </tr>
         `;
@@ -271,13 +270,13 @@ function bindStorageTableEvents() {
             if (url) {
                 try {
                     await navigator.clipboard.writeText(url);
-                    if (ctx?.showToast) ctx.showToast('链接已复制到剪贴板！');
+                    if (ctx?.showToast) ctx.showToast(t('storage.linkCopied'));
                 } catch (err) {
                     await showPrompt({
-                        title: '手动复制链接',
-                        message: '由于当前浏览器剪贴板权限受限，请直接复制下方直链地址：',
+                        title: t('storage.manualCopyTitle'),
+                        message: t('storage.manualCopyMessage'),
                         defaultValue: url,
-                        confirmText: '确认'
+                        confirmText: t('common.confirm')
                     });
                 }
             }
@@ -303,20 +302,20 @@ function bindStorageTableEvents() {
             const name = btn.dataset.name;
             const path = btn.dataset.path;
             const ok = await showConfirm({
-                title: '删除文件确认',
-                message: `确定要永久删除文件 "${name}" 吗？此操作不可逆。`,
-                confirmText: '永久删除',
+                title: t('storage.deleteFileTitle'),
+                message: t('storage.deleteFileMessage', { name }),
+                confirmText: t('common.deleteForever'),
                 danger: true
             });
             if (!ok) return;
 
-            if (ctx?.showLoading) ctx.showLoading('正在删除文件...');
+            if (ctx?.showLoading) ctx.showLoading(t('storage.deletingFile'));
             try {
                 await deleteR2Object(currentBucket, path);
-                if (ctx?.showToast) ctx.showToast('文件删除成功！');
+                if (ctx?.showToast) ctx.showToast(t('storage.fileDeleted'));
                 await loadStorageDirectoryData();
             } catch (err) {
-                if (ctx?.showToast) ctx.showToast(`删除失败: ${err.message}`, true);
+                if (ctx?.showToast) ctx.showToast(t('common.deleteFailed', { msg: err.message }), true);
             } finally {
                 if (ctx?.hideLoading) ctx.hideLoading();
             }
@@ -329,20 +328,20 @@ function bindStorageTableEvents() {
             const name = btn.dataset.name;
             const path = btn.dataset.path;
             const ok = await showConfirm({
-                title: '删除文件夹确认',
-                message: `确定要永久删除文件夹 "${name}" 及其包含的所有文件吗？此操作不可逆。`,
-                confirmText: '清空并删除',
+                title: t('storage.deleteFolderTitle'),
+                message: t('storage.deleteFolderMessage', { name }),
+                confirmText: t('storage.deleteFolderConfirm'),
                 danger: true
             });
             if (!ok) return;
 
-            if (ctx?.showLoading) ctx.showLoading('正在批量删除文件夹内所有文件...');
+            if (ctx?.showLoading) ctx.showLoading(t('storage.deletingFolder'));
             try {
                 await deleteR2Folder(currentBucket, path);
-                if (ctx?.showToast) ctx.showToast('文件夹删除成功！');
+                if (ctx?.showToast) ctx.showToast(t('storage.folderDeleted'));
                 await loadStorageDirectoryData();
             } catch (err) {
-                if (ctx?.showToast) ctx.showToast(`删除失败: ${err.message}`, true);
+                if (ctx?.showToast) ctx.showToast(t('common.deleteFailed', { msg: err.message }), true);
             } finally {
                 if (ctx?.hideLoading) ctx.hideLoading();
             }
@@ -413,7 +412,7 @@ export async function prefetchStorageDirectory(bucket, prefix = '') {
         await fillDownloadCounts(bucket, dir.files);
         if (!storageCache.has(key)) storageCache.set(key, { ...dir, time: Date.now() });
     } catch (e) {
-        console.warn('预读存储目录失败（不影响使用）:', e.message);
+        console.warn('Storage prefetch failed (non-fatal):', e.message);
     }
 }
 
@@ -441,7 +440,7 @@ export async function loadStorageDirectoryData(forceRefresh = false) {
         if (forceRefresh && (folders.length || files.length)) {
             tbody.style.opacity = '0.55';
         } else {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="loader-inline"></span> 正在读取存储桶目录与文件...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="loader-inline"></span> ${t('storage.loading')}</td></tr>`;
         }
     }
 
@@ -461,7 +460,7 @@ export async function loadStorageDirectoryData(forceRefresh = false) {
     } catch (err) {
         console.error("Storage load error:", err);
         if (tbody && isCurrent()) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger-color); padding: 2rem;">加载存储目录失败: ${escapeHtml(err.message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger-color); padding: 2rem;">${escapeHtml(t('storage.loadFailed', { msg: err.message }))}</td></tr>`;
         }
     } finally {
         if (tbody) tbody.style.opacity = '1';
@@ -476,7 +475,7 @@ function openRenameModal(type, path, name) {
     const oldInput = document.getElementById('rename-old-name');
     const input = document.getElementById('rename-new-name') || document.getElementById('rename-input');
 
-    if (title) title.textContent = type === 'folder' ? `重命名文件夹 "${name}"` : `重命名文件 "${name}"`;
+    if (title) title.textContent = type === 'folder' ? t('storage.renameFolderTitle', { name }) : t('storage.renameFileTitle', { name });
     if (oldInput) oldInput.value = name;
     if (input) {
         input.value = name;
@@ -489,8 +488,8 @@ async function submitRename() {
     const input = document.getElementById('rename-new-name') || document.getElementById('rename-input');
     const modal = document.getElementById('rename-modal');
     const newName = input?.value.trim();
-    if (!newName) return showAlert({ title: '提示', message: '请输入新名称' });
-    if (newName.includes('/')) return showAlert({ title: '提示', message: '名称中不能包含斜杠 "/"' });
+    if (!newName) return showAlert({ title: t('dialog.alertTitle'), message: t('storage.enterNewName') });
+    if (newName.includes('/')) return showAlert({ title: t('dialog.alertTitle'), message: t('storage.noSlashName') });
     if (!modalTarget) return;
 
     if (newName === modalTarget.name) {
@@ -500,7 +499,7 @@ async function submitRename() {
 
     if (modal) modal.style.display = 'none';
 
-    if (ctx?.showLoading) ctx.showLoading('正在重命名并同步历史下载统计...');
+    if (ctx?.showLoading) ctx.showLoading(t('storage.renaming'));
     try {
         const matchedDbId = getMatchedDbId(currentBucket, databasesList);
         if (modalTarget.type === 'folder') {
@@ -514,10 +513,10 @@ async function submitRename() {
         }
 
         clearStorageCache();
-        if (ctx?.showToast) ctx.showToast('重命名成功！');
+        if (ctx?.showToast) ctx.showToast(t('storage.renamed'));
         await loadStorageDirectoryData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`重命名失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('storage.renameFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -547,15 +546,15 @@ async function submitMove() {
 
     if (modal) modal.style.display = 'none';
 
-    if (ctx?.showLoading) ctx.showLoading('正在跨目录平移文件并同步历史下载统计...');
+    if (ctx?.showLoading) ctx.showLoading(t('storage.moving'));
     try {
         const matchedDbId = getMatchedDbId(currentBucket, databasesList);
         await moveR2Object(currentBucket, modalTarget.path, targetDir, matchedDbId);
         clearStorageCache();
-        if (ctx?.showToast) ctx.showToast('文件移动成功！');
+        if (ctx?.showToast) ctx.showToast(t('storage.moved'));
         await loadStorageDirectoryData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`移动失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('storage.moveFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -567,7 +566,7 @@ function openNewFolderModal() {
     const parentInput = document.getElementById('new-folder-parent');
     const nameInput = document.getElementById('new-folder-name');
 
-    if (parentInput) parentInput.value = currentPrefix ? `/${currentPrefix}` : '/ (根目录)';
+    if (parentInput) parentInput.value = currentPrefix ? `/${currentPrefix}` : t('storage.rootLabel');
     if (nameInput) {
         nameInput.value = '';
         modal.style.display = 'flex';
@@ -580,23 +579,23 @@ async function submitNewFolder() {
     const modal = document.getElementById('new-folder-modal');
     const folderName = nameInput?.value.trim();
 
-    if (!folderName) return showAlert({ title: '提示', message: '请输入文件夹名称' });
-    if (folderName.includes('/')) return showAlert({ title: '提示', message: '文件夹名称不能包含斜杠 "/"' });
+    if (!folderName) return showAlert({ title: t('dialog.alertTitle'), message: t('storage.enterFolderName') });
+    if (folderName.includes('/')) return showAlert({ title: t('dialog.alertTitle'), message: t('storage.noSlashFolder') });
 
     if (modal) modal.style.display = 'none';
 
     const folderPrefix = `${currentPrefix}${folderName}/`;
     const keepKey = `${folderPrefix}.keep`;
 
-    if (ctx?.showLoading) ctx.showLoading('正在创建文件夹...');
+    if (ctx?.showLoading) ctx.showLoading(t('storage.creatingFolder'));
     try {
         const emptyBuffer = new ArrayBuffer(0);
         await putR2Object(currentBucket, keepKey, emptyBuffer, 'application/octet-stream');
         clearStorageCache();
-        if (ctx?.showToast) ctx.showToast(`文件夹 "${folderName}" 创建成功！`);
+        if (ctx?.showToast) ctx.showToast(t('storage.folderCreated', { name: folderName }));
         await loadStorageDirectoryData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`创建失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('storage.createFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -608,12 +607,12 @@ function handleFileUpload(e) {
     if (filesList.length === 0) return;
 
     if (!currentBucket) {
-        if (ctx?.showToast) ctx.showToast('请先选择目标存储桶', true);
+        if (ctx?.showToast) ctx.showToast(t('storage.selectBucket'), true);
         return;
     }
 
     uploadManager.addFiles(filesList, currentBucket, currentPrefix);
-    if (ctx?.showToast) ctx.showToast(`已将 ${filesList.length} 个文件加入上传队列（右下角查看进度）`, false);
+    if (ctx?.showToast) ctx.showToast(t('storage.queued', { count: filesList.length }), false);
     e.target.value = '';
 }
 
@@ -666,7 +665,7 @@ function initStorageDragAndDrop() {
         if (filesList.length === 0) return;
 
         uploadManager.addFiles(filesList, currentBucket, currentPrefix);
-        if (ctx?.showToast) ctx.showToast(`已将拖入的 ${filesList.length} 个文件加入上传队列（右下角查看进度）`, false);
+        if (ctx?.showToast) ctx.showToast(t('storage.queuedDrop', { count: filesList.length }), false);
     });
 }
 
@@ -761,12 +760,12 @@ export const StorageModule = {
         thead.innerHTML = `
             <tr>
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all"></th>
-                <th style="width: 50px; text-align: center;">类型</th>
-                <th id="storage-sort-name" class="storage-sortable-header ${getSortClass('name')}" title="点击切换按名称排序">名称</th>
-                <th id="storage-sort-size" class="storage-sortable-header ${getSortClass('size')}" title="点击切换按大小排序">大小</th>
-                <th id="storage-sort-downloads" class="storage-sortable-header ${getSortClass('downloads')}" title="点击切换按下载量排序">累计下载次数</th>
-                <th id="storage-sort-uploaded" class="storage-sortable-header ${getSortClass('uploaded')}" title="点击切换按修改时间排序">修改时间</th>
-                <th style="text-align: right;">操作</th>
+                <th style="width: 50px; text-align: center;">${t('storage.colType')}</th>
+                <th id="storage-sort-name" class="storage-sortable-header ${getSortClass('name')}" title="${escapeAttr(t('storage.sortBy', { label: t('storage.colName') }))}">${t('storage.colName')}</th>
+                <th id="storage-sort-size" class="storage-sortable-header ${getSortClass('size')}" title="${escapeAttr(t('storage.sortBy', { label: t('storage.colSize') }))}">${t('storage.colSize')}</th>
+                <th id="storage-sort-downloads" class="storage-sortable-header ${getSortClass('downloads')}" title="${escapeAttr(t('storage.sortBy', { label: t('storage.colDownloads') }))}">${t('storage.colDownloads')}</th>
+                <th id="storage-sort-uploaded" class="storage-sortable-header ${getSortClass('uploaded')}" title="${escapeAttr(t('storage.sortBy', { label: t('storage.colModified') }))}">${t('storage.colModified')}</th>
+                <th style="text-align: right;">${t('common.actions')}</th>
             </tr>
         `;
 
@@ -846,18 +845,18 @@ export const StorageModule = {
         const btn = document.getElementById('refresh-storage-btn');
         if (btn) {
             btn.disabled = true;
-            btn.textContent = '刷新中...';
+            btn.textContent = t('storage.refreshing');
         }
         clearStorageCache();
         try {
             await loadStorageDirectoryData(true);
-            if (ctx?.showToast) ctx.showToast('已刷新当前目录');
+            if (ctx?.showToast) ctx.showToast(t('storage.refreshed'));
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`刷新失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('storage.refreshFailed', { msg: err.message }), true);
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = '刷新';
+                btn.textContent = t('toolbar.refresh');
             }
         }
     },
@@ -870,7 +869,7 @@ export const StorageModule = {
     async deleteSelected() {
         const checkboxes = document.querySelectorAll('.row-check:checked');
         if (checkboxes.length === 0) {
-            return ctx?.showToast ? ctx.showToast('请先勾选要删除的文件或文件夹', true) : null;
+            return ctx?.showToast ? ctx.showToast(t('storage.selectFirst'), true) : null;
         }
 
         const items = Array.from(checkboxes).map(cb => ({
@@ -881,14 +880,14 @@ export const StorageModule = {
 
         const count = items.length;
         const ok = await showConfirm({
-            title: '批量删除确认',
-            message: `确定要永久删除选中的 ${count} 个项目吗？\n（若包含文件夹，其内部所有文件将被一并清空且不可逆）`,
-            confirmText: '批量删除',
+            title: t('storage.batchTitle'),
+            message: t('storage.batchMessage', { count }),
+            confirmText: t('common.batchDelete'),
             danger: true
         });
         if (!ok) return;
 
-        if (ctx?.showLoading) ctx.showLoading(`正在批量删除选中的 ${count} 个项目...`);
+        if (ctx?.showLoading) ctx.showLoading(t('storage.batchDeleting', { count }));
         try {
             for (const item of items) {
                 if (item.type === 'folder') {
@@ -898,10 +897,10 @@ export const StorageModule = {
                 }
             }
             clearStorageCache();
-            if (ctx?.showToast) ctx.showToast('批量删除成功！');
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteSuccess'));
             await loadStorageDirectoryData(true);
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`批量删除失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteFailed', { msg: err.message }), true);
         } finally {
             if (ctx?.hideLoading) ctx.hideLoading();
         }

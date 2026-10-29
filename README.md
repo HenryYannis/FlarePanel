@@ -1,10 +1,10 @@
 # FlarePanel
 
+**简体中文** | [English](README.en.md)
+
 一个后台管理你所有 Cloudflare 网站：评论、浏览量、会员账号、R2 文件，以及可选的 AI 网关配置。
 
-纯 Cloudflare Pages 部署，不需要服务器，不需要构建步骤。登录用你自己的 Cloudflare API Token，数据都在你自己的账号里。
-
-*One dashboard for all your Cloudflare-hosted sites: comments, page views, users, R2 files and an optional AI gateway. Runs entirely on Cloudflare Pages with your own API token. No server, no build step.*
+纯 Cloudflare Pages 部署，不需要服务器，不需要构建步骤。登录用你自己的 Cloudflare API Token，数据都在你自己的账号里。界面支持中文和英文，右上角一键切换。
 
 ## 能做什么
 
@@ -17,6 +17,14 @@
 | 代理网关（可选） | KV | 管理 AI 网关的服务商、模型、降级链和用量统计，需要配套网关 Worker |
 
 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
+
+## 界面语言
+
+- 支持简体中文和英文。顶部导航栏右侧的「EN / 中」按钮切换语言，选择保存在浏览器里，切换后页面会刷新。
+- 没手动选过时按浏览器语言：以 `zh` 开头用中文，其他用英文。
+- 日期和数字按当前语言格式显示。
+- 站点名、后台标题等写在 `sites.config.js` 里的内容属于你的数据，原样显示，不翻译。
+- 词典在 `assets/js/i18n/zh.js` 和 `assets/js/i18n/en.js`，两个文件的键一一对应，CI 会检查（`scripts/check-i18n.mjs`）。
 
 ## 部署
 
@@ -40,7 +48,7 @@ export const SITES = [
 ];
 ```
 
-后台只列出这里写过的数据库和存储桶，账号里其他资源不会出现。
+后台只列出这里写过的数据库和存储桶，账号里其他资源不会出现。各字段的说明见下面的「配置说明」。
 
 ### 3. 建表
 
@@ -50,7 +58,7 @@ export const SITES = [
 npx wrangler d1 execute blog-comment --remote --file=schema.sql
 ```
 
-你的网站或评论 Worker 负责写入评论、浏览量和下载次数，FlarePanel 负责管理。字段说明见 `schema.sql`。
+你的网站或评论 Worker 负责写入评论、浏览量和下载次数，FlarePanel 负责管理。表结构见下面的「数据表」。
 
 ### 4. 部署到 Cloudflare Pages
 
@@ -72,13 +80,63 @@ Pages 项目 → 设置 → 环境变量：
 
 | 变量 | 必填 | 说明 |
 |---|---|---|
-| `CF_ACCOUNT_ID` | 是 | 你的 Account ID，服务端接口用它确认来访者是本账号管理员 |
+| `CF_ACCOUNT_ID` | 是 | 你的 Account ID（32 位）。服务端接口用它确认来访者是本账号管理员，`/api/cf` 和 `/api/s3` 也只转发这个账号的请求。不填的话所有接口都会返回「服务端未配置」 |
 | `R2_ACCESS_KEY_ID` | 否 | R2 S3 API 密钥，填了才能上传 100 MB 以上的文件 |
 | `R2_SECRET_ACCESS_KEY` | 否 | 同上 |
+
+改完环境变量要重新部署一次才会生效。
 
 ### 6. 建议加一层访问保护
 
 后台本身靠 API Token 登录，但页面谁都能打开。建议在 Cloudflare Zero Trust → Access 给后台域名加一条邮箱验证，只有你能进。
+
+## 配置说明
+
+`sites.config.js` 有三部分：
+
+**`PANEL`：后台整体**
+
+| 字段 | 说明 |
+|---|---|
+| `title` | 后台标题，显示在浏览器标签和顶部导航栏 |
+| `adminName` | 在后台回复评论时用的昵称。可以写成 `{ zh: '站长', en: 'Admin' }`，按界面语言选择 |
+| `viewTypes` | 浏览量统计的页面分类，按网址前缀匹配，例如 `{ key: 'posts', label: { zh: '文章', en: 'Posts' }, prefixes: ['/posts/'] }`。`label` 可以是普通文字或中英文对象。没匹配上的归入「其他页面」 |
+| `viewExcludes` | 浏览量统计里不显示的页面，网址里含这些关键词就跳过 |
+
+**`SITES`：每个站点一项**
+
+| 字段 | 说明 |
+|---|---|
+| `name` | 站点显示名 |
+| `url` | 站点网址，评论和浏览量里的相对路径会拼成这个网址的链接 |
+| `commentDb` | 评论库的 D1 数据库名（不是 ID），存 `comments`、`article_views`、`file_downloads` |
+| `accountDb` | 账号库的 D1 数据库名，存 `users`，没有会员系统就留空 |
+| `bucket` | R2 存储桶名，不用文件管理就留空 |
+| `filesDomain` | 存储桶绑定的公开域名，用于复制文件链接和快速读取 |
+| `aiSiteId` | AI 网关日志里这个站点的 `site_id`，不用 AI Hub 就留空 |
+| `viewTypes` | 可选，覆盖 `PANEL.viewTypes` |
+
+用不到的资源留空字符串，对应栏目会自动隐藏这个站点。
+
+**`AI_HUB`：AI 网关（可选）**
+
+| 字段 | 说明 |
+|---|---|
+| `enabled` | 是否显示「代理网关」栏目 |
+| `gatewayUrl` | 网关地址，以 `/v1` 结尾 |
+| `kvNamespaceId` | 网关读取配置的 KV 命名空间 ID |
+| `configKey` | KV 里的配置键名，默认 `AI_GATEWAY_CONFIG` |
+
+## 数据表
+
+`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。
+
+| 表 | 所在库 | 主要字段 | 说明 |
+|---|---|---|---|
+| `comments` | 评论库 | `id`、`nick`、`comment`、`url`、`parent_id`、`ip`、`likes`、`is_author`、`created_at` | 评论。`parent_id` 是回复的评论 id；`is_author = 1` 表示站长在后台回复的；`created_at` 存 UTC |
+| `article_views` | 评论库 | `id`、`url`（唯一）、`views`、`updated_at` | 每个页面一行，网站每次访问 +1 |
+| `file_downloads` | 评论库 | `file_path`（主键）、`downloads` | R2 文件下载次数；后台重命名、移动文件时会同步路径 |
+| `users` | 账号库 | `id`、`username`（唯一）、`password_hash`、`created_at`、`last_login_at` | 会员账号。后台不读 `password_hash` |
 
 ## 登录用的 API Token
 
@@ -86,17 +144,27 @@ Pages 项目 → 设置 → 环境变量：
 
 | 权限 | 用途 |
 |---|---|
-| D1 → 编辑 | 评论、浏览量、账号 |
+| D1 → 编辑 | 评论、浏览量、账号（登录时也用它验证 Token） |
 | Workers R2 存储 → 编辑 | 文件分享 |
 | Workers KV 存储 → 编辑 | 只有开启 AI Hub 才需要 |
 
-Account ID 和 Token 只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。在公用电脑上用完请点「退出登录」。
+Account ID 和 Token 只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」。
 
 ## 安全说明
 
-- `/api/cf` 只转发到 `api.cloudflare.com`，没有你的 Token 什么也做不了。
-- `/api/s3-credentials`、`/api/fetch-models`、`/api/test-telegram` 都会先用调用者的 Token 验证是否为 `CF_ACCOUNT_ID` 这个账号的管理员。
-- `/api/fetch-models` 只允许访问 https 公网地址。
+所有 `/api/*` 接口都要求调用者是 `CF_ACCOUNT_ID` 这个账号的管理员：用调用者的 Cloudflare API Token 去列一次本账号的 D1 数据库或 R2 存储桶，能列出来才放行。验证通过的结果按 Token 的 SHA-256 在内存里缓存约 5 分钟，避免每个请求都多问一次 Cloudflare。
+
+| 接口 | 保护措施 |
+|---|---|
+| `/api/cf/*` | 必须带管理员 Token（`Authorization: Bearer`），并且只转发 `accounts/<CF_ACCOUNT_ID>/...` 下的接口；别的账号 ID 返回 403，账号以外的路径（如 `user/...`）返回 403，带 `..` 跳出账号目录的路径也会被拒绝 |
+| `/api/s3/*` | 只转发到 `<CF_ACCOUNT_ID>.r2.cloudflarestorage.com`，请求头里的账号 ID 只用来核对，不一致返回 403。`Authorization` 里是 S3 签名，所以登录 Token 放在单独的 `x-cf-token` 头里校验（需要 R2 权限），这个头不会转发给 R2。CORS 预检已允许这个头 |
+| `/api/s3-credentials` | 管理员 Token（R2 权限）才能取到 S3 密钥 |
+| `/api/fetch-models` | 管理员 Token；只允许访问 https 公网地址 |
+| `/api/test-telegram` | 管理员 Token。前端只通过这个接口发测试消息，不再从浏览器直连 Telegram；测试消息内容是通用文字，不含站点名 |
+
+其他：
+
+- 接口的错误信息按请求头 `Accept-Language` 返回中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
 - 中间件会拦截 `.md`、`.sql`、点文件、`wrangler.*`、`scripts/`、`lib/` 等，不会被当成静态文件下载。
 - CI 每次提交都跑 gitleaks 密钥扫描。
 
@@ -113,6 +181,8 @@ AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在
 | `GET /v1/stats?days=7` | 用量统计 |
 | `POST /v1/reload` | 后台保存配置后通知网关刷新，`Authorization: Bearer <Master Key>` |
 
+Telegram 告警的「发送测试通知」走本站的 `/api/test-telegram`，需要已登录后台。
+
 ## 本地预览
 
 ```bash
@@ -123,6 +193,22 @@ npx wrangler pages dev .
 ## 技术栈
 
 原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。
+
+## 相关教程
+
+FlarePanel 管理的评论、浏览量、R2 文件和 AI 网关，背后的搭法都写在小宝科技站的「Cloudflare 建站」系列里：
+
+- [腾讯云域名 + GitHub + Cloudflare Pages 实现全球流畅访问](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-deployment/)
+- [Cloudflare Pages 部署踩坑实录：从 522 报错到完美重定向](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-troubleshooting/)
+- [用 Cloudflare 全家桶打造安全高效的网站基础设施](https://xbkjz.cn/posts/2026/03-07-cloudflare-comment-system/)
+- [零成本搭建评论系统：用 D1 + Workers 为静态博客实现评论功能](https://xbkjz.cn/posts/2026/03-08-cloudflare-d1-comment-system/)
+- [给评论区加装「防弹衣」：Workers 敏感词过滤与高性能缓存实战](https://xbkjz.cn/posts/2026/03-10-cloudflare-workers-security-cache/)
+- [免注册一键部署静态网页：Cloudflare Drop 体验](https://xbkjz.cn/posts/2026/07-09-cloudflare-drop/)
+- [防刷指南：利用 Workers + KV 限制前端模型接口访问次数](https://xbkjz.cn/posts/2026/07-09-cloudflare-workers-rate-limiting/)
+- [用 Cloudflare R2 免费搭自己的文件分享网盘](https://xbkjz.cn/posts/2026/08-28-cloudflare-r2-file-sharing/)
+- [用 Workers 零成本打造永不停机的统一 AI 大模型网关](https://xbkjz.cn/posts/2026/10-06-cloudflare-workers-ai-gateway/)
+- [新手后台配置避坑全指南：从 SSL 到安全加速逐项拆解](https://xbkjz.cn/posts/2026/10-12-cloudflare-settings-guide/)
+- [Cloudflare 核心配置与避坑速查表](https://xbkjz.cn/wiki/cloudflare-settings/)
 
 ## 许可证
 

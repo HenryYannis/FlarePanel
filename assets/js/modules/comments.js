@@ -7,6 +7,7 @@ import { queryDatabase } from '../api.js';
 import { showConfirm, showAlert } from '../dialog.js';
 import { formatDateTime, escapeHtml } from '../utils.js';
 import { getSiteUrl, PANEL } from '../sites.js';
+import { t, formatNumber, localizedLabel } from '../i18n.js';
 
 let ctx = null;
 let currentDb = { id: '', name: '' };
@@ -23,7 +24,7 @@ export { formatDateTime };
 export function renderCommentsTable(tbody, data, currentDbName) {
     if (!tbody) return;
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">没有找到匹配数据。</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${t('common.noMatch')}</td></tr>`;
         return;
     }
 
@@ -32,16 +33,16 @@ export function renderCommentsTable(tbody, data, currentDbName) {
     tbody.innerHTML = '';
     data.forEach(item => {
         const tr = document.createElement('tr');
-        const isReply = item.parent_id ? '<span class="tag" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">回复</span>' : '';
+        const isReply = item.parent_id ? '<span class="tag" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">' + t('comments.reply') + '</span>' : '';
 
         let replyContext = '';
         if (item.parent_id) {
-            const pNick = item.parent_nick || '未知用户';
-            const pComment = item.parent_comment || '(原文不存在或已删除)';
+            const pNick = item.parent_nick || t('comments.unknownUser');
+            const pComment = item.parent_comment || t('comments.parentMissing');
             const pCommentShort = pComment.length > 40 ? pComment.substring(0, 40) + '...' : pComment;
             replyContext = `
                 <div class="reply-context">
-                    <span style="font-weight: 600;">回复 @${escapeHtml(pNick)}</span>: 
+                    <span style="font-weight: 600;">${escapeHtml(t('comments.replyTo', { nick: pNick }))}</span>: 
                     <span style="font-style: italic;">${escapeHtml(pCommentShort)}</span>
                 </div>
             `;
@@ -50,12 +51,12 @@ export function renderCommentsTable(tbody, data, currentDbName) {
         let urlDisplay = escapeHtml(String(item.url));
         if (domain) {
             const fullUrl = domain + (item.url.startsWith('/') ? item.url : '/' + item.url);
-            urlDisplay = `<a href="${escapeHtml(fullUrl)}" target="_blank" style="color: var(--primary-color); text-decoration: none;" title="在新标签页中打开">${urlDisplay}</a>`;
+            urlDisplay = `<a href="${escapeHtml(fullUrl)}" target="_blank" style="color: var(--primary-color); text-decoration: none;" title="${t('common.openNewTab')}">${urlDisplay}</a>`;
         }
 
-        let ipDisplay = '无';
+        let ipDisplay = t('common.none');
         if (item.ip) {
-            ipDisplay = `<a href="https://ipinfo.io/${item.ip}" target="_blank" class="cell-ip-link" title="查询 IP 归属地: ${item.ip}">${item.ip}</a>`;
+            ipDisplay = `<a href="https://ipinfo.io/${item.ip}" target="_blank" class="cell-ip-link" title="${escapeHtml(t('common.ipLookup', { ip: item.ip }))}">${item.ip}</a>`;
         }
 
         const formattedTime = formatDateTime(item.created_at);
@@ -72,10 +73,10 @@ export function renderCommentsTable(tbody, data, currentDbName) {
             <td style="font-size:0.8rem; min-width: 110px;">${urlDisplay}</td>
             <td class="cell-time" title="${formattedTime}">${formattedTime}</td>
             <td class="cell-ip">${ipDisplay}</td>
-            <td class="cell-likes"><span class="tag-likes">赞 ${item.likes || 0}</span></td>
+            <td class="cell-likes"><span class="tag-likes">${t('comments.likes', { count: formatNumber(item.likes || 0) })}</span></td>
             <td style="text-align: right; white-space: nowrap; width: 130px;">
-                <button class="btn btn-outline reply-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px; margin-right: 4px;">回复</button>
-                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">删除</button>
+                <button class="btn btn-outline reply-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px; margin-right: 4px;">${t('comments.reply')}</button>
+                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">${t('common.delete')}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -114,7 +115,7 @@ export async function loadCommentsUrlFilter(dbId) {
         const urlsData = await queryDatabase(dbId, "SELECT DISTINCT url FROM comments ORDER BY url ASC");
         return urlsData.result[0].results.map(item => item.url);
     } catch (e) {
-        console.error("加载 URL 过滤器失败", e);
+        console.error("Failed to load URL filter", e);
         return [];
     }
 }
@@ -152,7 +153,7 @@ async function loadData(forceRefresh = false) {
 
     // 局部优雅加载：杜绝全屏黑屏弹窗
     if (tableData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><span class="loader-inline"></span> 正在读取评论数据...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><span class="loader-inline"></span> ${t('comments.loading')}</td></tr>`;
     } else {
         tbody.style.opacity = '0.55';
     }
@@ -191,7 +192,7 @@ async function loadData(forceRefresh = false) {
         }
     } catch (err) {
         console.error("Comments load error:", err);
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger-color); padding: 2rem;">加载失败: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger-color); padding: 2rem;">${escapeHtml(t('common.loadFailed', { msg: err.message }))}</td></tr>`;
     } finally {
         tbody.style.opacity = '1';
     }
@@ -200,14 +201,14 @@ async function loadData(forceRefresh = false) {
 async function deleteComment(id) {
     const targetId = parseInt(id);
     const ok = await showConfirm({
-        title: '删除评论确认',
-        message: `确定要删除 ID 为 ${id} 的评论吗？\n（其关联的所有子回复也将被一并清理）`,
-        confirmText: '确认删除',
+        title: t('comments.deleteTitle'),
+        message: t('comments.deleteMessage', { id }),
+        confirmText: t('common.confirmDelete'),
         danger: true
     });
     if (!ok) return;
 
-    if (ctx?.showLoading) ctx.showLoading('正在删除评论...');
+    if (ctx?.showLoading) ctx.showLoading(t('comments.deleting'));
     try {
         await queryDatabase(currentDb.id, `DELETE FROM comments WHERE id = ?`, [targetId]);
         try {
@@ -215,10 +216,10 @@ async function deleteComment(id) {
         } catch (e) {}
 
         memoryCache.clear();
-        if (ctx?.showToast) ctx.showToast('评论删除成功！');
+        if (ctx?.showToast) ctx.showToast(t('comments.deleted'));
         await loadData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`删除失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('common.deleteFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -235,7 +236,7 @@ function openReplyModal(id) {
 
     if (replyText) {
         const content = String(item.comment);
-        replyText.textContent = `回复 @${item.nick}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`;
+        replyText.textContent = t('comments.replyContext', { nick: item.nick, text: `${content.substring(0, 50)}${content.length > 50 ? '...' : ''}` });
     }
     if (replyInput) replyInput.value = '';
     if (modal) {
@@ -248,28 +249,28 @@ async function submitReply() {
     const replyInput = document.getElementById('reply-content');
     const modal = document.getElementById('reply-modal');
     const content = replyInput?.value.trim();
-    if (!content) return showAlert({ title: '提示', message: '请输入回复内容' });
+    if (!content) return showAlert({ title: t('dialog.alertTitle'), message: t('comments.replyEmpty') });
 
     const comment = tableData.find(c => c.id === replyingToId);
     if (!comment) return;
 
-    if (ctx?.showLoading) ctx.showLoading('正在发送官方回复...');
+    if (ctx?.showLoading) ctx.showLoading(t('comments.replySending'));
     try {
         // 官方回复直接通过 Cloudflare D1 API 写入（与列表读取同一通道），
         // 不再依赖评论 Worker 按 Origin 请求头识别管理员（该请求头可被伪造，Worker 已改为只认 X-Admin-Token）
         await queryDatabase(
             currentDb.id,
             `INSERT INTO comments (nick, comment, url, parent_id, ip, is_author) VALUES (?, ?, ?, ?, '', 1)`,
-            [PANEL.adminName || '站长', content, comment.url, replyingToId]
+            [localizedLabel(PANEL.adminName) || t('reply.defaultAdmin'), content, comment.url, replyingToId]
         );
         memoryCache.clear();
 
-        if (ctx?.showToast) ctx.showToast('回复成功！');
+        if (ctx?.showToast) ctx.showToast(t('comments.replySuccess'));
         if (modal) modal.style.display = 'none';
         if (replyInput) replyInput.value = '';
         await loadData(true);
     } catch (error) {
-        if (ctx?.showToast) ctx.showToast(`回复失败: ${error.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('comments.replyFailed', { msg: error.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -300,13 +301,13 @@ export const CommentsModule = {
             thead.innerHTML = `
                 <tr>
                     <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
-                    <th style="min-width: 90px; width: 110px;">昵称</th>
-                    <th>评论内容</th>
-                    <th style="min-width: 110px; width: 140px;">页面来源</th>
-                    <th style="width: 155px; white-space: nowrap;">时间</th>
-                    <th style="width: 140px; white-space: nowrap;">IP地址</th>
-                    <th style="width: 80px; text-align: center; white-space: nowrap;">点赞</th>
-                    <th style="width: 130px; text-align: right; white-space: nowrap;">操作</th>
+                    <th style="min-width: 90px; width: 110px;">${t('comments.colNick')}</th>
+                    <th>${t('comments.colComment')}</th>
+                    <th style="min-width: 110px; width: 140px;">${t('comments.colPage')}</th>
+                    <th style="width: 155px; white-space: nowrap;">${t('common.time')}</th>
+                    <th style="width: 140px; white-space: nowrap;">${t('comments.colIp')}</th>
+                    <th style="width: 80px; text-align: center; white-space: nowrap;">${t('comments.colLikes')}</th>
+                    <th style="width: 130px; text-align: right; white-space: nowrap;">${t('common.actions')}</th>
                 </tr>
             `;
             const checkAll = document.getElementById('check-all');
@@ -331,7 +332,7 @@ export const CommentsModule = {
         const urlSelect = document.getElementById('url-filter');
         if (urlSelect) {
             urlSelect.style.display = 'inline-block';
-            urlSelect.innerHTML = '<option value="">所有文章 URL</option>';
+            urlSelect.innerHTML = `<option value="">${t('toolbar.allUrls')}</option>`;
             urlSelect.onchange = (e) => {
                 selectedUrl = e.target.value;
                 currentPage = 1;
@@ -367,7 +368,7 @@ export const CommentsModule = {
 
         const urlSelect = document.getElementById('url-filter');
         if (urlSelect) {
-            urlSelect.innerHTML = '<option value="">所有文章 URL</option>';
+            urlSelect.innerHTML = `<option value="">${t('toolbar.allUrls')}</option>`;
             loadCommentsUrlFilter(currentDb.id).then(urls => {
                 urls.forEach(url => {
                     const opt = document.createElement('option');
@@ -395,19 +396,19 @@ export const CommentsModule = {
     async deleteSelected() {
         const checkboxes = document.querySelectorAll('.row-check:checked');
         if (checkboxes.length === 0) {
-            return ctx?.showToast ? ctx.showToast('请先勾选要删除的评论', true) : null;
+            return ctx?.showToast ? ctx.showToast(t('comments.selectFirst'), true) : null;
         }
 
         const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
         const ok = await showConfirm({
-            title: '批量删除评论确认',
-            message: `确定要永久删除选中的 ${ids.length} 条评论吗？\n（若包含父级评论，其下属子回复也将被一并删除）`,
-            confirmText: '批量删除',
+            title: t('comments.batchTitle'),
+            message: t('comments.batchMessage', { count: ids.length }),
+            confirmText: t('common.batchDelete'),
             danger: true
         });
         if (!ok) return;
 
-        if (ctx?.showLoading) ctx.showLoading(`正在批量删除 ${ids.length} 条评论...`);
+        if (ctx?.showLoading) ctx.showLoading(t('comments.batchDeleting', { count: ids.length }));
         try {
             const placeholders = ids.map(() => '?').join(',');
             await queryDatabase(currentDb.id, `DELETE FROM comments WHERE id IN (${placeholders})`, ids);
@@ -416,10 +417,10 @@ export const CommentsModule = {
             } catch (e) {}
 
             memoryCache.clear();
-            if (ctx?.showToast) ctx.showToast('批量删除成功！');
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteSuccess'));
             await loadData(true);
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`批量删除失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteFailed', { msg: err.message }), true);
         } finally {
             if (ctx?.hideLoading) ctx.hideLoading();
         }
@@ -427,10 +428,10 @@ export const CommentsModule = {
 
     exportCSV() {
         if (tableData.length === 0) {
-            showAlert({ title: '导出提示', message: '当前没有可导出的数据' });
+            showAlert({ title: t('common.exportTitle'), message: t('common.nothingToExport') });
             return;
         }
-        const headers = ['ID', '昵称', '评论内容', '页面来源', '时间', 'IP', '点赞数'];
+        const headers = ['ID', t('comments.colNick'), t('comments.colComment'), t('comments.colPage'), t('common.time'), 'IP', t('comments.csvLikes')];
         const rows = tableData.map(c => [
             c.id, `"${String(c.nick).replace(/"/g, '""')}"`, `"${String(c.comment).replace(/"/g, '""')}"`,
             c.url, c.created_at, c.ip || '', c.likes || 0

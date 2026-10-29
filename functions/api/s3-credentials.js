@@ -1,4 +1,5 @@
-import { requireAdmin } from '../../lib/admin-auth.js';
+import { requireAdmin, errorResponse } from '../../lib/admin-auth.js';
+import { serverMsg } from '../../lib/server-i18n.js';
 
 // ============================================
 // 安全获取 Cloudflare Pages 环境变量中配置的 R2 S3 专线凭据
@@ -15,16 +16,13 @@ export async function onRequest(context) {
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-cf-account-id'
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept-Language, x-cf-account-id'
             }
         });
     }
 
     if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
+        return errorResponse(request, 405, 'METHOD_NOT_ALLOWED', {}, { 'Access-Control-Allow-Origin': '*' });
     }
 
     // 安全鉴权：只有持有本账号 R2 权限的 Token 才能取到 S3 凭据
@@ -41,7 +39,8 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({
             success: false,
             configured: false,
-            error: 'Pages 环境变量尚未生效或未配置 R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY'
+            code: 'S3_NOT_CONFIGURED',
+            error: serverMsg(request, 'S3_NOT_CONFIGURED')
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }

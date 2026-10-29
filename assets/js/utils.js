@@ -4,6 +4,8 @@
 // 站点名称与排序见 sites.js（读取 sites.config.js）
 // ====================================================
 
+import { getLocale } from './i18n.js';
+
 /**
  * HTML 特殊字符安全转义 (防 XSS 攻击)
  * @param {any} str
@@ -45,7 +47,7 @@ function parseDbTime(dateStr) {
 }
 
 /**
- * 标准日期时间格式化 (YYYY-MM-DD HH:mm:ss)
+ * 日期时间格式化（按界面语言，24 小时制）
  * @param {string|number|Date} dateStr
  * @returns {string}
  */
@@ -53,12 +55,14 @@ export function formatDateTime(dateStr) {
     if (!dateStr) return '-';
     const d = parseDbTime(dateStr);
     if (isNaN(d.getTime())) return String(dateStr);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    return d.toLocaleString(getLocale(), {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    });
 }
 
 /**
- * 紧凑日期格式化 (YYYY-MM-DD)
+ * 日期格式化（按界面语言）
  * @param {string|number|Date} dateStr
  * @returns {string}
  */
@@ -66,8 +70,7 @@ export function formatDate(dateStr) {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return String(dateStr);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return d.toLocaleDateString(getLocale(), { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
 /**
@@ -92,7 +95,7 @@ export function formatTokens(num = 0) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-    return Number(num).toLocaleString();
+    return Number(num).toLocaleString(getLocale());
 }
 
 /**
