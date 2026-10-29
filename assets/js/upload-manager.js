@@ -547,7 +547,7 @@ class UploadManager {
             return `
                 <div class="upload-task-item" id="task-item-${task.id}">
                     <div class="task-meta-row">
-                        <span class="ext-tag">${ext}</span>
+                        <span class="ext-tag">${escapeHtml(ext)}</span>
                         <span class="task-name" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>
                         ${actionBtn}
                     </div>
