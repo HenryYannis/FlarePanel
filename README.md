@@ -24,6 +24,8 @@
 
 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
 
+网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，可以直接部署；AI 网关 Worker 不在本仓库。
+
 ## 界面语言
 
 - 支持简体中文、繁體中文和英文。顶部导航栏右侧的语言菜单切换，选择保存在浏览器里，切换后页面会刷新。
@@ -65,7 +67,7 @@ export const SITES = [
 npx wrangler d1 execute blog-comment --remote --file=schema.sql
 ```
 
-你的网站或评论 Worker 负责写入评论、浏览量和下载次数，FlarePanel 负责管理。表结构见下面的「数据表」。
+评论、浏览量和下载次数由网站这一侧写入，FlarePanel 负责管理。仓库里的 [`worker/`](worker/README.md) 就是配套的评论 Worker（评论、回复、点赞、浏览量、R2 下载次数），按它的说明部署即可；用 `worker/schema.sql` 建表会把 Worker 额外用到的几张表一起建好。也可以用你自己的 Worker，只要按下面的「数据表」写入。
 
 ### 4. 部署到 Cloudflare Pages
 
@@ -136,7 +138,7 @@ Pages 项目 → 设置 → 环境变量：
 
 ## 数据表
 
-`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。
+`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。
 
 | 表 | 所在库 | 主要字段 | 说明 |
 |---|---|---|---|
@@ -180,7 +182,7 @@ Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你�
 
 ## AI Hub（可选）
 
-AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。网关 Worker 不在本仓库，没有就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关需要提供：
+AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。网关 Worker 不在本仓库（仓库里只有评论 Worker），没有就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关需要提供：
 
 | 接口 | 用途 |
 |---|---|
@@ -200,7 +202,7 @@ npx wrangler pages dev .
 
 ## 技术栈
 
-原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。
+原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。评论 Worker（`worker/`）是单文件 Cloudflare Worker，同样没有依赖。
 
 ## 相关教程
 

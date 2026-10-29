@@ -1,6 +1,7 @@
 -- ====================================================
 -- FlarePanel 数据表结构（Cloudflare D1 / SQLite）
 -- 后台只读写这些字段；你的网站或评论 Worker 可以加更多字段，后台不受影响。
+-- 用仓库里的评论 Worker（worker/）时，改用 worker/schema.sql：它包含下面的评论库表，外加 Worker 自己用的几张表。
 --
 -- 评论库（sites.config.js 里的 commentDb）：comments、article_views、file_downloads
 --   npx wrangler d1 execute <评论库名> --remote --file=schema.sql
