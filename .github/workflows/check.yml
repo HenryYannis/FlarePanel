@@ -65,7 +65,7 @@ jobs:
         run: git ls-files -z -- '*.html' | xargs -0 html-validate --config .github/htmlvalidate.json
 
       # [6] 不直接用 node --check：Node 22 对 .js 里的 ES 模块语法错误会放过（退出码仍是 0）。
-      # check-js.mjs 先按普通脚本、再按模块各试一次，并检查 HTML 内联 <script> 和 JSON-LD（含 functions/ 和 scripts/）
+      # check-js.mjs 先按普通脚本、再按模块各试一次，并检查 HTML 内联 <script> 和 JSON-LD（含 functions/、scripts/ 和评论 Worker worker/）
       - name: JS 语法（ES 模块、普通脚本、HTML 内联脚本）
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: node scripts/check-js.mjs

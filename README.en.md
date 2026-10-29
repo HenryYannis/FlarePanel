@@ -24,6 +24,8 @@ It runs entirely on Cloudflare Pages: no server and no build step. You sign in w
 
 One panel can manage several sites; switch between them at the top. When no site has a given kind of resource configured, that section is hidden automatically.
 
+The comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md) and ready to deploy; the AI gateway Worker is not in this repository.
+
 ## Interface language
 
 - Simplified Chinese and English are supported. The "EN / 中" button on the right of the top bar switches language; the choice is saved in the browser and the page reloads.
@@ -64,7 +66,7 @@ Use `schema.sql` to create the tables in the comment database (existing tables a
 npx wrangler d1 execute blog-comment --remote --file=schema.sql
 ```
 
-Your site or comment Worker writes comments, page views and download counts; FlarePanel manages them. See "Database schema" below.
+Comments, page views and download counts are written by the site side; FlarePanel manages them. The companion comment Worker is included in [`worker/`](worker/README.en.md) (comments, replies, likes, page views, R2 download counts); deploy it by following its README. Creating the tables with `worker/schema.sql` also creates the few extra tables the Worker uses. You can also use your own Worker as long as it writes the tables described in "Database schema" below.
 
 ### 4. Deploy to Cloudflare Pages
 
@@ -135,7 +137,7 @@ Leave unused resources as empty strings and the matching section hides that site
 
 ## Database schema
 
-`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it.
+`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it. The companion comment Worker also uses four tables the panel never reads, `article_likes`, `item_likes`, `site_online` and `rate_limits`; their statements are in `worker/schema.sql`.
 
 | Table | Database | Main fields | Notes |
 |---|---|---|---|
@@ -178,7 +180,7 @@ Please report security issues privately through a GitHub Security Advisory rathe
 
 ## AI Hub (optional)
 
-AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are stored in KV, and the gateway reads them and forwards requests along the failover chain. The gateway Worker is not part of this repository; without one, keep `AI_HUB.enabled: false` and the section stays hidden. The gateway needs to provide:
+AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are stored in KV, and the gateway reads them and forwards requests along the failover chain. The gateway Worker is not part of this repository (only the comment Worker is); without one, keep `AI_HUB.enabled: false` and the section stays hidden. The gateway needs to provide:
 
 | Endpoint | Purpose |
 |---|---|
@@ -198,7 +200,7 @@ npx wrangler pages dev .
 
 ## Tech stack
 
-Plain HTML / CSS / ES modules, with Cloudflare Pages Functions as the backend. No framework and no build: edit, refresh, done.
+Plain HTML / CSS / ES modules, with Cloudflare Pages Functions as the backend. No framework and no build: edit, refresh, done. The comment Worker (`worker/`) is a single-file Cloudflare Worker, also without dependencies.
 
 ## Tutorials
 

@@ -1,0 +1,84 @@
+// FlarePanel 评论 Worker 配置示例。
+// 复制为 worker/wrangler.jsonc 再改：cp worker/wrangler.example.jsonc worker/wrangler.jsonc
+// 下面的 ID 都是占位符，换成你自己的；密钥不要写在这里，用 `npx wrangler secret put` 设置。
+{
+  "name": "my-comment-worker",
+  "main": "index.js",
+  "compatibility_date": "2026-03-15",
+
+  // 自定义域名（可选）：API 域名，以及给 R2 文件分发用的文件域名
+  // "routes": [
+  //   { "pattern": "api.example.com", "custom_domain": true },
+  //   { "pattern": "files.example.com", "custom_domain": true }
+  // ],
+
+  // 必需：评论库。database_name 要和 FlarePanel sites.config.js 里的 commentDb 一致
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "example-comment",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+
+  // 可选：R2 文件分发（同时设置 vars.FILES_HOSTNAME）。bucket_name 对应 sites.config.js 里的 bucket
+  // "r2_buckets": [
+  //   { "binding": "FILES_BUCKET", "bucket_name": "example-assets" }
+  // ],
+
+  // 可选：KV
+  //   SENSITIVE_WORDS_KV：自定义敏感词表，键 WORDS_LIST，值为 JSON 数组或按行/逗号分隔的文本
+  //   PANEL_CONFIG_KV：FlarePanel AI Hub 用的同一个命名空间（sites.config.js 里的 AI_HUB.kvNamespaceId），
+  //                    Worker 从中读取后台保存的 Telegram 配置和「Workers AI 审核」开关
+  // "kv_namespaces": [
+  //   { "binding": "SENSITIVE_WORDS_KV", "id": "<KV_NAMESPACE_ID>" },
+  //   { "binding": "PANEL_CONFIG_KV", "id": "<KV_NAMESPACE_ID>" }
+  // ],
+
+  // 可选：Workers AI 语义审核。不绑定就只用敏感词表
+  // "ai": { "binding": "AI" },
+
+  "vars": {
+    // 允许调用接口的网站（逗号分隔，带协议，不带结尾斜杠）
+    "ALLOWED_ORIGINS": "https://example.com,https://www.example.com",
+    // 本地调试时允许 http://localhost 和 http://127.0.0.1
+    "ALLOW_LOCALHOST": "false",
+    // 站点名和网址：用于 Telegram 通知里的来源和页面链接
+    "SITE_NAME": "My Site",
+    "SITE_URL": "https://example.com",
+    // 站长昵称（和 FlarePanel 的 PANEL.adminName 保持一致）：访客昵称里不能包含它，防冒充
+    "ADMIN_NAME": "站长",
+    // 其他保留昵称，逗号分隔
+    "RESERVED_NICKS": "admin,administrator",
+    // 频率限制（每个 IP 每分钟），0 表示不限
+    "COMMENT_RATE_PER_MIN": "5",
+    "LIKE_RATE_PER_MIN": "30",
+    "VIEW_RATE_PER_MIN": "120",
+    // 内容长度上限
+    "MAX_NICK_LENGTH": "20",
+    "MAX_COMMENT_LENGTH": "500",
+    "MAX_REPLY_LENGTH": "300",
+    // 敏感词：逗号分隔。留空用内置的极简垃圾广告词表（或 SENSITIVE_WORDS_KV），写 none 关闭
+    "SENSITIVE_WORDS": "",
+    // Workers AI 审核开关和模型（需要上面的 ai 绑定）
+    "AI_MODERATION": "true",
+    "AI_MODERATION_MODEL": "@cf/zai-org/glm-4.7-flash",
+    // Telegram 通知里时间的时区，例如 Asia/Singapore、America/New_York
+    "NOTIFY_TIMEZONE": "UTC",
+    // 这些页面的评论不推送 Telegram（逗号分隔），例如聊天室 /chat
+    "NOTIFY_SKIP_PATHS": "",
+    // 在线人数：多少秒内有心跳算在线
+    "ONLINE_WINDOW_SECONDS": "60",
+    // R2 文件分发（需要 FILES_BUCKET 绑定）：留空则不启用
+    "FILES_HOSTNAME": "",
+    "FILES_LISTING": "false",
+    "FILES_PRIVATE_PREFIXES": "",
+    "FILES_NOT_FOUND_URL": "",
+    "FILES_CONTACT": ""
+  }
+
+  // 密钥（不要写进这个文件）：
+  //   npx wrangler secret put ADMIN_TOKEN          // 可选：带 X-Admin-Token 头发表的评论标为站长、免审核和限流
+  //   npx wrangler secret put TELEGRAM_BOT_TOKEN   // 可选：新评论推送
+  //   npx wrangler secret put TELEGRAM_CHAT_ID     // 可选：同上
+}
