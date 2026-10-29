@@ -2,6 +2,7 @@ import { uploadR2ObjectWithProgress } from './api.js';
 import { getFileExt, escapeHtml } from './utils.js';
 import { R2S3Client } from './s3-signer.js';
 import { showConfirm } from './dialog.js';
+import { t, langHeaders } from './i18n.js';
 
 // 默认内置的 R2 S3 专线凭证（清空明文硬编码，优先从 Pages 环境变量或本地缓存加载）
 const DEFAULT_S3_CREDS = {
@@ -15,7 +16,8 @@ export async function syncS3CredentialsFromServer(apiToken) {
         const res = await fetch('/api/s3-credentials', {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${apiToken}`
+                'Authorization': `Bearer ${apiToken}`,
+                ...langHeaders()
             }
         });
         if (!res.ok) return null;
@@ -31,7 +33,7 @@ export async function syncS3CredentialsFromServer(apiToken) {
             };
         }
     } catch (e) {
-        console.warn('从 Pages 环境变量拉取 S3 凭据失败:', e.message);
+        console.warn('Failed to load S3 credentials from Pages env:', e.message);
     }
     return null;
 }
@@ -90,13 +92,13 @@ class UploadManager {
             <div class="upload-dock-header">
                 <div class="upload-dock-title" id="upload-dock-title">
                     <span class="upload-dock-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>
-                    <span class="upload-dock-text" id="upload-dock-text">上传任务 (0)</span>
+                    <span class="upload-dock-text" id="upload-dock-text">${t('upload.dockTitle', { done: 0, total: 0 })}</span>
                 </div>
                 <div class="upload-dock-actions">
-                    <button class="upload-dock-btn" id="upload-dock-toggle" title="最小化/展开">
+                    <button class="upload-dock-btn" id="upload-dock-toggle" title="${t('upload.toggle')}" aria-label="${t('upload.toggle')}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                     </button>
-                    <button class="upload-dock-btn" id="upload-dock-close" title="全部清除/关闭">
+                    <button class="upload-dock-btn" id="upload-dock-close" title="${t('upload.clearClose')}" aria-label="${t('upload.clearClose')}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -106,7 +108,7 @@ class UploadManager {
             </div>
             <div class="upload-dock-capsule" id="upload-dock-capsule" style="display: none;">
                 <span class="capsule-spinner"></span>
-                <span class="capsule-text" id="capsule-text">上传中 0%</span>
+                <span class="capsule-text" id="capsule-text">${t('upload.capsuleUploading', { percent: 0, current: 0, total: 0 })}</span>
             </div>
         `;
 
@@ -120,8 +122,8 @@ class UploadManager {
         // 鼠标悬浮时暂停自动关闭，移出后如果全部已完成则再次启动倒计时
         dock.addEventListener('mouseenter', () => this.cancelAutoClose());
         dock.addEventListener('mouseleave', () => {
-            const hasUploading = this.tasks.some(t => t.status === 'uploading' || t.status === 'pending');
-            if (!hasUploading && this.tasks.length > 0 && this.tasks.every(t => t.status === 'success')) {
+            const hasUploading = this.tasks.some(tk => tk.status === 'uploading' || tk.status === 'pending');
+            if (!hasUploading && this.tasks.length > 0 && this.tasks.every(tk => tk.status === 'success')) {
                 this.scheduleAutoClose();
             }
         });
@@ -164,7 +166,7 @@ class UploadManager {
     processQueue() {
         if (this.activeCount >= this.concurrency) return;
 
-        const nextTask = this.tasks.find(t => t.status === 'pending');
+        const nextTask = this.tasks.find(tk => tk.status === 'pending');
         if (!nextTask) {
             this.checkAllCompleted();
             return;
@@ -193,7 +195,7 @@ class UploadManager {
 
             // 如果是大文件且未配置 S3 凭据，且超过 95MB
             if (task.size > 95 * 1024 * 1024 && (!s3Creds || !s3Creds.accessKeyId)) {
-                throw new Error('单文件超 100MB 限制！请确保 Pages 环境变量已配置 R2 密钥后上传');
+                throw new Error(t('upload.tooLarge'));
             }
 
             // 优先判断是否启用 S3 分片上传（大文件或配置了 S3）
@@ -227,10 +229,10 @@ class UploadManager {
         } catch (err) {
             if (err.name === 'AbortError' || task.status === 'aborted') {
                 task.status = 'aborted';
-                task.errorMsg = '已取消';
+                task.errorMsg = t('upload.cancelled');
             } else {
                 task.status = 'error';
-                task.errorMsg = err.message || '上传异常中断';
+                task.errorMsg = err.message || t('upload.interrupted');
                 console.error(`[Upload Error] ${task.name}:`, err);
             }
         } finally {
@@ -246,7 +248,8 @@ class UploadManager {
         const s3Client = new R2S3Client({
             accountId: accountId,
             accessKeyId: s3Creds.accessKeyId,
-            secretAccessKey: s3Creds.secretAccessKey
+            secretAccessKey: s3Creds.secretAccessKey,
+            cfToken: localStorage.getItem('cf_api_token') || ''
         });
 
         // 10MB 分块
@@ -264,7 +267,7 @@ class UploadManager {
 
             for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
                 if (task.controller.signal.aborted) {
-                    throw new DOMException('用户已取消上传', 'AbortError');
+                    throw new DOMException(t('api.uploadCancelled'), 'AbortError');
                 }
 
                 const start = (partNumber - 1) * CHUNK_SIZE;
@@ -292,7 +295,7 @@ class UploadManager {
                             lastTime = now;
                             lastLoaded = currentTotalLoaded;
                         }
-                        this.updateTaskUI(task, `分片 ${partNumber}/${totalParts}`);
+                        this.updateTaskUI(task, t('upload.part', { part: partNumber, total: totalParts }));
                         this.updateCapsuleUI();
                     }
                 });
@@ -301,12 +304,12 @@ class UploadManager {
                 uploadedBytes += (end - start);
                 task.loaded = uploadedBytes;
                 task.progress = Math.min(99, Math.round((uploadedBytes / task.size) * 100));
-                this.updateTaskUI(task, `分片 ${partNumber}/${totalParts}`);
+                this.updateTaskUI(task, t('upload.part', { part: partNumber, total: totalParts }));
                 this.updateCapsuleUI();
             }
 
             // 完成合并
-            this.updateTaskUI(task, '正在合并分片...');
+            this.updateTaskUI(task, t('upload.merging'));
             await s3Client.completeMultipartUpload(task.bucketName, task.key, uploadId, parts);
         } catch (e) {
             await s3Client.abortMultipartUpload(task.bucketName, task.key, uploadId).catch(() => {});
@@ -315,7 +318,7 @@ class UploadManager {
     }
 
     retryTask(taskId) {
-        const task = this.tasks.find(t => t.id === taskId);
+        const task = this.tasks.find(tk => tk.id === taskId);
         if (task && (task.status === 'error' || task.status === 'aborted')) {
             task.status = 'pending';
             task.progress = 0;
@@ -327,23 +330,23 @@ class UploadManager {
     }
 
     cancelTask(taskId) {
-        const task = this.tasks.find(t => t.id === taskId);
+        const task = this.tasks.find(tk => tk.id === taskId);
         if (task) {
             if (task.status === 'uploading') {
                 task.status = 'aborted';
                 task.controller.abort();
             } else if (task.status === 'pending') {
                 task.status = 'aborted';
-                task.errorMsg = '已取消';
+                task.errorMsg = t('upload.cancelled');
                 this.render();
             }
         }
     }
 
     checkAllCompleted() {
-        const hasUploading = this.tasks.some(t => t.status === 'uploading' || t.status === 'pending');
+        const hasUploading = this.tasks.some(tk => tk.status === 'uploading' || tk.status === 'pending');
         if (!hasUploading && this.tasks.length > 0) {
-            const successCount = this.tasks.filter(t => t.status === 'success').length;
+            const successCount = this.tasks.filter(tk => tk.status === 'success').length;
             if (successCount > 0) {
                 if (typeof this.onCompleteCallback === 'function') {
                     try { this.onCompleteCallback(); } catch (e) { console.error(e); }
@@ -367,7 +370,7 @@ class UploadManager {
 
         this.autoCloseTimer = setTimeout(() => {
             // 再次确认是否全部完成且未有新任务加入
-            const hasActive = this.tasks.some(t => t.status === 'uploading' || t.status === 'pending');
+            const hasActive = this.tasks.some(tk => tk.status === 'uploading' || tk.status === 'pending');
             if (!hasActive && this.tasks.length > 0) {
                 dock.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
                 dock.style.opacity = '0';
@@ -412,18 +415,18 @@ class UploadManager {
 
     async clearOrClose() {
         this.cancelAutoClose();
-        const hasUploading = this.tasks.some(t => t.status === 'uploading' || t.status === 'pending');
+        const hasUploading = this.tasks.some(tk => tk.status === 'uploading' || tk.status === 'pending');
         if (hasUploading) {
             const ok = await showConfirm({
-                title: '清空上传任务确认',
-                message: '当前还有文件正在上传中，确定要中断并清空上传任务列表吗？',
-                confirmText: '中断并清空',
+                title: t('upload.clearTitle'),
+                message: t('upload.clearMessage'),
+                confirmText: t('upload.clearConfirm'),
                 danger: true
             });
             if (!ok) return;
-            this.tasks.forEach(t => {
-                if (t.status === 'uploading' || t.status === 'pending') {
-                    t.controller.abort();
+            this.tasks.forEach(tk => {
+                if (tk.status === 'uploading' || tk.status === 'pending') {
+                    tk.controller.abort();
                 }
             });
         }
@@ -451,22 +454,22 @@ class UploadManager {
         if (!capsuleText || !capsule) return;
 
         const totalTasks = this.tasks.length;
-        const doneTasks = this.tasks.filter(t => t.status === 'success').length;
-        const uploadingTask = this.tasks.find(t => t.status === 'uploading');
+        const doneTasks = this.tasks.filter(tk => tk.status === 'success').length;
+        const uploadingTask = this.tasks.find(tk => tk.status === 'uploading');
 
         if (uploadingTask) {
             if (spinner) spinner.style.display = 'inline-block';
             capsule.style.background = 'var(--primary-color)';
-            capsuleText.textContent = `上传中 ${uploadingTask.progress}% (${doneTasks + 1}/${totalTasks})`;
+            capsuleText.textContent = t('upload.capsuleUploading', { percent: uploadingTask.progress, current: doneTasks + 1, total: totalTasks });
         } else if (doneTasks === totalTasks && totalTasks > 0) {
             // 全部完成状态：隐藏持续旋转的 spinner，换为完成状态
             if (spinner) spinner.style.display = 'none';
             capsule.style.background = 'var(--success-color)';
-            capsuleText.textContent = `全部完成 (${doneTasks}/${totalTasks})`;
+            capsuleText.textContent = t('upload.capsuleDone', { done: doneTasks, total: totalTasks });
         } else {
             if (spinner) spinner.style.display = 'none';
             capsule.style.background = 'var(--primary-color)';
-            capsuleText.textContent = `上传任务 (${doneTasks}/${totalTasks})`;
+            capsuleText.textContent = t('upload.dockTitle', { done: doneTasks, total: totalTasks });
         }
     }
 
@@ -506,11 +509,11 @@ class UploadManager {
         dock.style.display = 'block';
 
         const total = this.tasks.length;
-        const completed = this.tasks.filter(t => t.status === 'success').length;
-        const hasError = this.tasks.some(t => t.status === 'error');
+        const completed = this.tasks.filter(tk => tk.status === 'success').length;
+        const hasError = this.tasks.some(tk => tk.status === 'error');
 
         if (titleText) {
-            titleText.textContent = `上传任务 (${completed}/${total})${hasError ? ' · 有失败' : ''}`;
+            titleText.textContent = t('upload.dockTitle', { done: completed, total }) + (hasError ? t('upload.hasFailed') : '');
         }
 
         list.innerHTML = this.tasks.map(task => {
@@ -524,20 +527,20 @@ class UploadManager {
                 const loadedStr = this.formatBytes(task.loaded);
                 const totalStr = this.formatBytes(task.size);
                 statusHtml = `<span class="task-status-text">${loadedStr} / ${totalStr} (${task.progress}%) ${speedStr ? '· ' + speedStr : ''}</span>`;
-                actionBtn = `<button class="task-action-btn cancel" data-id="${task.id}" title="取消" style="display: inline-flex; align-items: center; justify-content: center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+                actionBtn = `<button class="task-action-btn cancel" data-id="${task.id}" title="${t('upload.cancel')}" aria-label="${t('upload.cancel')}" style="display: inline-flex; align-items: center; justify-content: center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
             } else if (task.status === 'pending') {
-                statusHtml = `<span class="task-status-text text-muted">排队等待中... (${this.formatBytes(task.size)})</span>`;
-                actionBtn = `<button class="task-action-btn cancel" data-id="${task.id}" title="取消" style="display: inline-flex; align-items: center; justify-content: center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+                statusHtml = `<span class="task-status-text text-muted">${t('upload.queued', { size: this.formatBytes(task.size) })}</span>`;
+                actionBtn = `<button class="task-action-btn cancel" data-id="${task.id}" title="${t('upload.cancel')}" aria-label="${t('upload.cancel')}" style="display: inline-flex; align-items: center; justify-content: center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
             } else if (task.status === 'success') {
-                statusHtml = `<span class="task-status-text text-success">上传完成 (${this.formatBytes(task.size)})</span>`;
+                statusHtml = `<span class="task-status-text text-success">${t('upload.success', { size: this.formatBytes(task.size) })}</span>`;
                 progressClass = 'success';
             } else if (task.status === 'error') {
-                statusHtml = `<span class="task-status-text text-danger" title="${escapeHtml(task.errorMsg)}">上传失败: ${escapeHtml(task.errorMsg)}</span>`;
-                actionBtn = `<button class="task-action-btn retry" data-id="${task.id}" title="重试">重试</button>`;
+                statusHtml = `<span class="task-status-text text-danger" title="${escapeHtml(task.errorMsg)}">${escapeHtml(t('upload.failed', { msg: task.errorMsg }))}</span>`;
+                actionBtn = `<button class="task-action-btn retry" data-id="${task.id}" title="${t('upload.retry')}">${t('upload.retry')}</button>`;
                 progressClass = 'error';
             } else if (task.status === 'aborted') {
-                statusHtml = `<span class="task-status-text text-muted">已取消</span>`;
-                actionBtn = `<button class="task-action-btn retry" data-id="${task.id}" title="重新上传">重试</button>`;
+                statusHtml = `<span class="task-status-text text-muted">${t('upload.cancelled')}</span>`;
+                actionBtn = `<button class="task-action-btn retry" data-id="${task.id}" title="${t('upload.reupload')}">${t('upload.retry')}</button>`;
                 progressClass = 'aborted';
             }
 

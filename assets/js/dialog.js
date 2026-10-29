@@ -4,6 +4,7 @@
 // ====================================================
 
 import { escapeHtml, escapeAttr } from './utils.js';
+import { t } from './i18n.js';
 
 const ICONS = {
     danger: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
@@ -74,10 +75,10 @@ class DialogManager {
             this.close(false);
         }
         const opts = typeof options === 'string' ? { message: options } : (options || {});
-        const title = opts.title || '操作确认';
+        const title = opts.title || t('dialog.confirmTitle');
         const message = opts.message || '';
-        const confirmText = opts.confirmText || '确认';
-        const cancelText = opts.cancelText || '取消';
+        const confirmText = opts.confirmText || t('common.confirm');
+        const cancelText = opts.cancelText || t('common.cancel');
         const isDanger = opts.danger !== false; // 默认操作多数为永久删除，赋予醒目的 danger 红色
         const iconType = opts.icon || (isDanger ? 'danger' : 'warning');
 
@@ -125,9 +126,9 @@ class DialogManager {
             this.close(true);
         }
         const opts = typeof options === 'string' ? { message: options } : (options || {});
-        const title = opts.title || '提示';
+        const title = opts.title || t('dialog.alertTitle');
         const message = opts.message || '';
-        const buttonText = opts.buttonText || '我知道了';
+        const buttonText = opts.buttonText || t('dialog.alertOk');
         const type = opts.type || 'info';
 
         return new Promise((resolve) => {
@@ -169,11 +170,11 @@ class DialogManager {
             this.close(null);
         }
         const opts = typeof options === 'string' ? { message: options } : (options || {});
-        const title = opts.title || '请输入';
+        const title = opts.title || t('dialog.promptTitle');
         const message = opts.message || '';
         const defaultValue = opts.defaultValue || '';
-        const confirmText = opts.confirmText || '确认';
-        const cancelText = opts.cancelText || '取消';
+        const confirmText = opts.confirmText || t('common.confirm');
+        const cancelText = opts.cancelText || t('common.cancel');
 
         return new Promise((resolve) => {
             this.currentResolve = (val) => resolve(val);

@@ -1,4 +1,7 @@
-import { requireAdmin } from '../../lib/admin-auth.js';
+import { requireAdmin, errorResponse, jsonResponse } from '../../lib/admin-auth.js';
+import { serverMsg } from '../../lib/server-i18n.js';
+
+const CORS = { 'Access-Control-Allow-Origin': '*' };
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -10,16 +13,13 @@ export async function onRequest(context) {
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept-Language'
             }
         });
     }
 
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
+        return errorResponse(request, 405, 'METHOD_NOT_ALLOWED', {}, CORS);
     }
 
     // 安全鉴权：只有登录了管理后台的管理员才能使用，防止被当成公开跳板
@@ -34,10 +34,7 @@ export async function onRequest(context) {
         let { baseUrl, apiKey } = body;
 
         if (!baseUrl) {
-            return new Response(JSON.stringify({ success: false, error: '请提供服务商 API Base URL！' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
+            return errorResponse(request, 400, 'MODELS_NO_BASE_URL', {}, CORS);
         }
 
         baseUrl = String(baseUrl).trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
@@ -47,10 +44,7 @@ export async function onRequest(context) {
         const host = parsed?.hostname || '';
         const isPrivate = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.|\[?::1\]?$)/i.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
         if (!parsed || parsed.protocol !== 'https:' || isPrivate) {
-            return new Response(JSON.stringify({ success: false, error: 'API Base URL 必须是 https 公网地址' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
+            return errorResponse(request, 400, 'MODELS_BAD_BASE_URL', {}, CORS);
         }
         let modelsUrl = baseUrl;
         if (!modelsUrl.endsWith('/models')) {
@@ -77,25 +71,21 @@ export async function onRequest(context) {
         try {
             json = JSON.parse(rawText);
         } catch (e) {
-            return new Response(JSON.stringify({
+            return jsonResponse({
                 success: false,
-                error: `服务商返回了非 JSON 格式响应 (HTTP ${upstreamRes.status}): ${rawText.slice(0, 150)}`
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
+                code: 'MODELS_NOT_JSON',
+                error: serverMsg(request, 'MODELS_NOT_JSON', { status: upstreamRes.status, body: rawText.slice(0, 150) })
+            }, 200, CORS);
         }
 
         if (!upstreamRes.ok) {
-            const msg = json?.error?.message || json?.message || json?.detail || `HTTP 状态码: ${upstreamRes.status}`;
-            return new Response(JSON.stringify({
+            const msg = json?.error?.message || json?.message || json?.detail || `HTTP ${upstreamRes.status}`;
+            return jsonResponse({
                 success: false,
                 status: upstreamRes.status,
-                error: `拉取失败 (${upstreamRes.status}): ${msg}`
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
+                code: 'MODELS_FETCH_FAILED',
+                error: serverMsg(request, 'MODELS_FETCH_FAILED', { status: upstreamRes.status, msg })
+            }, 200, CORS);
         }
 
         // 解析各服务商的模型列表
@@ -123,15 +113,10 @@ export async function onRequest(context) {
         });
 
     } catch (err) {
-        return new Response(JSON.stringify({
+        return jsonResponse({
             success: false,
-            error: `网络异常或无法访问该地址: ${err.message}`
-        }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        });
+            code: 'MODELS_NETWORK',
+            error: serverMsg(request, 'MODELS_NETWORK', { msg: err.message })
+        }, 200, CORS);
     }
 }

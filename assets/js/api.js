@@ -1,5 +1,6 @@
 // Cloudflare D1 / R2 / KV API 封装
 import { getBucketDomain } from './sites.js';
+import { t, langHeaders } from './i18n.js';
 
 let credentials = { accountId: '', apiToken: '' };
 
@@ -12,13 +13,21 @@ export function getCredentials() {
     return credentials;
 }
 
+// 发给 /api/cf 代理的公共请求头：登录 Token + 界面语言（代理按语言返回错误信息）
+function authHeaders() {
+    return {
+        'Authorization': `Bearer ${credentials.apiToken}`,
+        ...langHeaders()
+    };
+}
+
 export async function cfRequest(path, method = 'GET', body = null) {
     // 代理请求以绕过 CORS 限制，路由到 Cloudflare Pages Functions
     const url = `/api/cf/accounts/${credentials.accountId}${path}`;
     const options = {
         method,
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`,
+            ...authHeaders(),
             'Content-Type': 'application/json'
         }
     };
@@ -31,12 +40,12 @@ export async function cfRequest(path, method = 'GET', body = null) {
         try {
             data = JSON.parse(text);
         } catch (parseErr) {
-            console.error("响应解析失败, 原始响应:", text);
-            throw new Error('API 返回了无效的数据');
+            console.error("Failed to parse response, raw body:", text);
+            throw new Error(t('api.invalidResponse'));
         }
         
         if (!res.ok || !data.success) {
-            throw new Error(data.errors?.[0]?.message || '请求失败');
+            throw new Error(data.errors?.[0]?.message || data.error || t('api.requestFailed'));
         }
         return data;
     } catch (err) {
@@ -93,7 +102,7 @@ export async function putR2Object(bucketName, key, arrayBuffer, contentType = 'a
     const options = {
         method: 'PUT',
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`,
+            ...authHeaders(),
             'Content-Type': contentType
         },
         body: arrayBuffer
@@ -102,7 +111,7 @@ export async function putR2Object(bucketName, key, arrayBuffer, contentType = 'a
     const res = await fetch(url, options);
     if (!res.ok) {
         const text = await res.text();
-        throw new Error(`上传失败 (${res.status}): ${text}`);
+        throw new Error(t('api.uploadFailed', { status: res.status, msg: text }));
     }
     return true;
 }
@@ -117,7 +126,7 @@ export function uploadR2ObjectWithProgress({ bucketName, key, file, onProgress, 
         const xhr = new XMLHttpRequest();
 
         xhr.open('PUT', url, true);
-        xhr.setRequestHeader('Authorization', `Bearer ${credentials.apiToken}`);
+        Object.entries(authHeaders()).forEach(([k, v]) => xhr.setRequestHeader(k, v));
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
 
         let lastTime = Date.now();
@@ -164,11 +173,11 @@ export function uploadR2ObjectWithProgress({ bucketName, key, file, onProgress, 
         };
 
         xhr.onerror = () => {
-            reject(new Error('网络传输异常或跨域中断'));
+            reject(new Error(t('api.networkError')));
         };
 
         xhr.onabort = () => {
-            reject(new DOMException('用户已取消上传', 'AbortError'));
+            reject(new DOMException(t('api.uploadCancelled'), 'AbortError'));
         };
 
         if (signal) {
@@ -186,13 +195,13 @@ export async function deleteR2Object(bucketName, key) {
     const options = {
         method: 'DELETE',
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`
+            ...authHeaders()
         }
     };
     const res = await fetch(url, options);
     if (!res.ok) {
         const text = await res.text();
-        throw new Error(`删除失败: ${text}`);
+        throw new Error(t('api.deleteFailed', { msg: text }));
     }
     return true;
 }
@@ -215,7 +224,7 @@ export async function getR2ObjectArrayBuffer(bucketName, key) {
                 return await pick(cdnRes);
             }
         } catch (e) {
-            console.warn("CDN 读取失败，回退至 API 代理:", e);
+            console.warn("CDN read failed, falling back to the API proxy:", e);
         }
     }
 
@@ -223,12 +232,12 @@ export async function getR2ObjectArrayBuffer(bucketName, key) {
     const options = {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`
+            ...authHeaders()
         }
     };
     const res = await fetch(url, options);
     if (!res.ok) {
-        throw new Error(`读取文件失败 (${res.status})`);
+        throw new Error(t('api.readFailed', { status: res.status }));
     }
     return await pick(res);
 }
@@ -246,7 +255,7 @@ export async function renameR2Object(bucketName, oldKey, newKey, dbId = null, { 
     if (oldKey === newKey) return true;
 
     if (!skipExistCheck && await r2ObjectExists(bucketName, newKey)) {
-        throw new Error(`目标位置已存在同名文件：${newKey}`);
+        throw new Error(t('api.targetExists', { key: newKey }));
     }
     
     // 1. 读取原文件内容
@@ -267,7 +276,7 @@ export async function renameR2Object(bucketName, oldKey, newKey, dbId = null, { 
                 WHERE file_path = ?
             `, [newKey, oldKey]);
         } catch (dbErr) {
-            console.warn("更新 D1 下载记录路径失败（非致命）:", dbErr);
+            console.warn("Failed to update the D1 download record path (non-fatal):", dbErr);
         }
     }
     return true;
@@ -289,7 +298,7 @@ export async function renameR2Folder(bucketName, oldPrefix, newPrefix, dbId = nu
     // 目标文件夹已存在（里面有任何文件）时不合并，避免同名文件被覆盖
     const { objects: existing } = await listR2Objects(bucketName, newPrefix);
     if (existing.length > 0) {
-        throw new Error(`目标文件夹已存在：${newPrefix}`);
+        throw new Error(t('api.targetFolderExists', { prefix: newPrefix }));
     }
 
     // 1. 列出该前缀下的所有对象（超过 1000 个时自动翻页）
@@ -342,7 +351,7 @@ export async function getKvValue(namespaceId, keyName) {
     const res = await fetch(url, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`
+            ...authHeaders()
         }
     });
 
@@ -351,7 +360,7 @@ export async function getKvValue(namespaceId, keyName) {
     }
     if (!res.ok) {
         const text = await res.text();
-        throw new Error(`读取 KV 失败 (${res.status}): ${text}`);
+        throw new Error(t('api.kvReadFailed', { status: res.status, msg: text }));
     }
     return await res.text();
 }
@@ -361,7 +370,7 @@ export async function putKvValue(namespaceId, keyName, valueString) {
     const res = await fetch(url, {
         method: 'PUT',
         headers: {
-            'Authorization': `Bearer ${credentials.apiToken}`,
+            ...authHeaders(),
             'Content-Type': 'text/plain; charset=utf-8'
         },
         body: typeof valueString === 'string' ? valueString : JSON.stringify(valueString)
@@ -372,12 +381,12 @@ export async function putKvValue(namespaceId, keyName, valueString) {
     try {
         data = JSON.parse(text);
     } catch (e) {
-        if (!res.ok) throw new Error(`写入 KV 失败 (${res.status}): ${text}`);
+        if (!res.ok) throw new Error(t('api.kvWriteFailedDetail', { status: res.status, msg: text }));
         return true;
     }
 
     if (!res.ok || (data && data.success === false)) {
-        throw new Error(data?.errors?.[0]?.message || `写入 KV 失败 (${res.status})`);
+        throw new Error(data?.errors?.[0]?.message || t('api.kvWriteFailed', { status: res.status }));
     }
     return true;
 }

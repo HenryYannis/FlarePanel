@@ -1,8 +1,9 @@
 import { setCredentials, fetchDatabases } from './api.js';
+import { t } from './i18n.js';
 
 export async function connectD1(accountId, apiToken) {
     if (!accountId || !apiToken) {
-        throw new Error('请填写 Account ID 和 API Token');
+        throw new Error(t('auth.missingFields'));
     }
 
     setCredentials(accountId, apiToken);

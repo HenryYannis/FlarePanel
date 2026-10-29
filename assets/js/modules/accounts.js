@@ -6,6 +6,7 @@
 import { queryDatabase } from '../api.js';
 import { showConfirm, showAlert } from '../dialog.js';
 import { formatDateTime, escapeHtml } from '../utils.js';
+import { t } from '../i18n.js';
 
 let ctx = null; // 上下文工具：{ showToast, showLoading, hideLoading, updatePagination }
 let currentDb = { id: '', name: '' };
@@ -16,9 +17,9 @@ let totalCount = 0;
 let searchKeyword = '';
 // 表头点击排序（白名单字段，防止拼接任意 SQL）
 const SORTABLE_FIELDS = {
-    username: { label: '用户名', defaultOrder: 'ASC' },
-    created_at: { label: '创建时间', defaultOrder: 'DESC' },
-    last_login_at: { label: '最后登录', defaultOrder: 'DESC' }
+    username: { labelKey: 'accounts.colUsername', defaultOrder: 'ASC' },
+    created_at: { labelKey: 'accounts.colCreated', defaultOrder: 'DESC' },
+    last_login_at: { labelKey: 'accounts.colLastLogin', defaultOrder: 'DESC' }
 };
 let sortBy = 'created_at';
 let sortOrder = 'DESC'; // 'DESC' | 'ASC'
@@ -27,16 +28,16 @@ let hasLastLogin = true; // 当前账号库是否有 last_login_at 列
 export function renderAccountsTable(tbody, data) {
     if (!tbody) return;
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">没有找到匹配的账号数据。</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${t('accounts.noMatch')}</td></tr>`;
         return;
     }
 
     tbody.innerHTML = '';
     data.forEach(item => {
         const tr = document.createElement('tr');
-        const formattedTime = item.created_at ? formatDateTime(item.created_at) : '未知';
+        const formattedTime = item.created_at ? formatDateTime(item.created_at) : t('common.unknown');
         // last_login_at 是可选列；账号库没有这一列时显示 —
-        const lastLogin = item.last_login_at ? formatDateTime(item.last_login_at) : (('last_login_at' in item) ? '暂无记录' : '—');
+        const lastLogin = item.last_login_at ? formatDateTime(item.last_login_at) : (('last_login_at' in item) ? t('accounts.noRecord') : '—');
         tr.innerHTML = `
             <td style="width: 40px;"><input type="checkbox" class="row-check" value="${item.id}"></td>
             <td style="font-size:0.8rem; font-family:monospace;"><span class="account-id-badge">${item.id}</span></td>
@@ -44,7 +45,7 @@ export function renderAccountsTable(tbody, data) {
             <td class="cell-time" title="${formattedTime}">${formattedTime}</td>
             <td class="cell-time" title="${lastLogin}">${lastLogin}</td>
             <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">删除</button>
+                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">${t('common.delete')}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -103,7 +104,7 @@ async function loadData(forceRefresh = false) {
     }
 
     if (tableData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span class="loader-inline"></span> 正在读取账号数据...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span class="loader-inline"></span> ${t('accounts.loading')}</td></tr>`;
     } else {
         tbody.style.opacity = '0.55';
     }
@@ -158,7 +159,7 @@ async function loadData(forceRefresh = false) {
             return loadData(true);
         }
         console.error("Accounts load error:", err);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger-color); padding: 2rem;">加载失败: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger-color); padding: 2rem;">${escapeHtml(t('common.loadFailed', { msg: err.message }))}</td></tr>`;
     } finally {
         tbody.style.opacity = '1';
     }
@@ -166,21 +167,21 @@ async function loadData(forceRefresh = false) {
 
 async function deleteAccount(id) {
     const ok = await showConfirm({
-        title: '删除用户确认',
-        message: `确定要永久删除用户 "${id}" 吗？此操作不可逆。`,
-        confirmText: '永久删除',
+        title: t('accounts.deleteTitle'),
+        message: t('accounts.deleteMessage', { id }),
+        confirmText: t('common.deleteForever'),
         danger: true
     });
     if (!ok) return;
 
-    if (ctx?.showLoading) ctx.showLoading('正在删除用户...');
+    if (ctx?.showLoading) ctx.showLoading(t('accounts.deleting'));
     try {
         await queryDatabase(currentDb.id, `DELETE FROM users WHERE id = ?`, [id]);
         clearAccountsCache();
-        if (ctx?.showToast) ctx.showToast('用户删除成功！');
+        if (ctx?.showToast) ctx.showToast(t('accounts.deleted'));
         await loadData(true);
     } catch (err) {
-        if (ctx?.showToast) ctx.showToast(`删除失败: ${err.message}`, true);
+        if (ctx?.showToast) ctx.showToast(t('common.deleteFailed', { msg: err.message }), true);
     } finally {
         if (ctx?.hideLoading) ctx.hideLoading();
     }
@@ -195,10 +196,10 @@ export const AccountsModule = {
         const thead = document.getElementById('data-thead');
         if (thead) {
             const sortTh = (field) => {
-                const { label } = SORTABLE_FIELDS[field];
+                const label = escapeHtml(t(SORTABLE_FIELDS[field].labelKey));
                 if (field === 'last_login_at' && !hasLastLogin) return `<th>${label}</th>`;
                 const cls = sortBy === field ? (sortOrder === 'DESC' ? 'sort-desc' : 'sort-asc') : '';
-                return `<th class="accounts-sortable-header ${cls}" data-sort="${field}" title="点击切换${label}升序/降序">${label}</th>`;
+                return `<th class="accounts-sortable-header ${cls}" data-sort="${field}" title="${escapeHtml(t('common.sortToggle', { label: t(SORTABLE_FIELDS[field].labelKey) }))}">${label}</th>`;
             };
             thead.innerHTML = `
                 <tr>
@@ -207,7 +208,7 @@ export const AccountsModule = {
                     ${sortTh('username')}
                     ${sortTh('created_at')}
                     ${sortTh('last_login_at')}
-                    <th style="text-align: right;">操作</th>
+                    <th style="text-align: right;">${t('common.actions')}</th>
                 </tr>
             `;
             thead.querySelectorAll('.accounts-sortable-header').forEach(th => {
@@ -267,27 +268,27 @@ export const AccountsModule = {
     async deleteSelected() {
         const checkboxes = document.querySelectorAll('.row-check:checked');
         if (checkboxes.length === 0) {
-            return ctx?.showToast ? ctx.showToast('请先勾选要删除的用户', true) : null;
+            return ctx?.showToast ? ctx.showToast(t('accounts.selectFirst'), true) : null;
         }
 
         const ids = Array.from(checkboxes).map(cb => cb.value);
         const ok = await showConfirm({
-            title: '批量删除用户确认',
-            message: `确定要永久删除选中的 ${ids.length} 个用户吗？此操作不可逆。`,
-            confirmText: '批量删除',
+            title: t('accounts.batchTitle'),
+            message: t('accounts.batchMessage', { count: ids.length }),
+            confirmText: t('common.batchDelete'),
             danger: true
         });
         if (!ok) return;
 
-        if (ctx?.showLoading) ctx.showLoading(`正在批量删除 ${ids.length} 个用户...`);
+        if (ctx?.showLoading) ctx.showLoading(t('accounts.batchDeleting', { count: ids.length }));
         try {
             const placeholders = ids.map(() => '?').join(',');
             await queryDatabase(currentDb.id, `DELETE FROM users WHERE id IN (${placeholders})`, ids);
             clearAccountsCache();
-            if (ctx?.showToast) ctx.showToast('批量删除成功！');
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteSuccess'));
             await loadData(true);
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`批量删除失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('common.batchDeleteFailed', { msg: err.message }), true);
         } finally {
             if (ctx?.hideLoading) ctx.hideLoading();
         }
@@ -295,11 +296,11 @@ export const AccountsModule = {
 
     exportCSV() {
         if (tableData.length === 0) {
-            showAlert({ title: '导出提示', message: '当前没有可导出的数据' });
+            showAlert({ title: t('common.exportTitle'), message: t('common.nothingToExport') });
             return;
         }
-        const headers = ['ID', '用户名', '创建时间', '最后登录'];
-        const rows = tableData.map(c => [c.id, `"${String(c.username).replace(/"/g, '""')}"`, c.created_at || '未知', c.last_login_at || '']);
+        const headers = ['ID', t('accounts.colUsername'), t('accounts.colCreated'), t('accounts.colLastLogin')];
+        const rows = tableData.map(c => [c.id, `"${String(c.username).replace(/"/g, '""')}"`, c.created_at || t('common.unknown'), c.last_login_at || '']);
         const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");

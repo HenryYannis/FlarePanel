@@ -825,4 +825,14 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     }
 }
 
+/* ==================== 界面语言切换 ==================== */
+.lang-toggle {
+    min-width: 44px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
 
+/* 英文界面在文字填好前先隐藏，避免闪一下中文（index.html 头部脚本加上，i18n.js 去掉，2 秒后兜底去掉） */
+html.i18n-pending body {
+    visibility: hidden;
+}

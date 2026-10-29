@@ -6,13 +6,14 @@
 export const PANEL = {
     // 后台标题（浏览器标签和顶部导航栏）
     title: 'FlarePanel',
-    // 在后台回复评论时显示的昵称
+    // 在后台回复评论时显示的昵称（可写成 { zh: '站长', en: 'Admin' }，按界面语言选择）
     adminName: '站长',
     // 浏览量统计里的页面分类（按网址前缀匹配，没匹配上的归入「其他页面」）
+    // label 可以是普通文字，也可以写成 { zh: '文章', en: 'Posts' }，按界面语言显示
     // 某个站点想用自己的分类，在站点里写 viewTypes 覆盖
     viewTypes: [
-        { key: 'posts', label: '文章', prefixes: ['/posts/'] },
-        { key: 'tools', label: '工具', prefixes: ['/tools/'] }
+        { key: 'posts', label: { zh: '文章', en: 'Posts' }, prefixes: ['/posts/'] },
+        { key: 'tools', label: { zh: '工具', en: 'Tools' }, prefixes: ['/tools/'] }
     ],
     // 浏览量统计里不显示的页面：网址里含这些关键词就跳过，例如 ['/docs', '/drafts']
     viewExcludes: []

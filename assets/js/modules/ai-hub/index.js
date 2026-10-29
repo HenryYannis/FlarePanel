@@ -5,6 +5,7 @@
 // ====================================================
 
 import { showConfirm, showAlert } from '../../dialog.js';
+import { t, langHeaders } from '../../i18n.js';
 import { getCredentials } from '../../api.js';
 import { 
     AI_KV_NAMESPACE_ID, 
@@ -91,7 +92,7 @@ export async function syncAiConfig(toastMessage = '', showLoadingSpinner = false
     }
 
     if (showLoadingSpinner && ctx?.showLoading) {
-        ctx.showLoading('正在同步至边缘节点...');
+        ctx.showLoading(t('ai.syncing'));
     }
 
     try {
@@ -100,11 +101,11 @@ export async function syncAiConfig(toastMessage = '', showLoadingSpinner = false
             ctx.showToast(toastMessage);
         }
     } catch (err) {
-        console.error('自动同步配置至 KV 失败:', err);
+        console.error('Failed to sync config to KV:', err);
         if (err.message && (err.message.includes('401') || err.message.includes('Authentication error'))) {
-            if (ctx?.showToast) ctx.showToast('同步失败: API Token 缺少 Workers KV Edit 权限！', true);
+            if (ctx?.showToast) ctx.showToast(t('ai.syncNoKvPerm'), true);
         } else {
-            if (ctx?.showToast) ctx.showToast(`同步失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('ai.syncFailed', { msg: err.message }), true);
         }
     } finally {
         if (showLoadingSpinner && ctx?.hideLoading) {
@@ -122,13 +123,13 @@ export function renderAiHubView(container, config) {
     <div style="margin-top: 16px; padding: 14px 18px; background: rgba(255, 60, 60, 0.08); border: 1px solid rgba(255, 60, 60, 0.3); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
         <div>
             <div style="font-weight: 700; color: var(--danger-color); font-size: 13.5px; margin-bottom: 2px;">
-                提示：当前 Cloudflare API Token 缺少 Workers KV 存储权限 (401)
+                ${t('ai.kvWarnTitle')}
             </div>
             <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
-                当前已加载安全默认模板。如需在后台保存与实时同步网关配置，请前往 Cloudflare 仪表盘为该 Token 补充勾选 <strong>Account -> Workers KV Storage -> Edit</strong> 权限。
+                ${t('ai.kvWarnBody')}
             </div>
         </div>
-        <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="btn btn-danger btn-sm" style="flex-shrink: 0;">前往补充权限</a>
+        <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="btn btn-danger btn-sm" style="flex-shrink: 0;">${t('ai.kvWarnBtn')}</a>
     </div>
     ` : '';
 
@@ -137,17 +138,17 @@ export function renderAiHubView(container, config) {
         <div class="ai-hub-header-card">
             <div class="ai-hub-header-left">
                 <div class="ai-hub-title-row">
-                    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin: 0;">代理网关控制中心</h2>
-                    <span class="ai-status-pill"><span class="ai-dot active"></span> 边缘就绪</span>
+                    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin: 0;">${t('ai.title')}</h2>
+                    <span class="ai-status-pill"><span class="ai-dot active"></span> ${t('ai.edgeReady')}</span>
                 </div>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
-                    统一管理多服务商大模型密钥与降级容灾链路，向全站及 VS Code / Hermes 输出标准 OpenAI 兼容接口。
+                    ${t('ai.subtitle')}
                 </p>
             </div>
             <div class="ai-hub-header-actions">
                 <div class="ai-subtabs-segmented capsule-tabs" data-capsule-tabs="ai-subtabs">
-                    <button class="ai-subtab-btn ${currentSubTab === 'metrics' ? 'active' : ''}" data-subtab="metrics">运行监控</button>
-                    <button class="ai-subtab-btn ${currentSubTab === 'config' ? 'active' : ''}" data-subtab="config">网关配置</button>
+                    <button class="ai-subtab-btn ${currentSubTab === 'metrics' ? 'active' : ''}" data-subtab="metrics">${t('ai.tabMetrics')}</button>
+                    <button class="ai-subtab-btn ${currentSubTab === 'config' ? 'active' : ''}" data-subtab="config">${t('ai.tabConfig')}</button>
                 </div>
             </div>
         </div>
@@ -188,12 +189,12 @@ export function bindAiHubEvents(container, config) {
             const days = parseInt(btn.dataset.days);
             if (days && days !== currentMetricsDays) {
                 currentMetricsDays = days;
-                if (ctx?.showLoading) ctx.showLoading(`正在拉取近 ${days} 天运行数据...`);
+                if (ctx?.showLoading) ctx.showLoading(t('ai.loadingDays', { days }));
                 try {
                     await fetchAiHubMetrics(currentMetricsDays, config);
                     renderAiHubView(container, config);
                 } catch (err) {
-                    if (ctx?.showToast) ctx.showToast(`切换天数失败: ${err.message}`, true);
+                    if (ctx?.showToast) ctx.showToast(t('ai.switchDaysFailed', { msg: err.message }), true);
                 } finally {
                     if (ctx?.hideLoading) ctx.hideLoading();
                 }
@@ -206,13 +207,13 @@ export function bindAiHubEvents(container, config) {
     if (refreshMetricsBtn) {
         refreshMetricsBtn.onclick = async () => {
             refreshMetricsBtn.disabled = true;
-            refreshMetricsBtn.textContent = '正在刷新...';
+            refreshMetricsBtn.textContent = t('ai.refreshing');
             try {
                 await fetchAiHubMetrics(currentMetricsDays, config);
                 renderAiHubView(container, config);
-                if (ctx?.showToast) ctx.showToast('监控统计已刷新');
+                if (ctx?.showToast) ctx.showToast(t('ai.metricsRefreshed'));
             } catch (err) {
-                if (ctx?.showToast) ctx.showToast(`刷新监控统计失败: ${err.message}`, true);
+                if (ctx?.showToast) ctx.showToast(t('ai.metricsRefreshFailed', { msg: err.message }), true);
             }
         };
     }
@@ -231,7 +232,7 @@ export function bindAiHubEvents(container, config) {
             const input = document.getElementById(targetId);
             if (input) {
                 navigator.clipboard.writeText(input.value).then(() => {
-                    if (ctx?.showToast) ctx.showToast('已复制到剪贴板');
+                    if (ctx?.showToast) ctx.showToast(t('common.copied'));
                 });
             }
         };
@@ -251,12 +252,12 @@ export function bindAiHubEvents(container, config) {
     ['#ai-unauth-limit', '#ai-auth-limit', '#ai-moderation-model', '#ai-moderation-cf-enabled', '#ai-tg-bot-token', '#ai-tg-chat-id'].forEach(sel => {
         const el = container.querySelector(sel);
         if (el) {
-            el.onchange = () => syncAiConfig('策略配置已自动同步', false);
+            el.onchange = () => syncAiConfig(t('ai.policySynced'), false);
         }
     });
     const tgEnabled = container.querySelector('#ai-tg-enabled');
     if (tgEnabled) {
-        tgEnabled.onchange = () => syncAiConfig(tgEnabled.checked ? '已开启 Telegram 告警并同步' : '已关闭 Telegram 告警并同步', false);
+        tgEnabled.onchange = () => syncAiConfig(tgEnabled.checked ? t('ai.tgOnSynced') : t('ai.tgOffSynced'), false);
     }
 
     // Telegram 测试发送
@@ -267,78 +268,42 @@ export function bindAiHubEvents(container, config) {
             const botToken = container.querySelector('#ai-tg-bot-token')?.value.trim();
             const chatId = container.querySelector('#ai-tg-chat-id')?.value.trim();
             if (!botToken || !chatId) {
-                return showAlert({ title: '参数缺失', message: '请先填写完整的 Telegram Bot Token 和 Chat ID！' });
+                return showAlert({ title: t('ai.tgMissingTitle'), message: t('ai.tgMissing') });
             }
 
             testTgBtn.disabled = true;
-            testTgText.textContent = '发送中...';
+            testTgText.textContent = t('ai.tgSending');
 
             try {
-                let handled = false;
-                try {
-                    const edgeRes = await fetch('/api/test-telegram', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getCredentials().apiToken}` },
-                        body: JSON.stringify({ botToken, chatId })
+                // 只走 /api/test-telegram（需要管理员 Token），不再从浏览器直连 Telegram
+                const res = await fetch('/api/test-telegram', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getCredentials().apiToken}`,
+                        ...langHeaders()
+                    },
+                    body: JSON.stringify({ botToken, chatId })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    if (ctx?.showToast) ctx.showToast(t('ai.tgSent'));
+                } else {
+                    showAlert({
+                        title: t('ai.tgFailedTitle'),
+                        message: data.error || (res.ok ? t('ai.tgFailedDefault') : `HTTP ${res.status}`),
+                        type: 'warning'
                     });
-                    if (edgeRes.status !== 404 && edgeRes.status !== 405) {
-                        handled = true;
-                        const data = await edgeRes.json();
-                        if (data.success) {
-                            if (ctx?.showToast) ctx.showToast('Telegram 测试消息已成功送达！');
-                        } else {
-                            showAlert({ 
-                                title: '发送失败', 
-                                message: data.error || '未能发送测试通知，请检查参数设置。', 
-                                type: 'warning' 
-                            });
-                        }
-                    }
-                } catch {
-                    // 若边缘函数不可达（如无 Functions 的静态环境），回退至浏览器直连
-                }
-
-                if (!handled) {
-                    const bjtString = new Date(Date.now() + 8 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 19);
-                    const message = [
-                        `✅ <b>Telegram 通知测试</b>`,
-                        ``,
-                        `<b>来源</b>：FlarePanel（${location.host}）`,
-                        `<b>状态</b>：通知通道正常`,
-                        `<b>说明</b>：AI 网关告警会推送到这里`,
-                        ``,
-                        `<b>时间</b>：${bjtString}（北京时间）`
-                    ].join('\n');
-                    const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-                    const res = await fetch(tgUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: chatId,
-                            text: message,
-                            parse_mode: 'HTML'
-                        })
-                    });
-                    const data = await res.json();
-                    if (data.ok) {
-                        if (ctx?.showToast) ctx.showToast('Telegram 测试消息已成功送达！');
-                    } else {
-                        showAlert({ 
-                            title: '发送失败', 
-                            message: `发送失败: ${data.description || '未知错误'}\n请检查 Token 与 Chat ID 是否正确。`, 
-                            type: 'warning' 
-                        });
-                    }
                 }
             } catch (err) {
-                showAlert({ 
-                    title: '网络异常', 
-                    message: `网络请求异常: ${err.message}\n提示：直接在浏览器请求 Telegram API 可能受网络环境限制。`, 
-                    type: 'danger' 
+                showAlert({
+                    title: t('ai.tgNetworkTitle'),
+                    message: t('ai.tgNetwork', { msg: err.message }),
+                    type: 'danger'
                 });
             } finally {
                 testTgBtn.disabled = false;
-                testTgText.textContent = '发送测试通知';
+                testTgText.textContent = t('ai.tgSendTest');
             }
         };
     }
@@ -351,7 +316,7 @@ export function bindAiHubEvents(container, config) {
             if (p) {
                 p.enabled = chk.checked;
                 renderAiHubView(container, config);
-                await syncAiConfig(`服务商「${p.name}」已${p.enabled ? '启用' : '禁用'}并同步`, false);
+                await syncAiConfig(t(p.enabled ? 'ai.providerEnabledSynced' : 'ai.providerDisabledSynced', { name: p.name }), false);
             }
         };
     });
@@ -363,7 +328,7 @@ export function bindAiHubEvents(container, config) {
             const key = btn.dataset.key;
             if (key) {
                 navigator.clipboard.writeText(key).then(() => {
-                    if (ctx?.showToast) ctx.showToast('API Key 已复制到剪贴板');
+                    if (ctx?.showToast) ctx.showToast(t('ai.apiKeyCopied'));
                 });
             }
         };
@@ -382,7 +347,7 @@ export function bindAiHubEvents(container, config) {
             let poll = getProviderPollModels(p);
             if (poll.includes(modelName)) {
                 if (poll.length <= 1) {
-                    return showAlert({ title: '提示', message: `服务商「${p.name}」至少需要保留 1 个生效模型！` });
+                    return showAlert({ title: t('dialog.alertTitle'), message: t('ai.keepOneModel', { name: p.name }) });
                 }
                 poll = poll.filter(m => m !== modelName);
                 p.pollModels = poll;
@@ -390,13 +355,13 @@ export function bindAiHubEvents(container, config) {
                     p.defaultModel = poll[0];
                 }
                 renderAiHubView(container, config);
-                await syncAiConfig(`已将模型「${modelName}」移出「${p.name}」轮询`, true);
+                await syncAiConfig(t('ai.modelRemovedFromPoll', { model: modelName, name: p.name }), true);
             } else {
                 poll.push(modelName);
                 p.pollModels = poll;
                 if (!p.defaultModel) p.defaultModel = poll[0];
                 renderAiHubView(container, config);
-                await syncAiConfig(`已将模型「${modelName}」加入「${p.name}」轮询 (顺位: ${poll.length})`, true);
+                await syncAiConfig(t('ai.modelAddedToPoll', { model: modelName, name: p.name, pos: poll.length }), true);
             }
         };
     });
@@ -417,16 +382,16 @@ export function bindAiHubEvents(container, config) {
             const p = config.providers.find(item => item.id === pid);
             if (p) {
                 const ok = await showConfirm({
-                    title: '删除服务商确认',
-                    message: `确定要删除服务商「${p.name}」吗？其在主备降级链中的路由也将被移除。`,
-                    confirmText: '确认删除',
+                    title: t('ai.deleteProviderTitle'),
+                    message: t('ai.deleteProviderMessage', { name: p.name }),
+                    confirmText: t('common.confirmDelete'),
                     danger: true
                 });
                 if (ok) {
                     config.providers = config.providers.filter(item => item.id !== pid);
                     config.sitePolicy.fallbackChain = config.sitePolicy.fallbackChain.filter(id => id !== pid);
                     renderAiHubView(container, config);
-                    await syncAiConfig(`服务商「${p.name}」已删除并同步`, false);
+                    await syncAiConfig(t('ai.providerDeletedSynced', { name: p.name }), false);
                 }
             }
         };
@@ -450,17 +415,17 @@ export function bindAiHubEvents(container, config) {
                 chain[idx] = chain[idx - 1];
                 chain[idx - 1] = temp;
                 renderAiHubView(container, config);
-                await syncAiConfig('主备降级链已调整并同步', false);
+                await syncAiConfig(t('ai.chainAdjusted'), false);
             } else if (action === 'move-down' && idx < chain.length - 1) {
                 const temp = chain[idx];
                 chain[idx] = chain[idx + 1];
                 chain[idx + 1] = temp;
                 renderAiHubView(container, config);
-                await syncAiConfig('主备降级链已调整并同步', false);
+                await syncAiConfig(t('ai.chainAdjusted'), false);
             } else if (action === 'remove-chain') {
                 chain.splice(idx, 1);
                 renderAiHubView(container, config);
-                await syncAiConfig('已从降级链移除并同步', false);
+                await syncAiConfig(t('ai.chainRemoved'), false);
             }
         };
     });
@@ -474,7 +439,7 @@ export function bindAiHubEvents(container, config) {
             if (val && !config.sitePolicy.fallbackChain.includes(val)) {
                 config.sitePolicy.fallbackChain.push(val);
                 renderAiHubView(container, config);
-                await syncAiConfig('已追加服务商到降级链并同步', false);
+                await syncAiConfig(t('ai.chainAdded'), false);
             }
         };
     }
@@ -513,7 +478,7 @@ export const AiHubModule = {
             return;
         }
 
-        container.innerHTML = `<div class="empty-state" style="padding: 60px 0;"><span class="loader-inline"></span> 正在读取统一网关边缘路由配置...</div>`;
+        container.innerHTML = `<div class="empty-state" style="padding: 60px 0;"><span class="loader-inline"></span> ${t('ai.loadingConfig')}</div>`;
         try {
             const cfg = await loadAiConfig();
             renderAiHubView(container, cfg);
@@ -521,7 +486,7 @@ export const AiHubModule = {
                 if (currentSubTab === 'metrics') renderAiHubView(container, cfg);
             });
         } catch (err) {
-            if (ctx?.showToast) ctx.showToast(`加载网关配置失败: ${err.message}`, true);
+            if (ctx?.showToast) ctx.showToast(t('ai.loadConfigFailed', { msg: err.message }), true);
         }
     },
 

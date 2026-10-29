@@ -1,7 +1,7 @@
 # 后台体检：每次开 PR、每次推送到 main 时运行。只做基础检查，通过不等于安全或功能正确。
 # 检查步骤（没有的项跳过）：
 #   1 依赖安装 → 2 仓库卫生 → 3 Pages 配置 → 4 密钥泄露 → 5 HTML 结构 → 6 JS 语法 → 7 JSON/XML/TOML 语法
-#   → 8 CSS 语法 → 9 SEO → 10 站内链接 → 11 生成文件是否已更新 → 12 站内规范 → 13 中文排版（只提示）
+#   → 8 CSS 语法 → 9 SEO → 10 站内链接 → 11 生成文件是否已更新 → 12 站内规范（多语言词典） → 13 中文排版（只提示）
 name: CI
 
 on:
@@ -87,4 +87,11 @@ jobs:
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: node scripts/check-links.mjs
 
-      # [11] 生成文件是否已更新、[12] 站内规范、[13] 中文排版：后台暂无
+      # [11] 生成文件是否已更新：后台暂无
+
+      # [12] 站内规范：界面多语言词典（中英文键一致、引用的词条都存在）
+      - name: 界面多语言词典
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-i18n.mjs
+
+      # [13] 中文排版：后台暂无
