@@ -1,6 +1,6 @@
 // ====================================================
-// FlarePanel - 界面多语言（中文 / English）
-// 语言：localStorage 里的手动选择 → 浏览器语言以 zh 开头用中文 → 其他用英文
+// FlarePanel - 界面多语言（简体中文 / 繁體中文 / English）
+// 语言：localStorage 里的手动选择 → 浏览器语言（zh-TW / zh-HK / zh-MO / zh-Hant 用繁体，其他 zh 用简体）→ 其他用英文
 // 用法：t('key', { name: 'x' })，词条里的 {name} 会被替换
 // 静态 HTML 用 data-i18n / data-i18n-title / data-i18n-placeholder / data-i18n-aria-label，加载时由 applyI18n() 填充
 // 切换语言会刷新页面，所有模块按新语言重新渲染
@@ -8,34 +8,46 @@
 
 import { zh } from './i18n/zh.js';
 import { en } from './i18n/en.js';
+import { zhHant } from './i18n/zh-Hant.js';
 
 const STORAGE_KEY = 'fp_lang';
-const DICTS = { zh, en };
+const DICTS = { zh, 'zh-Hant': zhHant, en };
+
+/** 支持的语言，顺序即语言菜单里的顺序 */
+export const LANGS = [
+    { code: 'zh', label: '简体中文' },
+    { code: 'zh-Hant', label: '繁體中文' },
+    { code: 'en', label: 'English' }
+];
 
 function detectLang() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === 'zh' || saved === 'en') return saved;
+        if (Object.prototype.hasOwnProperty.call(DICTS, saved)) return saved;
     } catch (e) {}
-    const nav = (typeof navigator !== 'undefined' && (navigator.language || (navigator.languages || [])[0])) || '';
-    return String(nav).toLowerCase().startsWith('zh') ? 'zh' : 'en';
+    const nav = String((typeof navigator !== 'undefined' && (navigator.language || (navigator.languages || [])[0])) || '').toLowerCase();
+    if (/^zh-(hant|tw|hk|mo)/.test(nav)) return 'zh-Hant';
+    return nav.startsWith('zh') ? 'zh' : 'en';
 }
 
 let currentLang = detectLang();
 
-/** 当前语言：'zh' | 'en' */
+/** 当前语言：'zh' | 'zh-Hant' | 'en' */
 export function getLang() {
     return currentLang;
 }
 
 /** 当前语言的 BCP 47 标签，用于 Intl 格式化、<html lang>、Accept-Language */
 export function getLocale() {
-    return currentLang === 'zh' ? 'zh-CN' : 'en-US';
+    if (currentLang === 'zh') return 'zh-CN';
+    if (currentLang === 'zh-Hant') return 'zh-TW';
+    return 'en-US';
 }
 
 /** 发给 Pages Functions 的语言头，服务端按它返回对应语言的错误信息 */
 export function langHeaders() {
-    return { 'Accept-Language': currentLang === 'zh' ? 'zh-CN,zh;q=0.9' : 'en-US,en;q=0.9' };
+    const values = { zh: 'zh-CN,zh;q=0.9', 'zh-Hant': 'zh-TW,zh-Hant;q=0.9,zh;q=0.8', en: 'en-US,en;q=0.9' };
+    return { 'Accept-Language': values[currentLang] || values.en };
 }
 
 /** 词条是否存在 */
@@ -51,6 +63,7 @@ export function hasKey(key) {
  */
 export function t(key, params) {
     let text = DICTS[currentLang][key];
+    if (text === undefined && currentLang === 'zh-Hant') text = zh[key];
     if (text === undefined) text = en[key];
     if (text === undefined) text = zh[key];
     if (text === undefined) {
@@ -63,20 +76,24 @@ export function t(key, params) {
 
 /** 切换语言并刷新页面 */
 export function setLang(lang) {
-    if (lang !== 'zh' && lang !== 'en') return;
+    if (!Object.prototype.hasOwnProperty.call(DICTS, lang)) return;
     try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
     currentLang = lang;
     location.reload();
 }
 
 /**
- * 配置里的显示文字：可以是普通字符串（原样显示），也可以是 { zh: '文章', en: 'Posts' }
+ * 配置里的显示文字：可以是普通字符串（原样显示），也可以是 { zh: '文章', 'zh-Hant': '文章', en: 'Posts' }（繁体缺省时用简体）
  * @param {string|Record<string,string>} label
  */
 export function localizedLabel(label) {
     if (!label) return '';
     if (typeof label === 'string') return label;
-    if (typeof label === 'object') return label[currentLang] || label.en || label.zh || Object.values(label)[0] || '';
+    if (typeof label === 'object') {
+        if (label[currentLang]) return label[currentLang];
+        if (currentLang === 'zh-Hant' && label.zh) return label.zh;
+        return label.en || label.zh || Object.values(label)[0] || '';
+    }
     return String(label);
 }
 
