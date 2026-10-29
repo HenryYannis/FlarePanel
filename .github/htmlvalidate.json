@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "rules": {
+    "close-attr": "error",
+    "close-order": "error",
+    "no-dup-attr": "error",
+    "no-dup-id": "error",
+    "void-content": "error",
+    "element-name": "error",
+    "no-dup-class": "error",
+    "attr-delimiter": "error"
+  }
+}

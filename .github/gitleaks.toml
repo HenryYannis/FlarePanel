@@ -1,0 +1,6 @@
+# gitleaks 配置：沿用官方默认规则。本项目没有需要公开的密钥，所以不设放行项。
+# 真正的密钥放根目录 .env（已 gitignore）或 Cloudflare 环境变量，不进仓库。
+title = "FlarePanel gitleaks 配置"
+
+[extend]
+useDefault = true

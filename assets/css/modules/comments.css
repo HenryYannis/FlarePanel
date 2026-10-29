@@ -1,0 +1,53 @@
+/* ====================================================
+   业务胶囊 1: 评论管理专属样式 (Comments Module CSS)
+   ==================================================== */
+
+/* 评论快捷回复按钮：电光蓝通透轻色，与红删除按钮形成红蓝对称 */
+.reply-btn {
+    background: rgba(var(--primary-color-rgb), 0.12) !important;
+    color: var(--primary-color) !important;
+    border: 1px solid rgba(var(--primary-color-rgb), 0.3) !important;
+}
+.reply-btn:hover:not(:disabled) {
+    background: var(--primary-color) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4) !important;
+    transform: translateY(-1px);
+}
+
+/* 评论回复上下文提示条 */
+.reply-context {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--primary-color);
+}
+html.night-theme .reply-context {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* 表格专有列与互动徽章 (cell-time, cell-ip 已由全局 style.css 统一定义) */
+.cell-likes {
+    width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tag-likes {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 48px;
+    box-sizing: border-box;
+}

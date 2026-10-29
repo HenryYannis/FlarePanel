@@ -1,0 +1,9 @@
+{
+  "name": "xiaobao-websystem-ci",
+  "private": true,
+  "description": "CI 体检脚本用到的少量依赖（版本固定，由 package-lock.json 锁定哈希）。只在 CI / 本地体检时安装：npm ci --prefix scripts/ci",
+  "dependencies": {
+    "postcss": "8.5.32",
+    "smol-toml": "1.9.1"
+  }
+}

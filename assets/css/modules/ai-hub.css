@@ -1,0 +1,1343 @@
+/* ====================================================
+   业务胶囊 5: 统一 AI 代理网关专属样式 (AI Hub Module CSS)
+   ==================================================== */
+
+.ai-hub-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.ai-hub-header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.25);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    box-shadow: 0 4px 16px rgba(var(--primary-color-rgb), 0.05);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.ai-hub-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ai-hub-badge {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ai-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--success-color);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.ai-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9CA3AF;
+}
+.ai-dot.active {
+    background: var(--success-color);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.ai-hub-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.ai-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.ai-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+}
+
+@media (max-width: 640px) {
+    .ai-grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+    .ai-grid-2 { grid-template-columns: 1fr; }
+    .ai-hub-header-card { flex-direction: column; align-items: flex-start; gap: 16px; }
+}
+
+.ai-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--mystic-shadow);
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.ai-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+}
+
+/* 开发者端点与 Master Key 响应式栅格 */
+.ai-endpoint-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.ai-endpoint-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-masterkey-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.ai-masterkey-input-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+.ai-masterkey-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* 独立开发者专用密钥 (3 个槽位横向排列) */
+.ai-keys-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+}
+.ai-key-slot-btn {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+/* 空槽位：虚线占位符，仅显示“新建”文本 */
+.ai-key-slot-btn.empty {
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.ai-key-slot-btn.empty:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+}
+/* 已配置槽位：仅展示平台名称 */
+.ai-key-slot-btn.active {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+.ai-key-slot-btn.active:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ai-slot-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-color);
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* 防刷策略与 Telegram 栅格 */
+.ai-policy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.ai-tg-fields-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+}
+
+/* 优雅开关 Switch (iOS 质感) */
+.ai-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+}
+.ai-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.ai-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #D1D5DB;
+    transition: .3s;
+    border-radius: 34px;
+}
+.ai-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.ai-switch input:checked + .ai-slider:before {
+    transform: translateX(16px);
+}
+.ai-switch input:checked + .ai-slider {
+    background-color: var(--success-color);
+}
+
+/* 降级流水线横向触控容器 (防撑破) */
+.ai-fallback-chain-container,
+.ai-chain-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 0 10px 0;
+    scrollbar-width: thin;
+}
+.ai-fallback-chain-list {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: max-content;
+    padding: 4px 0;
+}
+
+/* 降级流水线节点 */
+.ai-chain-node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(var(--primary-color-rgb), 0.04);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    transition: var(--transition);
+    flex-shrink: 0;
+    max-width: 320px;
+    box-sizing: border-box;
+}
+.ai-chain-node.node-disabled {
+    opacity: 0.5;
+    border-style: dashed;
+}
+.ai-chain-index {
+    width: 22px;
+    height: 22px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.ai-chain-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.ai-chain-role {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+.ai-chain-name {
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+.ai-chain-model {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+.ai-chain-arrow {
+    color: var(--text-secondary);
+    font-size: 16px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.ai-chain-ctrls {
+    display: flex;
+    gap: 4px;
+    margin-left: 6px;
+    flex-shrink: 0;
+}
+.ai-chain-move-btn, .ai-chain-del-btn {
+    background: none;
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.ai-chain-move-btn:hover {
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.1);
+}
+.ai-chain-del-btn:hover {
+    color: var(--danger-color);
+    background: rgba(var(--danger-color-rgb), 0.12);
+}
+
+/* 服务商卡片栅格 */
+.ai-providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+}
+
+.ai-provider-card {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+html.night-theme .ai-provider-card {
+    background: rgba(31, 41, 55, 0.5);
+}
+.ai-provider-card.active {
+    border-color: rgba(var(--primary-color-rgb), 0.3);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.04);
+}
+.ai-provider-card.disabled {
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.ai-provider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+.ai-provider-top-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+.ai-provider-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.ai-provider-url {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    word-break: break-all;
+    overflow-wrap: anywhere;
+}
+.ai-provider-ops {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.ai-provider-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12.5px;
+}
+.ai-provider-key-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ai-provider-models-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    width: 100%;
+}
+.ai-provider-models-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    line-height: 1.4;
+}
+.ai-models-stats-hint {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+}
+.ai-models-stats-hint strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.ai-provider-label {
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    flex-shrink: 0;
+}
+.ai-provider-key-val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    word-break: break-all;
+    overflow-wrap: anywhere;
+}
+.ai-models-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.ai-model-tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+    text-align: left;
+    line-height: 1.2;
+}
+.ai-model-tag-btn:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+.ai-model-tag-btn.is-primary {
+    background: rgba(var(--primary-color-rgb), 0.12);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.ai-model-tag-btn.is-backup {
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border: 1px dashed rgba(var(--primary-color-rgb), 0.45);
+    color: var(--text-primary);
+}
+.ai-model-tag-btn.is-unchecked {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    opacity: 0.75;
+}
+.ai-model-tag-btn.is-unchecked:hover {
+    opacity: 1;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.ai-tag-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    color: #ffffff;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+.ai-tag-checkbox.checked {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.ai-tag-name {
+    word-break: break-all;
+}
+.ai-tag-role-pill {
+    font-size: 9.5px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--primary-color);
+    color: #ffffff;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-left: 2px;
+    flex-shrink: 0;
+}
+.ai-model-tag-btn.is-backup .ai-tag-role-pill {
+    background: rgba(var(--primary-color-rgb), 0.7);
+}
+
+/* 代码高亮块 */
+.ai-code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.5;
+    overflow-x: auto;
+    position: relative;
+    max-height: 280px;
+    margin-top: 8px;
+    word-break: break-all;
+    box-sizing: border-box;
+}
+
+.ai-models-search-box {
+    font-size: 11px;
+    height: 28px;
+    padding: 2px 28px 2px 8px;
+}
+@media (max-width: 768px) {
+    .ai-models-search-box {
+        height: 38px;
+        padding: 6px 32px 6px 10px;
+    }
+}
+
+/* 动态拉取模型候选标签徽章 (纯色无渐变) */
+.ai-model-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s;
+    word-break: break-all;
+}
+.ai-model-badge:hover {
+    border-color: var(--primary-color);
+}
+
+/* 默认模型下拉菜单项 */
+.ai-dropdown-item {
+    padding: 7px 12px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.ai-dropdown-item:hover, .ai-dropdown-item.active {
+    background: rgba(var(--primary-color-rgb), 0.1);
+    color: var(--primary-color);
+}
+
+/* ================= AI Hub 移动端深度适配 ================= */
+@media (max-width: 768px) {
+    .ai-hub-header-card {
+        padding: 16px;
+    }
+    .ai-hub-header-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .ai-hub-header-actions .btn {
+        flex: 1 1 auto;
+        font-size: 12.5px;
+        height: 36px;
+        padding: 0 10px;
+    }
+    .ai-card {
+        padding: 14px 12px;
+        margin-bottom: 14px;
+    }
+
+    /* Master Key 与特权端点：移动端分行与触控按钮自适应 */
+    .ai-masterkey-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .ai-masterkey-input-wrapper {
+        width: 100%;
+    }
+    .ai-masterkey-actions {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+    }
+    .ai-masterkey-actions .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0 4px;
+        font-size: 12px;
+        height: 36px;
+        justify-content: center;
+    }
+
+    /* Telegram 与防刷配置在移动端单列排布 */
+    .ai-tg-fields-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    /* 服务商卡片响应式排版 */
+    .ai-providers-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .ai-provider-card {
+        padding: 14px;
+    }
+    .ai-provider-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .ai-provider-top-left {
+        width: 100%;
+    }
+    .ai-provider-ops {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    .ai-provider-ops .btn {
+        flex: 1;
+        height: 34px;
+        font-size: 12.5px;
+    }
+
+    /* 降级流水线横向触控滑动 */
+    .ai-fallback-chain-container,
+    .ai-chain-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        scrollbar-width: none;
+    }
+    .ai-fallback-chain-container::-webkit-scrollbar,
+    .ai-chain-container::-webkit-scrollbar {
+        display: none;
+    }
+    .ai-chain-node {
+        padding: 6px 10px;
+        gap: 8px;
+        max-width: 260px;
+    }
+    .ai-chain-name,
+    .ai-chain-model {
+        max-width: 110px;
+    }
+
+    .ai-code-block {
+        font-size: 12px;
+        padding: 10px;
+        word-break: break-all;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-policy-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+/* ====================================================
+   网关监控指标与用量看板专用样式 (Metrics & Usage Dashboard)
+   ==================================================== */
+
+/* 子栏目切换分段控制器 (Segmented Sub-tabs) */
+/* 指标四维数据卡片网格 - PC端 4 列单行展示，移动端 2x2 对称排布 */
+.ai-metrics-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+    .ai-metrics-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+}
+
+@media (max-width: 380px) {
+    .ai-metrics-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ai-metric-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    box-shadow: var(--mystic-shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.ai-metric-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    margin: 6px 0 4px 0;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.ai-metric-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    line-height: 1.3;
+}
+
+.ai-metric-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ai-metric-tag.normal {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-color);
+}
+
+.ai-metric-tag.error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger-color);
+}
+
+.ai-metric-tag.warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+
+/* 卡片头部弹性布局 */
+.ai-card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.ai-card-sub-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 垂直柱状图容器 (全通用纯 CSS 向上竖立柱状图) */
+.ai-trend-chart-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 165px;
+    padding-top: 32px;
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+    overflow: visible;
+    position: relative;
+}
+
+.ai-trend-chart-container.dense {
+    gap: 2px;
+}
+.ai-trend-chart-container.dense .ai-trend-bar-wrap {
+    max-width: 10px;
+    border-radius: 2px 2px 0 0;
+}
+.ai-trend-chart-container.dense .ai-trend-bar {
+    border-radius: 2px 2px 0 0;
+}
+.ai-trend-chart-container.dense .ai-trend-date {
+    font-size: 9.5px;
+}
+
+.ai-trend-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    position: relative;
+    cursor: pointer;
+    overflow: visible;
+}
+.ai-trend-col:hover {
+    z-index: 60;
+}
+
+.ai-trend-bar-wrap {
+    width: 100%;
+    max-width: 32px;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+    background: rgba(var(--primary-color-rgb), 0.08);
+}
+
+.ai-trend-bar {
+    width: 100%;
+    background: var(--primary-color);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, filter 0.15s ease;
+    min-height: 4px;
+}
+.ai-trend-col:hover .ai-trend-bar {
+    opacity: 0.9;
+    filter: brightness(1.15);
+}
+
+/* 垂直条形专色 */
+.ai-trend-bar.astrology { background: #8b5cf6; }
+.ai-trend-bar.tech { background: #3b82f6; }
+.ai-trend-bar.games { background: #10b981; }
+.ai-trend-bar.admin { background: #ec4899; }
+.ai-trend-bar.dev { background: #f59e0b; }
+.ai-trend-bar.provider { background: #06b6d4; }
+
+.ai-trend-date {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: center;
+    transition: color 0.15s ease;
+}
+.ai-trend-col:hover .ai-trend-date {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 7天 / 30天 切换器 */
+.ai-trend-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(15, 23, 42, 0.96);
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    z-index: 100;
+    line-height: 1.45;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.ai-trend-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(15, 23, 42, 0.96);
+}
+
+.ai-trend-col:hover .ai-trend-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 边缘柱子防止 Tooltip 超出左右视口 */
+.ai-trend-col:first-child .ai-trend-tooltip {
+    left: 0;
+    transform: translateX(0) translateY(4px);
+}
+.ai-trend-col:first-child .ai-trend-tooltip::after {
+    left: 14px;
+    transform: none;
+}
+.ai-trend-col:first-child:hover .ai-trend-tooltip {
+    transform: translateX(0) translateY(0);
+}
+
+.ai-trend-col:last-child .ai-trend-tooltip {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(4px);
+}
+.ai-trend-col:last-child .ai-trend-tooltip::after {
+    left: auto;
+    right: 14px;
+    transform: none;
+}
+.ai-trend-col:last-child:hover .ai-trend-tooltip {
+    transform: translateX(0) translateY(0);
+}
+
+/* 实时调用流水日志表 */
+.ai-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.ai-table th {
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.ai-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    color: var(--text-primary);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.ai-table tr:hover td {
+    background: rgba(var(--primary-color-rgb), 0.03);
+}
+
+.ai-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ai-status-badge.success {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-color);
+}
+
+.ai-status-badge.fallback {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+
+.ai-status-badge.error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger-color);
+}
+
+.ai-client-badge {
+    display: inline-block;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ai-client-badge.master {
+    background: rgba(var(--primary-color-rgb), 0.12);
+    color: var(--primary-color);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.25);
+}
+
+.ai-client-badge.auth {
+    background: rgba(7, 142, 175, 0.12);
+    color: #078eaf;
+    border: 1px solid rgba(7, 142, 175, 0.25);
+}
+
+.ai-client-badge.auth.site-astrology {
+    background: rgba(7, 142, 175, 0.12);
+    color: #078eaf;
+    border: 1px solid rgba(7, 142, 175, 0.25);
+}
+
+.ai-client-badge.auth.site-tech {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007aff;
+    border: 1px solid rgba(0, 122, 255, 0.25);
+}
+
+.ai-client-badge.auth.site-games {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.ai-client-badge.auth.site-admin {
+    background: rgba(139, 92, 246, 0.12);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.ai-client-badge.auth.site-dev {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-color);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.ai-client-badge.auth.site-local,
+.ai-client-badge.auth.site-other {
+    background: rgba(107, 114, 128, 0.12);
+    color: var(--text-secondary);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.ai-client-badge.unauth {
+    background: rgba(107, 114, 128, 0.12);
+    color: #4b5563;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* 来源站点徽章样式 (各站点按配置顺序轮流使用 tech / astrology / games 三种颜色，另有管理后台 / 开发工具) */
+.ai-site-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ai-site-badge.astrology {
+    background: rgba(7, 142, 175, 0.12);
+    color: #078eaf;
+    border: 1px solid rgba(7, 142, 175, 0.25);
+}
+
+.ai-site-badge.tech {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007aff;
+    border: 1px solid rgba(0, 122, 255, 0.25);
+}
+
+.ai-site-badge.games {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.ai-site-badge.admin {
+    background: rgba(139, 92, 246, 0.12);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.ai-site-badge.dev {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-color);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.ai-site-badge.local,
+.ai-site-badge.other {
+    background: rgba(107, 114, 128, 0.12);
+    color: var(--text-secondary);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* 流水表页面与工具信息单元格 */
+.ai-tool-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 170px;
+}
+.ai-tool-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ai-page-path {
+    font-size: 11px;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 流水表 Tokens 标签 */
+.ai-token-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+[data-theme="dark"] .ai-token-tag {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ====================================================
+   服务商编辑模态框：默认模型与自定义下拉/上拉菜单统一视觉规范
+   ==================================================== */
+#ai-provider-default-model-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--dropdown-bg, #ffffff) !important;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    z-index: 2100 !important;
+    padding: 6px 0;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: opacity 0.15s ease;
+}
+
+/* 向上折叠弹出 (Dropup 模式 - 适配模态框底部布局，防止被视口及底缘截断) */
+#ai-provider-default-model-menu.dropup {
+    bottom: calc(100% + 6px);
+    top: auto;
+    box-shadow: 0 -12px 28px -6px rgba(0, 0, 0, 0.22), 0 -6px 12px -4px rgba(0, 0, 0, 0.12);
+}
+
+/* 向下弹出 (Dropdown 模式 - 空间充足时降级展示) */
+#ai-provider-default-model-menu.dropdown {
+    top: calc(100% + 6px);
+    bottom: auto;
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.22), 0 6px 12px -4px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] #ai-provider-default-model-menu.dropup {
+    box-shadow: 0 -14px 30px -6px rgba(0, 0, 0, 0.55), 0 -6px 14px -4px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] #ai-provider-default-model-menu.dropdown {
+    box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.55), 0 6px 14px -4px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+#ai-provider-default-model-menu::-webkit-scrollbar {
+    width: 6px;
+}
+#ai-provider-default-model-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+#ai-provider-default-model-menu::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.3);
+    border-radius: 3px;
+}
+#ai-provider-default-model-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 150, 150, 0.5);
+}
+
+#ai-provider-default-model-dropdown-btn {
+    transition: transform 0.2s ease, color 0.15s ease;
+}
+#ai-provider-default-model-dropdown-btn:hover {
+    color: var(--primary-color) !important;
+}
+#ai-provider-default-model-dropdown-btn.open .dropdown-chevron-icon {
+    transform: rotate(180deg);
+}
+
+.ai-dropdown-item {
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.ai-dropdown-model-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+}
+
+.ai-dropdown-item:hover {
+    background: var(--dropdown-hover, rgba(0, 195, 227, 0.1));
+    color: var(--primary-color);
+}
+
+.ai-dropdown-item.active {
+    background: rgba(var(--primary-color-rgb), 0.15);
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.ai-dropdown-item.active::after {
+    content: "✓";
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+/* 模态框内部已拉取模型面板纯色实心背景规范 */
+#ai-fetched-models-panel {
+    background: var(--bg-primary, #ffffff) !important;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 模态框两端对齐操作底栏 (左侧危险动作，右侧保存/取消) */
+.modal-actions-between {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 12px;
+    margin-top: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+

@@ -1,0 +1,45 @@
+/* ====================================================
+   业务胶囊 2: 账号管理专属样式 (Accounts Module CSS)
+   ==================================================== */
+
+.account-id-badge {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(var(--primary-color-rgb), 0.08);
+    color: var(--primary-color);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.account-username {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+/* 表头点击排序（与浏览数量胶囊一致） */
+.accounts-sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: var(--transition);
+}
+.accounts-sortable-header:hover {
+    color: var(--primary-color);
+}
+.accounts-sortable-header::after {
+    content: " ↕";
+    font-size: 11px;
+    opacity: 0.6;
+}
+.accounts-sortable-header.sort-desc::after {
+    content: " ↓";
+    opacity: 1;
+    color: var(--primary-color);
+}
+.accounts-sortable-header.sort-asc::after {
+    content: " ↑";
+    opacity: 1;
+    color: var(--primary-color);
+}

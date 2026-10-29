@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="color-scheme" content="light dark">
+    <title>FlarePanel</title>
+    <meta name="apple-mobile-web-app-title" content="FlarePanel">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f0f9ff">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#090a0f">
+    <link rel="icon" type="image/png" href="./assets/logo/favicon.png">
+    <link rel="apple-touch-icon" href="./assets/logo/apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <!-- 5大胶囊业务专属样式表 (并行加载，零瀑布流，零样式闪烁) -->
+    <link rel="stylesheet" href="./assets/css/modules/comments.css">
+    <link rel="stylesheet" href="./assets/css/modules/accounts.css">
+    <link rel="stylesheet" href="./assets/css/modules/stats.css">
+    <link rel="stylesheet" href="./assets/css/modules/storage.css">
+    <link rel="stylesheet" href="./assets/css/modules/ai-hub.css">
+    <link rel="stylesheet" href="./assets/css/dialog.css">
+    <link rel="stylesheet" href="./assets/css/capsule-tabs.css">
+
+    <!-- 关键：在 CSS 应用前立即检测主题并设置 html 类，防止闪烁 -->
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('fp_theme');
+            var isDark = savedTheme ? (savedTheme === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList.add(isDark ? 'night-theme' : 'day-theme');
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <script src="./assets/js/capsule-tabs.js" defer></script>
+</head>
+<body>
+
+    <!-- 现代通透顶部导航栏 -->
+    <nav id="navbar">
+        <div class="navbar-left">
+            <span class="navbar-title">FlarePanel</span>
+        </div>
+        <div class="navbar-right">
+            <button id="logout-btn" class="btn btn-outline btn-sm" style="display: none;">退出登录</button>
+        </div>
+    </nav>
+
+    <!-- 工具主容器 -->
+    <div class="tool-container tool-container-standard" id="tool-container">
+        
+        <!-- 登录区域 -->
+        <div id="auth-section" class="fade-in">
+            <h2 class="auth-title">连接到 Cloudflare</h2>
+            <div class="auth-desc">
+                <p>在 Cloudflare 仪表盘获取 Account ID 和 API Token。为正常管理后台各项功能，Token 需具备以下权限：</p>
+                <div class="auth-permissions">
+                    <div>• <code>Account -> D1 -> Edit</code>（评论管理、账号管理、文章浏览数量）</div>
+                    <div>• <code>Account -> Workers R2 Storage -> Edit</code>（文件分享与对象存储）</div>
+                    <div>• <code>Account -> Workers KV Storage -> Edit</code>（可选，仅 AI Hub 使用）</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="accountId">Cloudflare 账户 ID (Account ID)</label>
+                <input type="text" id="accountId" class="form-control" placeholder="例如: 1234567890abcdef1234567890abcdef" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <label for="apiToken">API Token (API 密钥)</label>
+                <input type="password" id="apiToken" class="form-control" placeholder="例如: abcDEF1234-5678_xyz..." spellcheck="false">
+            </div>
+            <button id="login-btn" class="btn-primary" style="margin-top: 16px;">
+                <span class="btn-text">安全连接</span>
+                <div class="loader" style="display: none;"></div>
+            </button>
+        </div>
+
+        <!-- 主界面区域 -->
+        <div id="main-section" style="display: none;" class="fade-in">
+            
+            <!-- 胶囊型切换按钮 (Capsule Switch - 5系统) -->
+            <div class="capsule-switch-wrapper">
+                <div class="capsule-switch capsule-tabs" id="capsule-switch" data-capsule-tabs>
+                    <button id="tab-ai" class="capsule-btn active">代理网关</button>
+                    <button id="tab-storage" class="capsule-btn">文件分享</button>
+                    <button id="tab-comments" class="capsule-btn">评论管理</button>
+                    <button id="tab-stats" class="capsule-btn">浏览数量</button>
+                    <button id="tab-accounts" class="capsule-btn">账号管理</button>
+                </div>
+            </div>
+
+            <!-- 目标选择区 (数据库 / 存储桶) -->
+            <div class="db-selector-wrapper" id="db-selector-wrapper">
+                <label id="selector-label" class="selector-label">选择目标数据库:</label>
+                <div id="db-list" class="db-list-container">
+                    <span class="selector-placeholder">正在加载...</span>
+                </div>
+            </div>
+
+            <!-- 面包屑导航栏 (存储桶专用) -->
+            <div id="breadcrumb-bar" style="display: none;">
+                <span class="breadcrumb-content" id="breadcrumb-content"></span>
+            </div>
+
+            <!-- 工具栏与操作区 -->
+            <div class="toolbar" id="toolbar" style="display: none;">
+                <div class="filter-group">
+                    <div class="search-group">
+                        <span class="search-icon"></span>
+                        <input type="text" id="keyword-search" placeholder="搜索关键词..." class="form-control search-input">
+                    </div>
+                    <select id="url-filter" class="form-control custom-select" style="display: none;">
+                        <option value="">所有文章 URL</option>
+                    </select>
+                </div>
+                
+                <div class="action-group">
+                    <!-- D1 数据操作 -->
+                    <button id="export-btn" class="btn btn-success" style="display: none;">导出 CSV</button>
+                    <button id="batch-del-btn" class="btn btn-danger" style="display: none;">删除选中</button>
+
+                    <!-- R2 存储桶操作 -->
+                    <button id="refresh-storage-btn" class="btn btn-outline" style="display: none;">刷新</button>
+                    <button id="new-folder-btn" class="btn btn-outline" style="display: none;">新建文件夹</button>
+                    <button id="upload-file-btn" class="btn btn-primary" style="display: none;">上传文件</button>
+                    <input type="file" id="file-upload-input" style="display: none;" multiple>
+                </div>
+            </div>
+
+            <!-- 数据表格区域 -->
+            <div class="table-container" id="table-container" style="display: none;">
+                <table id="data-table">
+                    <thead id="data-thead">
+                        <!-- 动态渲染 -->
+                    </thead>
+                    <tbody id="data-tbody">
+                        <tr><td colspan="10" class="empty-state">请先选择目标</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控件 -->
+            <div id="pagination" class="pagination" style="display: none;">
+                <button id="prev-page" class="btn btn-outline">上一页</button>
+                <span id="page-info" class="page-info">第 1 页</span>
+                <button id="next-page" class="btn btn-outline">下一页</button>
+            </div>
+
+            <!-- AI 智能网关控制台独立视图容器 -->
+            <div id="ai-hub-container" style="display: none;"></div>
+
+        </div>
+
+    </div>
+
+    <!-- 全局加载遮罩 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loader"></div>
+        <div id="loading-text">处理中...</div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast">操作成功</div>
+
+    <!-- 回复模态框 (data-static="true" 阻断误触关闭) -->
+    <div class="modal-overlay" id="reply-modal" data-static="true">
+        <div class="modal">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">回复评论</h3>
+            <div id="reply-to-text" class="reply-context"></div>
+            <div class="form-group">
+                <label for="reply-content">回复内容（将以「站长」身份回复）</label>
+                <textarea id="reply-content" class="form-control" rows="4" placeholder="请输入回复内容..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="close-reply-btn">取消</button>
+                <button class="btn btn-primary" id="submit-reply-btn">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重命名模态框 -->
+    <div class="modal-overlay" id="rename-modal">
+        <div class="modal">
+            <h3 id="rename-modal-title" style="margin-bottom: 1rem; color: var(--text-primary);">重命名</h3>
+            <div class="form-group">
+                <label for="rename-old-name">当前名称</label>
+                <input type="text" id="rename-old-name" class="form-control" disabled style="opacity: 0.7;">
+            </div>
+            <div class="form-group">
+                <label for="rename-new-name">新名称</label>
+                <input type="text" id="rename-new-name" class="form-control" placeholder="请输入新名称...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="close-rename-btn">取消</button>
+                <button class="btn btn-primary" id="submit-rename-btn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移动文件模态框 -->
+    <div class="modal-overlay" id="move-modal">
+        <div class="modal">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">移动文件到目标目录</h3>
+            <div class="form-group">
+                <label for="move-source-path">源文件路径</label>
+                <input type="text" id="move-source-path" class="form-control" disabled style="opacity: 0.7;">
+            </div>
+            <div class="form-group">
+                <label for="move-target-dir">目标目录路径 (例如: <code>apps/hantang-zhongyi/windows/</code> 或留空为根目录)</label>
+                <input type="text" id="move-target-dir" class="form-control" placeholder="输入目标目录，如 apps/android/">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="close-move-btn">取消</button>
+                <button class="btn btn-primary" id="submit-move-btn">确认迁移</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建文件夹模态框 -->
+    <div class="modal-overlay" id="new-folder-modal">
+        <div class="modal">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">新建文件夹</h3>
+            <div class="form-group">
+                <label for="new-folder-parent">当前所在位置</label>
+                <input type="text" id="new-folder-parent" class="form-control" disabled style="opacity: 0.7;">
+            </div>
+            <div class="form-group">
+                <label for="new-folder-name">文件夹名称</label>
+                <input type="text" id="new-folder-name" class="form-control" placeholder="例如: android 或 hantang-zhongyi">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="close-new-folder-btn">取消</button>
+                <button class="btn btn-primary" id="submit-new-folder-btn">确认创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载业务逻辑 -->
+    <script type="module" src="./assets/js/app.js"></script>
+</body>
+</html>

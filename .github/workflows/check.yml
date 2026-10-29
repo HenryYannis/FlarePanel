@@ -1,0 +1,90 @@
+# 后台体检：每次开 PR、每次推送到 main 时运行。只做基础检查，通过不等于安全或功能正确。
+# 检查步骤（没有的项跳过）：
+#   1 依赖安装 → 2 仓库卫生 → 3 Pages 配置 → 4 密钥泄露 → 5 HTML 结构 → 6 JS 语法 → 7 JSON/XML/TOML 语法
+#   → 8 CSS 语法 → 9 SEO → 10 站内链接 → 11 生成文件是否已更新 → 12 站内规范 → 13 中文排版（只提示）
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# 只取消同一 PR 上被新提交顶掉的旧运行；推送到 main 的每次运行都跑完，每个提交都有自己的检查结果
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      # [1] 所有检查工具在这里一次装好，后面的步骤不再各自安装。装失败时后面的检查都跳过，只看这一步的报错。
+      # gitleaks 8.30.1；postcss、smol-toml 版本由 scripts/ci/package-lock.json 锁定；html-validate 9.7.1。
+      # gitleaks dir 默认跳过 node_modules，所以先装 npm 包不影响密钥扫描。
+      - name: 依赖安装（检查工具，固定版本）
+        id: setup
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          npm ci --prefix scripts/ci --no-audit --no-fund
+          npm install --global --no-audit --no-fund html-validate@9.7.1
+
+      # [2]
+      - name: 仓库卫生（合并冲突标记、单文件 25 MiB 上限）
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-repo.mjs
+
+      # [3] 本站检查 _headers、_redirects、_routes.json
+      - name: Cloudflare Pages 配置格式
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-pages-config.mjs
+
+      # [4] 只扫当前文件；配置见 .github/gitleaks.toml
+      - name: 密钥泄露（gitleaks）
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/gitleaks" dir . --config .github/gitleaks.toml --no-banner --redact --verbose'
+
+      # [5] 标签闭合、重复属性/ID 等
+      - name: HTML 结构
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: git ls-files -z -- '*.html' | xargs -0 html-validate --config .github/htmlvalidate.json
+
+      # [6] 不直接用 node --check：Node 22 对 .js 里的 ES 模块语法错误会放过（退出码仍是 0）。
+      # check-js.mjs 先按普通脚本、再按模块各试一次，并检查 HTML 内联 <script> 和 JSON-LD（含 functions/ 和 scripts/）
+      - name: JS 语法（ES 模块、普通脚本、HTML 内联脚本）
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-js.mjs
+
+      # [7] 含 JSONC（wrangler.jsonc）
+      - name: JSON / XML / TOML 语法
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-syntax.mjs json xml toml
+
+      # [8] 只查解析错误
+      - name: CSS 语法
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-syntax.mjs css
+
+      # [9] SEO：后台暂无
+
+      # [10] 本地资源要存在且大小写一致
+      - name: 站内链接（不查外链）
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-links.mjs
+
+      # [11] 生成文件是否已更新、[12] 站内规范、[13] 中文排版：后台暂无

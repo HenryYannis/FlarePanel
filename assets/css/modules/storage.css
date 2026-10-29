@@ -1,0 +1,264 @@
+/* ====================================================
+   业务胶囊 4: 文件分享 (R2 对象存储) 专属样式 (Storage Module CSS)
+   ==================================================== */
+
+/* 面包屑导航条 */
+#breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 10px 16px;
+    background: rgba(var(--primary-color-rgb), 0.04);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 13.5px;
+}
+.breadcrumb-item:hover {
+    text-decoration: underline;
+}
+
+/* 扩展名徽章 */
+.ext-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(107, 114, 128, 0.12);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+/* ============================================
+   右下角悬浮上传管理器 (Floating Upload Dock)
+   ============================================ */
+.upload-dock {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 390px;
+    max-width: calc(100vw - 32px);
+    background: var(--glass-bg);
+    backdrop-filter: var(--background-blur);
+    -webkit-backdrop-filter: var(--background-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--mystic-shadow);
+    z-index: 2500;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.upload-dock.minimized {
+    width: auto;
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.upload-dock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid var(--border-color);
+}
+html.night-theme .upload-dock-header { background: rgba(255, 255, 255, 0.03); }
+
+.upload-dock-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.upload-dock-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.upload-dock-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+.upload-dock-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text-primary);
+}
+html.night-theme .upload-dock-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+.upload-dock-body {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 8px 12px;
+}
+
+.upload-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upload-task-item {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: var(--transition);
+}
+html.night-theme .upload-task-item { background: rgba(255, 255, 255, 0.02); }
+
+.task-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.task-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-status-row {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    min-height: 16px;
+}
+
+.task-status-text.text-success { color: var(--success-color); font-weight: 600; }
+.task-status-text.text-danger { color: var(--danger-color); font-weight: 600; }
+.task-status-text.text-muted { color: var(--text-secondary); }
+
+.task-progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+html.night-theme .task-progress-track { background: rgba(255, 255, 255, 0.1); }
+
+.task-progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+}
+.task-progress-fill.success {
+    background: var(--success-color);
+}
+.task-progress-fill.error {
+    background: var(--danger-color);
+}
+.task-progress-fill.aborted {
+    background: var(--text-secondary);
+}
+
+.task-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.task-action-btn:hover {
+    color: var(--text-primary);
+    background: rgba(0,0,0,0.06);
+}
+
+/* 最小化状态胶囊 */
+.upload-dock-capsule {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 14px rgba(var(--primary-color-rgb), 0.35);
+}
+.capsule-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ================= 上传管理器移动端自适应 ================= */
+@media (max-width: 520px) {
+    .upload-dock {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: auto;
+        max-width: none;
+    }
+    .upload-dock.minimized {
+        left: auto;
+        right: 12px;
+        width: auto;
+    }
+}
+/* ================= 存储表格表头可排序样式 ================= */
+.storage-sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: var(--transition);
+}
+.storage-sortable-header:hover {
+    color: var(--primary-color);
+}
+.storage-sortable-header::after {
+    content: " ↕";
+    font-size: 11px;
+    opacity: 0.55;
+    margin-left: 4px;
+}
+.storage-sortable-header.sort-desc::after {
+    content: " ↓";
+    opacity: 1;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+.storage-sortable-header.sort-asc::after {
+    content: " ↑";
+    opacity: 1;
+    color: var(--primary-color);
+    font-weight: 700;
+}
