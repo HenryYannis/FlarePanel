@@ -25,3 +25,9 @@ Only the latest version (`main` and the latest release) receives fixes.
   Give the sign-in API token only the permissions it needs (D1, R2, KV). Never use the Global API Key.
 - `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` 用「密钥」类型保存。
   Store `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` as encrypted secrets.
+- 建议给后台域名加 **Cloudflare Access**（邮箱验证）。页面本身可公开打开；Account ID、API Token 和（可选）R2 S3 密钥存在浏览器 `localStorage`，退出登录会一并清除。
+  Put **Cloudflare Access** (email verification) in front of the panel domain. The page itself is publicly reachable; the Account ID, API token, and optional R2 S3 keys live in browser `localStorage` and are cleared on sign-out.
+- 管理员 Token 校验通过后在同一 isolate 内存缓存约 **1 分钟**。吊销或轮换 Token 后，这段窗口内仍可能放行；重新部署会清空缓存。
+  A successful admin-token check is cached in memory for about **1 minute** per isolate. After revoke/rotate, that window may still allow the old token; a redeploy clears the cache.
+- `/api/fetch-models` 只接受 https 公网 DNS 主机名（禁止 IP / localhost / 内网主机名），且不跟随重定向。
+  `/api/fetch-models` only accepts public https DNS hostnames (no IP literals, localhost, or private hostnames) and does not follow redirects.

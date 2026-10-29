@@ -154,18 +154,18 @@ My Profile → API Tokens → Create Token → Custom token, with these account-
 | Workers R2 Storage → Edit | Files |
 | Workers KV Storage → Edit | Only needed when AI Hub is enabled |
 
-The Account ID and token are stored only in your browser's localStorage. Requests go through this site's `/api/cf` to `api.cloudflare.com` (browsers can't call it cross-origin directly); the proxy neither logs nor stores them. The Account ID you enter at sign-in must match the `CF_ACCOUNT_ID` environment variable. On a shared computer, click "Sign out" when you are done.
+The Account ID, API token, and (if configured) R2 S3 keys are stored only in your browser's localStorage. Requests go through this site's `/api/cf` to `api.cloudflare.com` (browsers can't call it cross-origin directly); the proxy neither logs nor stores them. The Account ID you enter at sign-in must match the `CF_ACCOUNT_ID` environment variable. On a shared computer, click "Sign out" when you are done — that clears both the token and any cached S3 keys.
 
 ## Security
 
-Every `/api/*` endpoint requires the caller to be an admin of the `CF_ACCOUNT_ID` account: the caller's Cloudflare API Token is used to list this account's D1 databases or R2 buckets, and the request is allowed only if that works. A successful check is cached in memory for about 5 minutes, keyed by the token's SHA-256, so not every request costs an extra call to Cloudflare.
+Every `/api/*` endpoint requires the caller to be an admin of the `CF_ACCOUNT_ID` account: the caller's Cloudflare API Token is used to list this account's D1 databases or R2 buckets, and the request is allowed only if that works. A successful check is cached in memory for about 1 minute, keyed by the token's SHA-256, so not every request costs an extra call to Cloudflare. After you revoke or rotate a token, the same isolate may still allow it for up to about 1 minute.
 
 | Endpoint | Protection |
 |---|---|
 | `/api/cf/*` | Requires an admin token (`Authorization: Bearer`) and only forwards endpoints under `accounts/<CF_ACCOUNT_ID>/...`. Other account IDs get 403, paths outside the account (such as `user/...`) get 403, and paths that use `..` to leave the account are rejected |
 | `/api/s3/*` | Only forwards to `<CF_ACCOUNT_ID>.r2.cloudflarestorage.com`. The account ID in the request header is only checked for a match (403 otherwise). `Authorization` carries the S3 signature, so the sign-in token is sent in a separate `x-cf-token` header and checked (R2 permission required); that header is never forwarded to R2. CORS preflight allows it |
 | `/api/s3-credentials` | Only an admin token with R2 permission can read the S3 keys |
-| `/api/fetch-models` | Admin token; only public https addresses are allowed |
+| `/api/fetch-models` | Admin token; only public https DNS hostnames (no IP literals, localhost, or private hostnames; redirects are not followed) |
 | `/api/test-telegram` | Admin token. The frontend sends test messages only through this endpoint and no longer calls Telegram directly from the browser; the test message is generic text with no site names |
 
 Also:
@@ -173,6 +173,7 @@ Also:
 - Endpoint errors come back in Chinese or English based on the `Accept-Language` request header, together with a `code` field; the panel sends this header to match the interface language.
 - The middleware blocks `.md`, `.sql`, dotfiles, `wrangler.*`, `scripts/`, `lib/` and similar, so they can't be downloaded as static files.
 - CI runs a gitleaks secret scan on every commit.
+- Put Cloudflare Access (email verification) in front of the panel domain. The page itself is publicly reachable; the real gate is the API token.
 
 Please report security issues privately through a GitHub Security Advisory rather than a public issue.
 
