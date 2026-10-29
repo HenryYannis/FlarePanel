@@ -24,7 +24,7 @@
 
 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
 
-网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，可以直接部署；AI 网关 Worker 不在本仓库。
+网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，负责会员注册登录的账号 Worker 在 [`account/`](account/README.md)，都可以直接部署；AI 网关 Worker 不在本仓库。
 
 ## 界面语言
 
@@ -138,7 +138,7 @@ Pages 项目 → 设置 → 环境变量：
 
 ## 数据表
 
-`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。
+`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。配套账号 Worker 在 `users` 表上另外用到 `salt`、`token_version`、`recovery_code_hash` 三列，并用到 `rate_limits` 表，建表语句在 `account/schema.sql`。
 
 | 表 | 所在库 | 主要字段 | 说明 |
 |---|---|---|---|
