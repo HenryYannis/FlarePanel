@@ -6,6 +6,10 @@
 
 纯 Cloudflare Pages 部署，不需要服务器，不需要构建步骤。登录用你自己的 Cloudflare API Token，数据都在你自己的账号里。界面支持中文和英文，右上角一键切换。
 
+![登录页](docs/screenshots/login.png)
+
+![代理网关](docs/screenshots/gateway.png)
+
 ## 能做什么
 
 | 栏目 | 读写的资源 | 功能 |

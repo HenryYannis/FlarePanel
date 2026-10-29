@@ -6,6 +6,10 @@ One dashboard for all your Cloudflare-hosted sites: comments, page views, user a
 
 It runs entirely on Cloudflare Pages: no server and no build step. You sign in with your own Cloudflare API Token, and all data stays in your own account. The interface is available in Chinese and English, with a one-click switch at the top right.
 
+![Sign-in](docs/screenshots/login.png)
+
+![AI gateway](docs/screenshots/gateway.png)
+
 ## Features
 
 | Section | Resource | What it does |
