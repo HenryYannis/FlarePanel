@@ -24,7 +24,7 @@ It runs entirely on Cloudflare Pages: no server and no build step. You sign in w
 
 One panel can manage several sites; switch between them at the top. When no site has a given kind of resource configured, that section is hidden automatically.
 
-The comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md) and ready to deploy; the AI gateway Worker is not in this repository.
+The comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md), and the account Worker for member sign-up and sign-in is in [`account/`](account/README.en.md); both are ready to deploy. The AI gateway Worker is not in this repository.
 
 ## Interface language
 
@@ -138,7 +138,7 @@ Leave unused resources as empty strings and the matching section hides that site
 
 ## Database schema
 
-`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it. The companion comment Worker also uses four tables the panel never reads, `article_likes`, `item_likes`, `site_online` and `rate_limits`; their statements are in `worker/schema.sql`.
+`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it. The companion comment Worker also uses four tables the panel never reads, `article_likes`, `item_likes`, `site_online` and `rate_limits`; their statements are in `worker/schema.sql`. The companion account Worker adds three columns to `users` (`salt`, `token_version`, `recovery_code_hash`) and uses a `rate_limits` table; its statements are in `account/schema.sql`.
 
 | Table | Database | Main fields | Notes |
 |---|---|---|---|

@@ -31,7 +31,7 @@ export async function onRequest(context) {
   }
 
   // 内部目录（现在没有，以后加了也不会被发布出去）
-  const blockedPrefixes = ['/docs/', '/scripts/', '/worker/', '/workers/', '/lib/', '/node_modules/'];
+  const blockedPrefixes = ['/docs/', '/scripts/', '/worker/', '/workers/', '/account/', '/lib/', '/node_modules/'];
 
   // 根目录内部配置文件
   const blockedFiles = ['/agents.md', '/_headers', '/_routes.json', '/package.json', '/package-lock.json'];

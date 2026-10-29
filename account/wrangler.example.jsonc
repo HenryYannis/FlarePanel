@@ -1,0 +1,49 @@
+// FlarePanel 账号 Worker 配置示例。
+// 复制为 account/wrangler.jsonc 再改：cp account/wrangler.example.jsonc account/wrangler.jsonc
+// 下面的 ID 都是占位符，换成你自己的；密钥不要写在这里，用 `npx wrangler secret put` 设置。
+{
+  "name": "my-account-worker",
+  "main": "index.js",
+  "compatibility_date": "2026-03-15",
+
+  // 自定义域名（可选）
+  // "routes": [
+  //   { "pattern": "auth.example.com", "custom_domain": true }
+  // ],
+
+  // 必需：账号库。database_name 要和 FlarePanel sites.config.js 里的 accountDb 一致
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "example-account",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+
+  "vars": {
+    // 允许调用接口的网站（逗号分隔，带协议，不带结尾斜杠）
+    "ALLOWED_ORIGINS": "https://example.com,https://www.example.com",
+    // 本地调试时允许 http://localhost 和 http://127.0.0.1
+    "ALLOW_LOCALHOST": "false",
+    // 用户名规则：长度（按字符），可选正则（例如只允许字母数字下划线：^[A-Za-z0-9_]+$），留空不限制字符集
+    "USERNAME_MIN_LENGTH": "2",
+    "USERNAME_MAX_LENGTH": "20",
+    "USERNAME_PATTERN": "",
+    // 保留词：用户名包含这些词就不能注册或改名（不分大小写，全角当半角，忽略空格），逗号分隔
+    "RESERVED_USERNAMES": "admin,administrator,站长,管理员,官方,客服",
+    // 密码长度
+    "PASSWORD_MIN_LENGTH": "8",
+    "PASSWORD_MAX_LENGTH": "128",
+    // PBKDF2 迭代数（1000 ~ 100000）。免费版 CPU 时间紧，默认 20000；调高后老账号下次登录自动升级
+    "PBKDF2_ITERATIONS": "20000",
+    // 登录凭证有效天数
+    "TOKEN_TTL_DAYS": "30",
+    // 频率限制（每个 IP），0 表示不限。学校机房等共用出口 IP 的场景可以调高注册上限
+    "LOGIN_RATE_PER_MIN": "10",
+    "REGISTER_RATE_PER_DAY": "20",
+    "RESET_RATE_PER_DAY": "10"
+  }
+
+  // 密钥（不要写进这个文件）：
+  //   npx wrangler secret put JWT_SECRET --config account/wrangler.jsonc   // 必需：至少 32 个字符，可用 openssl rand -base64 48 生成
+}
