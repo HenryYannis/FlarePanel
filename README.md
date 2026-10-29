@@ -1,5 +1,7 @@
 # FlarePanel
 
+![FlarePanel](docs/social-preview.png)
+
 **简体中文** | [English](README.en.md)
 
 一个后台管理你所有 Cloudflare 网站：评论、浏览量、会员账号、R2 文件，以及可选的 AI 网关配置。

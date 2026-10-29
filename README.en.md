@@ -1,5 +1,7 @@
 # FlarePanel
 
+![FlarePanel](docs/social-preview.png)
+
 [简体中文](README.md) | **English**
 
 One dashboard for all your Cloudflare-hosted sites: comments, page views, user accounts, R2 files, and an optional AI gateway config.
