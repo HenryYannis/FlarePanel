@@ -8,7 +8,7 @@ import { cfRequest } from './api.js';
 import { showConfirm, showAlert, showPrompt } from './dialog.js';
 import { getSiteSortOrder, getSiteDisplayName, escapeHtml } from './utils.js';
 import { getResourceNames, AI_HUB, PANEL } from './sites.js';
-import { t, getLang, setLang, applyI18n, localizedLabel } from './i18n.js';
+import { t, getLang, setLang, applyI18n, localizedLabel, LANGS } from './i18n.js';
 
 // 挂载至 window 供可能需要的位置兜底
 window.showConfirm = showConfirm;
@@ -532,19 +532,45 @@ function applyTheme(isDark) {
 
     if (isDark) createSkyStars();
     else clearSkyStars();
+    updateThemeButton(isDark);
 }
 
+// 按钮提示“点了会切到哪种模式”
+function updateThemeButton(isDark) {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+    const label = t(isDark ? 'nav.themeToLight' : 'nav.themeToDark');
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-label', label);
+}
+
+function systemPrefersDark() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+
+// 默认跟随系统自动切换；点按钮手动切换，选的和系统一致时清掉手动记录，继续跟随系统。
+// 系统切换日夜时也清掉手动记录，回到自动。
 function initTheme() {
     const savedTheme = localStorage.getItem('fp_theme');
-    const isDark = savedTheme ? (savedTheme === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = savedTheme ? (savedTheme === 'dark') : systemPrefersDark();
     applyTheme(isDark);
 
     if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            // 若用户未手动指定偏好，跟随系统设置动态切换
-            if (!localStorage.getItem('fp_theme')) {
-                applyTheme(e.matches);
-            }
+            try { localStorage.removeItem('fp_theme'); } catch (err) {}
+            applyTheme(e.matches);
+        });
+    }
+
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            const nextDark = document.documentElement.getAttribute('data-theme') !== 'dark';
+            try {
+                if (nextDark === systemPrefersDark()) localStorage.removeItem('fp_theme');
+                else localStorage.setItem('fp_theme', nextDark ? 'dark' : 'light');
+            } catch (err) {}
+            applyTheme(nextDark);
         });
     }
 }
@@ -582,11 +608,12 @@ function applyPanelConfig() {
 function initLanguage() {
     applyI18n();
     updatePagination(1, 1, 0);
-    const btn = document.getElementById('lang-toggle-btn');
-    if (!btn) return;
-    // 按钮显示要切换到的语言
-    btn.textContent = getLang() === 'zh' ? 'EN' : '中';
-    btn.addEventListener('click', () => setLang(getLang() === 'zh' ? 'en' : 'zh'));
+    const select = document.getElementById('lang-select');
+    if (!select) return;
+    select.innerHTML = '';
+    LANGS.forEach(({ code, label }) => select.add(new Option(label, code)));
+    select.value = getLang();
+    select.addEventListener('change', () => setLang(select.value));
 }
 
 async function initSystem() {

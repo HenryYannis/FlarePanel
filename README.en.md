@@ -6,7 +6,7 @@
 
 One dashboard for all your Cloudflare-hosted sites: comments, page views, user accounts, R2 files, and an optional AI gateway config.
 
-It runs entirely on Cloudflare Pages: no server and no build step. You sign in with your own Cloudflare API Token, and all data stays in your own account. The interface is available in Chinese and English, with a one-click switch at the top right.
+It runs entirely on Cloudflare Pages: no server and no build step. You sign in with your own Cloudflare API Token, and all data stays in your own account. The interface is available in Simplified Chinese, Traditional Chinese and English, switchable at the top right; dark mode follows your system by default and can also be toggled by hand.
 
 ![Sign-in](docs/screenshots/login.png)
 
@@ -26,11 +26,12 @@ One panel can manage several sites; switch between them at the top. When no site
 
 ## Interface language
 
-- Simplified Chinese and English are supported. The "EN / 中" button on the right of the top bar switches language; the choice is saved in the browser and the page reloads.
-- If you have never chosen, the browser language decides: Chinese when it starts with `zh`, English otherwise.
+- Simplified Chinese, Traditional Chinese and English are supported. The language menu on the right of the top bar switches language; the choice is saved in the browser and the page reloads.
+- If you have never chosen, the browser language decides: Traditional Chinese for `zh-TW`, `zh-HK`, `zh-MO` and `zh-Hant`, Simplified Chinese for other `zh` languages, English otherwise.
+- Dark mode follows your system automatically. The moon / sun button next to the language menu toggles it by hand; the next time your system switches between light and dark, the panel goes back to automatic.
 - Dates and numbers are formatted for the active language.
 - Content you write in `sites.config.js`, such as site names and the panel title, is your data and is shown as written, not translated.
-- The dictionaries live in `assets/js/i18n/zh.js` and `assets/js/i18n/en.js`. Both files must have the same keys; CI checks this (`scripts/check-i18n.mjs`).
+- The dictionaries live in `assets/js/i18n/zh.js`, `zh-Hant.js` and `en.js`. All three must have the same keys; CI checks this (`scripts/check-i18n.mjs`). The Traditional Chinese dictionary is converted from Simplified with OpenCC (s2twp) and then corrected.
 
 ## Deployment
 
@@ -106,7 +107,7 @@ The panel signs in with an API Token, but anyone can open the page itself. Add a
 |---|---|
 | `title` | Panel title, shown in the browser tab and the top bar |
 | `adminName` | Nickname used when you reply to comments from the panel. Can be `{ zh: '站长', en: 'Admin' }` to follow the interface language |
-| `viewTypes` | Page categories for page-view stats, matched by URL prefix, e.g. `{ key: 'posts', label: { zh: '文章', en: 'Posts' }, prefixes: ['/posts/'] }`. `label` can be plain text or a Chinese/English object. Unmatched pages go to "Other pages" |
+| `viewTypes` | Page categories for page-view stats, matched by URL prefix, e.g. `{ key: 'posts', label: { zh: '文章', en: 'Posts' }, prefixes: ['/posts/'] }`. `label` can be plain text or a per-language object (you may add `'zh-Hant'`; Traditional Chinese falls back to `zh`). Unmatched pages go to "Other pages" |
 | `viewExcludes` | Pages hidden from page-view stats: any URL containing one of these keywords is skipped |
 
 **`SITES`: one entry per site**

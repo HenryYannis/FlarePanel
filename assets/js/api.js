@@ -1,5 +1,4 @@
 // Cloudflare D1 / R2 / KV API 封装
-import { getBucketDomain } from './sites.js';
 import { t, langHeaders } from './i18n.js';
 
 let credentials = { accountId: '', apiToken: '' };
@@ -208,38 +207,23 @@ export async function deleteR2Object(bucketName, key) {
 
 
 // 读取对象内容，同时带回 Content-Type（重命名/移动时原样写回，避免图片、网页变成下载文件）
+// 只用已鉴权的 R2 API：公开 filesDomain/CDN 可能 Soft-404 或返回错误正文，
+// 若据此 put 再删旧 key 会静默毁掉文件，所以这里绝不信任未鉴权的公开 URL。
 export async function getR2ObjectArrayBuffer(bucketName, key) {
-    const domain = getBucketDomain(bucketName);
-    const pick = async (res) => ({
-        buffer: await res.arrayBuffer(),
-        contentType: res.headers.get('content-type') || 'application/octet-stream'
-    });
-    // 优先通过高速 CDN 直连读取（速度极快，毫秒级流式响应，无代理内存限制）
-    if (domain) {
-        try {
-            // 按路径段编码：文件名里的 # ? 空格 中文不会被当成网址的一部分而读到别的文件
-            const encodedPath = key.split('/').map(encodeURIComponent).join('/');
-            const cdnRes = await fetch(`${domain}/${encodedPath}`, { cache: 'no-store' });
-            if (cdnRes.ok) {
-                return await pick(cdnRes);
-            }
-        } catch (e) {
-            console.warn("CDN read failed, falling back to the API proxy:", e);
-        }
-    }
-
     const url = `/api/cf/accounts/${credentials.accountId}/r2/buckets/${bucketName}/objects/${encodeURIComponent(key)}`;
-    const options = {
+    const res = await fetch(url, {
         method: 'GET',
         headers: {
             ...authHeaders()
         }
-    };
-    const res = await fetch(url, options);
+    });
     if (!res.ok) {
         throw new Error(t('api.readFailed', { status: res.status }));
     }
-    return await pick(res);
+    return {
+        buffer: await res.arrayBuffer(),
+        contentType: res.headers.get('content-type') || 'application/octet-stream'
+    };
 }
 
 // 判断存储桶里是否已经有这个文件（精确匹配 Key）

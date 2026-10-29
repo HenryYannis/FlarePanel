@@ -5,7 +5,7 @@
 
 import { queryDatabase } from '../api.js';
 import { showConfirm, showAlert } from '../dialog.js';
-import { formatDateTime, escapeHtml } from '../utils.js';
+import { formatDateTime, escapeHtml, escapeAttr } from '../utils.js';
 import { t } from '../i18n.js';
 
 let ctx = null; // 上下文工具：{ showToast, showLoading, hideLoading, updatePagination }
@@ -38,14 +38,16 @@ export function renderAccountsTable(tbody, data) {
         const formattedTime = item.created_at ? formatDateTime(item.created_at) : t('common.unknown');
         // last_login_at 是可选列；账号库没有这一列时显示 —
         const lastLogin = item.last_login_at ? formatDateTime(item.last_login_at) : (('last_login_at' in item) ? t('accounts.noRecord') : '—');
+        const safeId = escapeAttr(String(item.id));
+        const safeIdText = escapeHtml(String(item.id));
         tr.innerHTML = `
-            <td style="width: 40px;"><input type="checkbox" class="row-check" value="${item.id}"></td>
-            <td style="font-size:0.8rem; font-family:monospace;"><span class="account-id-badge">${item.id}</span></td>
+            <td style="width: 40px;"><input type="checkbox" class="row-check" value="${safeId}"></td>
+            <td style="font-size:0.8rem; font-family:monospace;"><span class="account-id-badge">${safeIdText}</span></td>
             <td><strong class="account-username">${escapeHtml(String(item.username))}</strong></td>
             <td class="cell-time" title="${formattedTime}">${formattedTime}</td>
             <td class="cell-time" title="${lastLogin}">${lastLogin}</td>
             <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">${t('common.delete')}</button>
+                <button class="btn btn-danger delete-btn" data-id="${safeId}" style="padding: 6px 12px; font-size: 12px;">${t('common.delete')}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -125,7 +127,11 @@ async function loadData(forceRefresh = false) {
         const orderClause = field === 'created_at'
             ? `ORDER BY created_at ${order}`
             : `ORDER BY ${field} IS NULL, ${field} ${order}, created_at DESC`;
-        const sql = `SELECT * FROM users ${whereClause} ${orderClause} LIMIT ${pageSize} OFFSET ${offset}`;
+        // 不 SELECT *：避免把 password_hash 拉到浏览器（后台从不展示该列）
+        const columns = hasLastLogin
+            ? 'id, username, created_at, last_login_at'
+            : 'id, username, created_at';
+        const sql = `SELECT ${columns} FROM users ${whereClause} ${orderClause} LIMIT ${pageSize} OFFSET ${offset}`;
         // 总数和本页数据同时查询，少等一次网络往返
         const [countData, data] = await Promise.all([
             queryDatabase(currentDb.id, `SELECT COUNT(*) as total FROM users ${whereClause}`, params),
@@ -134,15 +140,6 @@ async function loadData(forceRefresh = false) {
         totalCount = countData.result[0].results[0].total;
         tableData = data.result[0].results || [];
 
-        // 根据实际数据判断有没有 last_login_at 列，没有就不让这一列可点
-        if (tableData.length > 0) {
-            const has = 'last_login_at' in tableData[0];
-            if (has !== hasLastLogin) {
-                hasLastLogin = has;
-                AccountsModule.setupHeaders();
-            }
-        }
-
         memoryCache.set(cacheKey, { tableData, totalCount, time: Date.now() });
         renderAccountsTable(tbody, tableData);
 
@@ -150,11 +147,13 @@ async function loadData(forceRefresh = false) {
             ctx.updatePagination(currentPage, Math.ceil(totalCount / pageSize) || 1, totalCount);
         }
     } catch (err) {
-        // 切到没有 last_login_at 列的站点时，自动退回按创建时间排序
-        if (sortBy === 'last_login_at' && /no such column/i.test(err.message || '')) {
+        // 切到没有 last_login_at 列的站点时，去掉该列并退回按创建时间排序
+        if (hasLastLogin && /no such column/i.test(err.message || '')) {
             hasLastLogin = false;
-            sortBy = 'created_at';
-            sortOrder = 'DESC';
+            if (sortBy === 'last_login_at') {
+                sortBy = 'created_at';
+                sortOrder = 'DESC';
+            }
             AccountsModule.setupHeaders();
             return loadData(true);
         }
