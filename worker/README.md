@@ -220,7 +220,7 @@ npx wrangler dev --config worker/wrangler.jsonc
 ## 不包含的部分
 
 - AI 网关 Worker（FlarePanel「代理网关」管理的那个）不在本仓库。
-- 会员注册登录、游戏排行榜、聊天室、咨询表单等站点专属功能没有放进来。
+- 会员注册登录在 [`account/`](../account/README.md)，AI 网关在 [`gateway/`](../gateway/README.md)；游戏排行榜、聊天室、咨询表单等站点专属功能没有放进来。
 
 ## 许可证
 

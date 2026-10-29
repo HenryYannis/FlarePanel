@@ -220,7 +220,7 @@ Set `ALLOW_LOCALHOST` to `true` while testing locally.
 ## Not included
 
 - The AI gateway Worker (the one FlarePanel's AI Gateway section manages) is not in this repository.
-- Site-specific features such as member sign-up and login, game leaderboards, chat rooms and contact forms are not included.
+- Member sign-up and login live in [`account/`](../account/README.en.md) and the AI gateway in [`gateway/`](../gateway/README.en.md); site-specific features such as game leaderboards, chat rooms and contact forms are not included.
 
 ## License
 
