@@ -193,6 +193,22 @@ AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are 
 
 "Send test notification" for Telegram alerts goes through this site's `/api/test-telegram` and requires being signed in to the panel.
 
+## Auto-sync a private copy (optional)
+
+If you keep personal configuration in your own private repository, this repository can notify it to sync as soon as `main` changes, instead of waiting for a schedule:
+
+1. Create a fine-grained Personal Access Token limited to the downstream repository, with Contents and Workflows (read and write).
+2. In this repository (or your fork), go to Settings → Secrets and variables → Actions and add two secrets: `DOWNSTREAM_REPO` (e.g. `yourname/my-panel`) and `DOWNSTREAM_TOKEN`.
+3. Add this trigger to the downstream sync workflow:
+
+```yaml
+on:
+  repository_dispatch:
+    types: [flarepanel-updated]
+```
+
+Without those two secrets, `.github/workflows/notify-downstream.yml` skips itself.
+
 ## Local preview
 
 ```bash

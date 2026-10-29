@@ -193,6 +193,22 @@ AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在
 
 Telegram 告警的「发送测试通知」走本站的 `/api/test-telegram`，需要已登录后台。
 
+## 自动同步私有副本（可选）
+
+如果你 fork 后在自己的私有仓库里放个人配置，可以让本仓库 main 一有新提交就通知它同步，不用等定时任务：
+
+1. 建一个细粒度 Personal Access Token，只授权下游仓库，权限给 Contents、Workflows（读写）。
+2. 在本仓库（或你的 fork）Settings → Secrets and variables → Actions 加两个 Secrets：`DOWNSTREAM_REPO`（如 `yourname/my-panel`）、`DOWNSTREAM_TOKEN`。
+3. 下游仓库的同步工作流加上触发条件：
+
+```yaml
+on:
+  repository_dispatch:
+    types: [flarepanel-updated]
+```
+
+没配置这两个 Secrets 时 `.github/workflows/notify-downstream.yml` 会直接跳过。
+
 ## 本地预览
 
 ```bash
