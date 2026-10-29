@@ -56,7 +56,17 @@ export function renderCommentsTable(tbody, data, currentDbName) {
 
         let ipDisplay = t('common.none');
         if (item.ip) {
-            ipDisplay = `<a href="https://ipinfo.io/${item.ip}" target="_blank" class="cell-ip-link" title="${escapeHtml(t('common.ipLookup', { ip: item.ip }))}">${item.ip}</a>`;
+            // IP 可能来自评论 Worker 原样写入的请求头，必须转义；仅合法 IPv4/IPv6 才生成查询链接
+            const ipRaw = String(item.ip).trim();
+            const ipText = escapeHtml(ipRaw);
+            const isIpv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ipRaw);
+            const isIpv6 = /^[0-9a-fA-F:]+$/.test(ipRaw) && ipRaw.includes(':');
+            if (isIpv4 || isIpv6) {
+                const lookupUrl = `https://ipinfo.io/${encodeURIComponent(ipRaw)}`;
+                ipDisplay = `<a href="${escapeHtml(lookupUrl)}" target="_blank" rel="noopener noreferrer" class="cell-ip-link" title="${escapeHtml(t('common.ipLookup', { ip: ipRaw }))}">${ipText}</a>`;
+            } else {
+                ipDisplay = ipText;
+            }
         }
 
         const formattedTime = formatDateTime(item.created_at);
