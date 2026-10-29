@@ -1,0 +1,68 @@
+// FlarePanel AI 网关配置示例。
+// 复制为 gateway/wrangler.jsonc 再改：cp gateway/wrangler.example.jsonc gateway/wrangler.jsonc
+// 下面的 ID 都是占位符，换成你自己的；密钥不要写在这里，用 `npx wrangler secret put` 设置。
+{
+  "name": "my-ai-gateway",
+  "main": "index.js",
+  "compatibility_date": "2026-03-15",
+
+  // 自定义域名（可选）。FlarePanel sites.config.js 的 AI_HUB.gatewayUrl 填 https://<这个域名>/v1
+  // "routes": [
+  //   { "pattern": "ai.example.com", "custom_domain": true }
+  // ],
+
+  // 必需：配置 KV。id 要和 FlarePanel sites.config.js 的 AI_HUB.kvNamespaceId 一致
+  // 同一个命名空间还用来存次数计数；没绑 D1 时也存用量统计
+  "kv_namespaces": [
+    { "binding": "CONFIG_KV", "id": "<KV_NAMESPACE_ID>" }
+  ],
+
+  // 可选：D1 调用流水（建表见 gateway/schema.sql）。不绑就把统计写在 KV 里
+  // "d1_databases": [
+  //   { "binding": "DB", "database_name": "example-ai-logs", "database_id": "00000000-0000-0000-0000-000000000000" }
+  // ],
+
+  // 可选：Cloudflare Workers AI。服务商的 baseUrl 填 cloudflare-workers-ai 时使用
+  // "ai": { "binding": "AI" },
+
+  "vars": {
+    // 允许浏览器调用的网站（逗号分隔，带协议，不带结尾斜杠）。FlarePanel 后台的域名一定要加进来，
+    // 否则后台的统计、测速、保存后刷新都会被拒绝。不在名单里的 Origin 一律 403
+    "ALLOWED_ORIGINS": "https://admin.example.com,https://example.com",
+    // 本地调试时允许 http://localhost 和 http://127.0.0.1
+    "ALLOW_LOCALHOST": "false",
+    // KV 里的配置键名，和 sites.config.js 的 AI_HUB.configKey 一致
+    "CONFIG_KEY": "AI_GATEWAY_CONFIG",
+    // 配置在内存里缓存多少秒（后台保存后会调 /v1/reload 立即刷新当前节点）
+    "CONFIG_CACHE_SECONDS": "300",
+    // 公开访问：true 时白名单网站的访客不带开发者密钥也能调 chat/completions（受下面的每日次数限制）；
+    // false 时所有接口都要开发者密钥
+    "PUBLIC_ACCESS": "false",
+    // 公开访问的每日次数（后台「防刷策略」里的值优先），0 = 不限
+    "UNAUTH_DAILY_LIMIT": "20",
+    "AUTH_DAILY_LIMIT": "100",
+    // 不受每日次数限制的网站（逗号分隔，完整 Origin）
+    "RATE_LIMIT_EXEMPT_ORIGINS": "",
+    // 来源站点识别：主机名=site_id，逗号分隔；site_id 对应 sites.config.js 里各站点的 aiSiteId（子域名也会匹配）
+    "SITE_IDS": "example.com=site_main,admin.example.com=site_admin",
+    // 公开访问时，返回给访客的 model 字段是否隐藏真实上游模型名（开发者密钥不受影响）
+    "HIDE_UPSTREAM_MODEL": "true",
+    // 超时（毫秒）
+    "UPSTREAM_TIMEOUT_MS": "45000",
+    "MEDIA_TIMEOUT_MS": "120000",
+    // 统计按哪个时区分天（相对 UTC 的分钟数）。FlarePanel 后台在网关不可用时直接读 KV 统计，按 UTC+8 分天，
+    // 改这里的话后台的兜底读取会对不上日期
+    "STATS_UTC_OFFSET_MINUTES": "480",
+    // D1 流水保留天数，0 = 不清理
+    "LOG_RETENTION_DAYS": "60",
+    // 统计里的失败原因和 Telegram 告警用中文（zh）还是英文（en）
+    "LOG_LANG": "zh"
+  }
+
+  // 密钥（不要写进这个文件）：
+  //   npx wrangler secret put MASTER_KEY --config gateway/wrangler.jsonc          // 可选：额外的开发者密钥；后台「开发者密钥」里的也都能用
+  //   npx wrangler secret put JWT_SECRET --config gateway/wrangler.jsonc          // 可选：识别站点登录用户（HS256 JWT）
+  //   npx wrangler secret put TELEGRAM_BOT_TOKEN --config gateway/wrangler.jsonc  // 可选：后台没填 Telegram 时的备用
+  //   npx wrangler secret put TELEGRAM_CHAT_ID --config gateway/wrangler.jsonc
+  //   npx wrangler secret put PROVIDER_KEY_OPENAI --config gateway/wrangler.jsonc // 可选：服务商 API Key 不想存 KV 时，后台填 env:PROVIDER_KEY_OPENAI
+}

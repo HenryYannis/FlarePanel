@@ -24,7 +24,7 @@ It runs entirely on Cloudflare Pages: no server and no build step. You sign in w
 
 One panel can manage several sites; switch between them at the top. When no site has a given kind of resource configured, that section is hidden automatically.
 
-The comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md), and the account Worker for member sign-up and sign-in is in [`account/`](account/README.en.md); both are ready to deploy. The AI gateway Worker is not in this repository.
+The comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md), the account Worker for member sign-up and sign-in is in [`account/`](account/README.en.md), and the AI gateway Worker is in [`gateway/`](gateway/README.en.md); all are ready to deploy.
 
 ## Interface language
 
@@ -182,7 +182,7 @@ Please report security issues privately through a GitHub Security Advisory rathe
 
 ## AI Hub (optional)
 
-AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are stored in KV, and the gateway reads them and forwards requests along the failover chain. The gateway Worker is not part of this repository (only the comment Worker is); without one, keep `AI_HUB.enabled: false` and the section stays hidden. The gateway needs to provide:
+AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are stored in KV, and the gateway reads them and forwards requests along the failover chain. The companion gateway is in [`gateway/`](gateway/README.en.md) and ready to deploy; if you don't use it, keep `AI_HUB.enabled: false` and the section stays hidden. The gateway provides:
 
 | Endpoint | Purpose |
 |---|---|
@@ -190,6 +190,8 @@ AI Hub manages an OpenAI-compatible AI gateway Worker: providers and models are 
 | `POST /v1/chat/completions` | Chat, with streaming |
 | `GET /v1/stats?days=7` | Usage stats |
 | `POST /v1/reload` | Called after the panel saves config so the gateway reloads it, with `Authorization: Bearer <Master Key>` |
+
+Add the panel's domain to the gateway's `ALLOWED_ORIGINS`, otherwise stats, the speed test and reload-after-save are rejected. See [`gateway/README.en.md`](gateway/README.en.md) for deployment and configuration.
 
 "Send test notification" for Telegram alerts goes through this site's `/api/test-telegram` and requires being signed in to the panel.
 

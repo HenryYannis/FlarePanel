@@ -24,7 +24,7 @@
 
 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
 
-网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，负责会员注册登录的账号 Worker 在 [`account/`](account/README.md)，都可以直接部署；AI 网关 Worker 不在本仓库。
+网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，负责会员注册登录的账号 Worker 在 [`account/`](account/README.md)，AI 网关 Worker 在 [`gateway/`](gateway/README.md)，都可以直接部署。
 
 ## 界面语言
 
@@ -182,7 +182,7 @@ Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你�
 
 ## AI Hub（可选）
 
-AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。网关 Worker 不在本仓库（仓库里只有评论 Worker），没有就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关需要提供：
+AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。配套网关在 [`gateway/`](gateway/README.md)，可以直接部署；不用就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关提供：
 
 | 接口 | 用途 |
 |---|---|
@@ -190,6 +190,8 @@ AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在
 | `POST /v1/chat/completions` | 对话，支持流式 |
 | `GET /v1/stats?days=7` | 用量统计 |
 | `POST /v1/reload` | 后台保存配置后通知网关刷新，`Authorization: Bearer <Master Key>` |
+
+后台域名要写进网关的 `ALLOWED_ORIGINS`，否则统计、测速和保存后刷新会被拒绝。部署和配置见 [`gateway/README.md`](gateway/README.md)。
 
 Telegram 告警的「发送测试通知」走本站的 `/api/test-telegram`，需要已登录后台。
 
