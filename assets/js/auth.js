@@ -30,5 +30,7 @@ export function loadSavedCredentials() {
 export function logout() {
     localStorage.removeItem('cf_account_id');
     localStorage.removeItem('cf_api_token');
+    // 大文件上传用的 R2 S3 密钥也只该在登录会话里；退出时一并清掉
+    localStorage.removeItem('cf_s3_credentials');
     location.reload();
 }

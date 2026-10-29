@@ -155,18 +155,18 @@ Pages 项目 → 设置 → 环境变量：
 | Workers R2 存储 → 编辑 | 文件分享 |
 | Workers KV 存储 → 编辑 | 只有开启 AI Hub 才需要 |
 
-Account ID 和 Token 只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」。
+Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」——退出会清掉 Token 和缓存的 S3 密钥。
 
 ## 安全说明
 
-所有 `/api/*` 接口都要求调用者是 `CF_ACCOUNT_ID` 这个账号的管理员：用调用者的 Cloudflare API Token 去列一次本账号的 D1 数据库或 R2 存储桶，能列出来才放行。验证通过的结果按 Token 的 SHA-256 在内存里缓存约 5 分钟，避免每个请求都多问一次 Cloudflare。
+所有 `/api/*` 接口都要求调用者是 `CF_ACCOUNT_ID` 这个账号的管理员：用调用者的 Cloudflare API Token 去列一次本账号的 D1 数据库或 R2 存储桶，能列出来才放行。验证通过的结果按 Token 的 SHA-256 在内存里缓存约 1 分钟，避免每个请求都多问一次 Cloudflare。吊销或轮换 Token 后，同一 isolate 内最多约 1 分钟仍可能放行。
 
 | 接口 | 保护措施 |
 |---|---|
 | `/api/cf/*` | 必须带管理员 Token（`Authorization: Bearer`），并且只转发 `accounts/<CF_ACCOUNT_ID>/...` 下的接口；别的账号 ID 返回 403，账号以外的路径（如 `user/...`）返回 403，带 `..` 跳出账号目录的路径也会被拒绝 |
 | `/api/s3/*` | 只转发到 `<CF_ACCOUNT_ID>.r2.cloudflarestorage.com`，请求头里的账号 ID 只用来核对，不一致返回 403。`Authorization` 里是 S3 签名，所以登录 Token 放在单独的 `x-cf-token` 头里校验（需要 R2 权限），这个头不会转发给 R2。CORS 预检已允许这个头 |
 | `/api/s3-credentials` | 管理员 Token（R2 权限）才能取到 S3 密钥 |
-| `/api/fetch-models` | 管理员 Token；只允许访问 https 公网地址 |
+| `/api/fetch-models` | 管理员 Token；只允许 https 公网 DNS 主机名（禁止 IP、localhost、内网主机名；不跟随重定向） |
 | `/api/test-telegram` | 管理员 Token。前端只通过这个接口发测试消息，不再从浏览器直连 Telegram；测试消息内容是通用文字，不含站点名 |
 
 其他：
@@ -174,6 +174,7 @@ Account ID 和 Token 只保存在你浏览器的 localStorage。请求经过本�
 - 接口的错误信息按请求头 `Accept-Language` 返回中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
 - 中间件会拦截 `.md`、`.sql`、点文件、`wrangler.*`、`scripts/`、`lib/` 等，不会被当成静态文件下载。
 - CI 每次提交都跑 gitleaks 密钥扫描。
+- 建议给后台域名加 Cloudflare Access（邮箱验证），页面本身谁都能打开，真正门槛是 API Token。
 
 发现安全问题请私下提交 GitHub Security Advisory，不要公开发 Issue。
 

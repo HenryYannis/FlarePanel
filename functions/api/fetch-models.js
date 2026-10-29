@@ -1,4 +1,5 @@
 import { requireAdmin, errorResponse, jsonResponse } from '../../lib/admin-auth.js';
+import { isAllowedModelsBaseUrl } from '../../lib/allowed-models-url.js';
 import { serverMsg } from '../../lib/server-i18n.js';
 
 const CORS = { 'Access-Control-Allow-Origin': '*' };
@@ -38,12 +39,7 @@ export async function onRequest(context) {
         }
 
         baseUrl = String(baseUrl).trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
-        // 只允许 https 公网地址
-        let parsed;
-        try { parsed = new URL(baseUrl); } catch (e) { parsed = null; }
-        const host = parsed?.hostname || '';
-        const isPrivate = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.|\[?::1\]?$)/i.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
-        if (!parsed || parsed.protocol !== 'https:' || isPrivate) {
+        if (!isAllowedModelsBaseUrl(baseUrl)) {
             return errorResponse(request, 400, 'MODELS_BAD_BASE_URL', {}, CORS);
         }
         let modelsUrl = baseUrl;
@@ -59,7 +55,7 @@ export async function onRequest(context) {
             headers['Authorization'] = `Bearer ${apiKey.trim()}`;
         }
 
-        // 发起远端请求
+        // 发起远端请求（不跟随重定向，避免跳进内网）
         const upstreamRes = await fetch(modelsUrl, {
             method: 'GET',
             headers,

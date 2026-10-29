@@ -3,7 +3,7 @@ import { requireAdmin, configuredAccountId, errorResponse } from '../../../lib/a
 // ============================================
 // Cloudflare API 反向代理：/api/cf/... → https://api.cloudflare.com/client/v4/...
 // 只放行本面板账号（Pages 环境变量 CF_ACCOUNT_ID）下的接口：/api/cf/accounts/<CF_ACCOUNT_ID>/...
-// 并且调用方的 Token 必须能访问这个账号（requireAdmin，结果缓存约 5 分钟）。
+// 并且调用方的 Token 必须能访问这个账号（requireAdmin，结果缓存约 1 分钟）。
 // 前端登录时也是先请求 /api/cf/accounts/<id>/d1/database，所以登录本身就会走这道校验，不需要额外放行别的接口。
 // ============================================
 
