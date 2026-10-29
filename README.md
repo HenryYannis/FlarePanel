@@ -194,6 +194,22 @@ npx wrangler pages dev .
 
 原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。
 
+## 相关教程
+
+FlarePanel 管理的评论、浏览量、R2 文件和 AI 网关，背后的搭法都写在小宝科技站的「Cloudflare 建站」系列里：
+
+- [腾讯云域名 + GitHub + Cloudflare Pages 实现全球流畅访问](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-deployment/)
+- [Cloudflare Pages 部署踩坑实录：从 522 报错到完美重定向](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-troubleshooting/)
+- [用 Cloudflare 全家桶打造安全高效的网站基础设施](https://xbkjz.cn/posts/2026/03-07-cloudflare-comment-system/)
+- [零成本搭建评论系统：用 D1 + Workers 为静态博客实现评论功能](https://xbkjz.cn/posts/2026/03-08-cloudflare-d1-comment-system/)
+- [给评论区加装「防弹衣」：Workers 敏感词过滤与高性能缓存实战](https://xbkjz.cn/posts/2026/03-10-cloudflare-workers-security-cache/)
+- [免注册一键部署静态网页：Cloudflare Drop 体验](https://xbkjz.cn/posts/2026/07-09-cloudflare-drop/)
+- [防刷指南：利用 Workers + KV 限制前端模型接口访问次数](https://xbkjz.cn/posts/2026/07-09-cloudflare-workers-rate-limiting/)
+- [用 Cloudflare R2 免费搭自己的文件分享网盘](https://xbkjz.cn/posts/2026/08-28-cloudflare-r2-file-sharing/)
+- [用 Workers 零成本打造永不停机的统一 AI 大模型网关](https://xbkjz.cn/posts/2026/10-06-cloudflare-workers-ai-gateway/)
+- [新手后台配置避坑全指南：从 SSL 到安全加速逐项拆解](https://xbkjz.cn/posts/2026/10-12-cloudflare-settings-guide/)
+- [Cloudflare 核心配置与避坑速查表](https://xbkjz.cn/wiki/cloudflare-settings/)
+
 ## 许可证
 
 [MIT](LICENSE) © 2026 程小宝

@@ -194,6 +194,22 @@ npx wrangler pages dev .
 
 Plain HTML / CSS / ES modules, with Cloudflare Pages Functions as the backend. No framework and no build: edit, refresh, done.
 
+## Tutorials
+
+The comments, page views, R2 files and AI gateway that FlarePanel manages are built step by step in the "Cloudflare 建站" series on Xiaobao Tech (in Chinese):
+
+- [Domain + GitHub + Cloudflare Pages deployment](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-deployment/)
+- [Pages pitfalls: from 522 errors to clean redirects](https://xbkjz.cn/posts/2026/02-10-cloudflare-pages-troubleshooting/)
+- [Building site infrastructure on the Cloudflare stack](https://xbkjz.cn/posts/2026/03-07-cloudflare-comment-system/)
+- [Free comment system with D1 + Workers](https://xbkjz.cn/posts/2026/03-08-cloudflare-d1-comment-system/)
+- [Comment filtering and caching with Workers](https://xbkjz.cn/posts/2026/03-10-cloudflare-workers-security-cache/)
+- [Cloudflare Drop: one-click static hosting](https://xbkjz.cn/posts/2026/07-09-cloudflare-drop/)
+- [Rate limiting with Workers + KV](https://xbkjz.cn/posts/2026/07-09-cloudflare-workers-rate-limiting/)
+- [Free file sharing on R2](https://xbkjz.cn/posts/2026/08-28-cloudflare-r2-file-sharing/)
+- [A unified AI gateway on Workers](https://xbkjz.cn/posts/2026/10-06-cloudflare-workers-ai-gateway/)
+- [Dashboard settings guide: SSL, security, speed](https://xbkjz.cn/posts/2026/10-12-cloudflare-settings-guide/)
+- [Cloudflare settings cheat sheet](https://xbkjz.cn/wiki/cloudflare-settings/)
+
 ## License
 
 [MIT](LICENSE) © 2026 Cheng Xiaobao (程小宝)
