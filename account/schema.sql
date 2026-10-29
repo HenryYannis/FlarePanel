@@ -3,10 +3,9 @@
 -- 在账号库（sites.config.js 里的 accountDb）执行，已有同名表会跳过：
 --   npx wrangler d1 execute <账号库名> --remote --file=account/schema.sql --config account/wrangler.jsonc
 --
--- users 表的前五列（id、username、password_hash、created_at、last_login_at）和仓库根目录 schema.sql 一致，
--- FlarePanel「账号管理」读写它们（不读 password_hash）；后面三列只有 Worker 用，后台不读。
+-- users 表和仓库根目录 schema.sql 一致。FlarePanel「账号管理」读写前五列（不读 password_hash）；后面三列只有 Worker 用，后台不读。
 --
--- 已经用根目录 schema.sql 建过 users 表的，CREATE TABLE 会被跳过，需要手动补上 Worker 用的三列（每条只执行一次）：
+-- 用旧版根目录 schema.sql（v1.0.0）建过 users 表的，CREATE TABLE 会被跳过，需要手动补上 Worker 用的三列（每条只执行一次）：
 --   ALTER TABLE users ADD COLUMN salt TEXT NOT NULL DEFAULT '';
 --   ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;
 --   ALTER TABLE users ADD COLUMN recovery_code_hash TEXT;

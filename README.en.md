@@ -138,7 +138,7 @@ Leave unused resources as empty strings and the matching section hides that site
 
 ## Database schema
 
-`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it. The companion comment Worker also uses four tables the panel never reads, `article_likes`, `item_likes`, `site_online` and `rate_limits`; their statements are in `worker/schema.sql`. The companion account Worker adds three columns to `users` (`salt`, `token_version`, `recovery_code_hash`) and uses a `rate_limits` table; its statements are in `account/schema.sql`.
+`schema.sql` has the full statements with field comments. The panel only reads and writes the fields below; your site can add more fields without affecting it. The companion comment Worker also uses four tables the panel never reads, `article_likes`, `item_likes`, `site_online` and `rate_limits`; their statements are in `worker/schema.sql`. The companion account Worker uses three extra columns on `users` (`salt`, `token_version`, `recovery_code_hash`; already in the root `schema.sql`, never read by the panel) and a `rate_limits` table; its statements are in `account/schema.sql`.
 
 | Table | Database | Main fields | Notes |
 |---|---|---|---|

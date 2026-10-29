@@ -44,8 +44,12 @@ CREATE TABLE IF NOT EXISTS file_downloads (
 -- ====================================================
 CREATE TABLE IF NOT EXISTS users (
     id            TEXT    PRIMARY KEY,            -- 推荐 UUID
-    username      TEXT    NOT NULL UNIQUE,
+    username      TEXT    NOT NULL UNIQUE COLLATE NOCASE, -- 英文字母不分大小写
     password_hash TEXT    NOT NULL,               -- 后台不读这一列，只给你的网站登录用
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login_at DATETIME
+    last_login_at DATETIME,
+    -- 以下三列只有配套账号 Worker（account/）使用，后台不读；不用账号 Worker 也可以留着
+    salt               TEXT    NOT NULL DEFAULT '', -- 密码哈希的随机盐
+    token_version      INTEGER NOT NULL DEFAULT 0,  -- 登录凭证版本，改密后旧凭证失效
+    recovery_code_hash TEXT                         -- 恢复码的 SHA-256
 );
