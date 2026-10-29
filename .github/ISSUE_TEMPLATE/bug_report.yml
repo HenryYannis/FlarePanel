@@ -1,0 +1,47 @@
+name: 问题反馈 / Bug report
+description: 报告一个 Bug / Report a bug
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+      description: 看到了什么，期望是什么 / What you saw and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 栏目 / Area
+      options:
+        - 文件分享 / Files (R2)
+        - 评论管理 / Comments
+        - 浏览数量 / Page views
+        - 账号管理 / Users
+        - 代理网关 / AI Hub
+        - 登录 / Sign-in
+        - 部署 / Deployment
+        - 其他 / Other
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: 浏览器 / Browser
+      placeholder: Chrome 130 / Safari 18
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错信息 / Error messages
+      description: 浏览器控制台或接口返回的报错，请删掉 Token 等敏感信息 / Console or API errors. Remove tokens and other secrets.
+      render: text
