@@ -138,7 +138,7 @@ Pages 项目 → 设置 → 环境变量：
 
 ## 数据表
 
-`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。配套账号 Worker 在 `users` 表上另外用到 `salt`、`token_version`、`recovery_code_hash` 三列，并用到 `rate_limits` 表，建表语句在 `account/schema.sql`。
+`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。配套账号 Worker 在 `users` 表上另外用到 `salt`、`token_version`、`recovery_code_hash` 三列（根目录 `schema.sql` 已包含，后台不读），并用到 `rate_limits` 表，建表语句在 `account/schema.sql`。
 
 | 表 | 所在库 | 主要字段 | 说明 |
 |---|---|---|---|

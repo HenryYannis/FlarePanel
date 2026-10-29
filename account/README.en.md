@@ -67,7 +67,7 @@ npx wrangler d1 execute example-account --remote --file=account/schema.sql --con
 
 Existing tables are skipped and old data is left alone.
 
-**Existing users table**: if the account database was created with the root `schema.sql`, the `users` table is skipped and needs three more columns (run each once):
+**Existing users table**: if the account database was created with the root `schema.sql` from v1.0.0 (the current root `schema.sql` already has these columns), the `users` table is skipped and needs three more columns (run each once):
 
 ```bash
 npx wrangler d1 execute example-account --remote --config account/wrangler.jsonc --command "ALTER TABLE users ADD COLUMN salt TEXT NOT NULL DEFAULT ''"

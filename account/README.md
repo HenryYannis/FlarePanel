@@ -67,7 +67,7 @@ npx wrangler d1 execute example-account --remote --file=account/schema.sql --con
 
 已有同名表会跳过，不影响旧数据。
 
-**已有 users 表**：如果账号库是用仓库根目录 `schema.sql` 建的，`users` 表会被跳过，需要另外补三列（每条只执行一次）：
+**已有 users 表**：如果账号库是用 v1.0.0 时的根目录 `schema.sql` 建的（现在的根目录 `schema.sql` 已包含这三列），`users` 表会被跳过，需要另外补三列（每条只执行一次）：
 
 ```bash
 npx wrangler d1 execute example-account --remote --config account/wrangler.jsonc --command "ALTER TABLE users ADD COLUMN salt TEXT NOT NULL DEFAULT ''"
