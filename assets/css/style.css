@@ -826,11 +826,32 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 }
 
 /* ==================== 界面语言切换 ==================== */
-.lang-toggle {
-    min-width: 44px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+.lang-select,
+.btn-outline.lang-select:hover:not(:disabled) {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding-right: 26px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
 }
+.lang-select option {
+    color: #0f172a;
+    background: #ffffff;
+}
+
+.theme-toggle {
+    width: 32px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.theme-toggle .theme-icon-sun { display: none; }
+html[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block; }
+html[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
 
 /* 英文界面在文字填好前先隐藏，避免闪一下中文（index.html 头部脚本加上，i18n.js 去掉，2 秒后兜底去掉） */
 html.i18n-pending body {

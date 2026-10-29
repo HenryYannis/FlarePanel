@@ -1,5 +1,5 @@
 // 界面多语言检查（CI 用）：
-//   1. assets/js/i18n/zh.js 和 en.js 的词条键完全一致，且同一词条两种语言的 {占位符} 一致；
+//   1. assets/js/i18n/zh.js、zh-Hant.js、en.js 的词条键完全一致，且同一词条各语言的 {占位符} 一致；
 //   2. JS 里用到的词条（'命名空间.键' 形式的字符串）和 HTML 里 data-i18n* 属性引用的词条都存在；
 //   3. 词典里没被用到的词条只提示，不算错。
 // 用法：node scripts/check-i18n.mjs
@@ -12,16 +12,17 @@ import { trackedFiles, report, finish } from './check-lib.mjs';
 const root = process.cwd();
 const { zh } = await import(pathToFileURL(path.join(root, 'assets/js/i18n/zh.js')).href);
 const { en } = await import(pathToFileURL(path.join(root, 'assets/js/i18n/en.js')).href);
+const { zhHant } = await import(pathToFileURL(path.join(root, 'assets/js/i18n/zh-Hant.js')).href);
 
 const zhKeys = Object.keys(zh);
-const enKeys = new Set(Object.keys(en));
-for (const k of zhKeys) if (!enKeys.has(k)) report('assets/js/i18n/en.js', 0, `缺少词条：${k}`);
-for (const k of enKeys) if (!(k in zh)) report('assets/js/i18n/zh.js', 0, `缺少词条：${k}`);
-
 const placeholders = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(',');
-for (const k of zhKeys) {
-  if (k in en && placeholders(zh[k]) !== placeholders(en[k])) {
-    report('assets/js/i18n/en.js', 0, `词条 ${k} 的占位符和中文不一致：zh {${placeholders(zh[k])}} / en {${placeholders(en[k])}}`);
+for (const [file, dict] of [['assets/js/i18n/en.js', en], ['assets/js/i18n/zh-Hant.js', zhHant]]) {
+  for (const k of zhKeys) if (!(k in dict)) report(file, 0, `缺少词条：${k}`);
+  for (const k of Object.keys(dict)) if (!(k in zh)) report('assets/js/i18n/zh.js', 0, `缺少词条：${k}（${file} 里有）`);
+  for (const k of zhKeys) {
+    if (k in dict && placeholders(zh[k]) !== placeholders(dict[k])) {
+      report(file, 0, `词条 ${k} 的占位符和简体中文不一致：zh {${placeholders(zh[k])}} / {${placeholders(dict[k])}}`);
+    }
   }
 }
 
@@ -56,4 +57,4 @@ for (const file of trackedFiles('*.html')) {
 const unused = zhKeys.filter(k => !used.has(k));
 if (unused.length) console.log(`提示：${unused.length} 个词条没有被直接引用（可能是拼接使用）：${unused.join(', ')}`);
 
-finish(`多语言检查通过（${zhKeys.length} 个词条，中英文键一致）`, '多语言检查发现问题');
+finish(`多语言检查通过（${zhKeys.length} 个词条，简体、繁体、英文键一致）`, '多语言检查发现问题');
