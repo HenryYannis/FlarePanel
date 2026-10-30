@@ -1,18 +1,21 @@
 # FlarePanel
 
-![FlarePanel](docs/social-preview.png)
-
-**简体中文** | [English](README.en.md)
+[简体中文](README.md) | [繁體中文](README.zh-Hant.md) | [English](README.en.md)
 
 一个后台管理你所有 Cloudflare 网站：评论、浏览量、会员账号、R2 文件，以及可选的 AI 网关配置。
 
-纯 Cloudflare Pages 部署，不需要服务器，不需要构建步骤。登录用你自己的 Cloudflare API Token，数据都在你自己的账号里。界面支持简体中文、繁體中文和英文，右上角切换；夜间模式默认跟随系统，也可以手动切换。
+[![CI](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+![FlarePanel](docs/social-preview.png)
+
+纯 Cloudflare Pages 部署，不需要服务器，不需要构建步骤。登录用你自己的 Cloudflare API Token，数据都在你自己的账号里。
 
 ![登录页](docs/screenshots/login.png)
 
 ![代理网关](docs/screenshots/gateway.png)
 
-## 能做什么
+## 功能
 
 | 栏目 | 读写的资源 | 功能 |
 |---|---|---|
@@ -22,15 +25,14 @@
 | 账号管理 | D1 `users` | 搜索、排序、删除会员，导出 CSV |
 | 代理网关（可选） | KV | 管理 AI 网关的服务商、模型、降级链和用量统计，需要配套网关 Worker |
 
-一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
+- 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
+- 仓库里带三个配套 Worker，都可以直接部署：网站这一侧写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，会员注册登录的账号 Worker 在 [`account/`](account/README.md)，AI 网关 Worker 在 [`gateway/`](gateway/README.md)。
 
-网站这一侧负责写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，负责会员注册登录的账号 Worker 在 [`account/`](account/README.md)，AI 网关 Worker 在 [`gateway/`](gateway/README.md)，都可以直接部署。
-
-## 界面语言
+### 界面语言和夜间模式
 
 - 支持简体中文、繁體中文和英文。顶部导航栏右侧的语言菜单切换，选择保存在浏览器里，切换后页面会刷新。
 - 没手动选过时按浏览器语言：`zh-TW`、`zh-HK`、`zh-MO`、`zh-Hant` 用繁体，其他以 `zh` 开头用简体，其余用英文。
-- 夜间模式默认跟随系统自动切换。语言菜单旁的月亮 / 太阳按钮可以手动切换；系统再次切换日夜时回到自动。
+- 夜间模式默认跟随系统。语言菜单旁的月亮 / 太阳按钮可以手动切换；系统再次切换日夜时回到自动。
 - 日期和数字按当前语言格式显示。
 - 站点名、后台标题等写在 `sites.config.js` 里的内容属于你的数据，原样显示，不翻译。
 - 词典在 `assets/js/i18n/zh.js`、`zh-Hant.js`、`en.js`，三个文件的键一一对应，CI 会检查（`scripts/check-i18n.mjs`）。繁体词典由简体用 OpenCC（s2twp）转换后修正用词。
@@ -39,9 +41,14 @@
 
 ### 1. Fork 或下载本仓库
 
+```bash
+git clone https://github.com/HenryYannis/FlarePanel.git
+cd FlarePanel
+```
+
 ### 2. 改 `sites.config.js`
 
-这是唯一需要改的文件。每个站点写一项：
+部署前只需要改这一个文件，每个站点写一项（各字段见下面的「配置」）：
 
 ```js
 export const SITES = [
@@ -57,7 +64,7 @@ export const SITES = [
 ];
 ```
 
-后台只列出这里写过的数据库和存储桶，账号里其他资源不会出现。各字段的说明见下面的「配置说明」。
+后台只列出这里写过的数据库和存储桶，账号里其他资源不会出现。
 
 ### 3. 建表
 
@@ -66,6 +73,8 @@ export const SITES = [
 ```bash
 npx wrangler d1 execute blog-comment --remote --file=schema.sql
 ```
+
+账号库只需要 `users` 表，可以单独执行 `schema.sql` 的最后一段。
 
 评论、浏览量和下载次数由网站这一侧写入，FlarePanel 负责管理。仓库里的 [`worker/`](worker/README.md) 就是配套的评论 Worker（评论、回复、点赞、浏览量、R2 下载次数），按它的说明部署即可；用 `worker/schema.sql` 建表会把 Worker 额外用到的几张表一起建好。也可以用你自己的 Worker，只要按下面的「数据表」写入。
 
@@ -85,23 +94,38 @@ npx wrangler pages deploy . --project-name flarepanel
 
 ### 5. 设置环境变量
 
-Pages 项目 → 设置 → 环境变量：
-
-| 变量 | 必填 | 说明 |
-|---|---|---|
-| `CF_ACCOUNT_ID` | 是 | 你的 Account ID（32 位）。服务端接口用它确认来访者是本账号管理员，`/api/cf` 和 `/api/s3` 也只转发这个账号的请求。不填的话所有接口都会返回「服务端未配置」 |
-| `R2_ACCESS_KEY_ID` | 否 | R2 S3 API 密钥，填了才能上传 100 MB 以上的文件 |
-| `R2_SECRET_ACCESS_KEY` | 否 | 同上 |
-
-改完环境变量要重新部署一次才会生效。
+Pages 项目 → 设置 → 环境变量（见下面「配置」里的 `.dev.vars.example`）。改完要重新部署一次才会生效。
 
 ### 6. 建议加一层访问保护
 
 后台本身靠 API Token 登录，但页面谁都能打开。建议在 Cloudflare Zero Trust → Access 给后台域名加一条邮箱验证，只有你能进。
 
-## 配置说明
+### 本地预览
 
-`sites.config.js` 有三部分：
+```bash
+cp .dev.vars.example .dev.vars   # 填 CF_ACCOUNT_ID
+npx wrangler pages dev .
+```
+
+## 配置
+
+### `.dev.vars.example`：环境变量
+
+本地预览时复制为 `.dev.vars` 填写；线上在 Pages 项目的「设置 → 环境变量」里填同样的变量。
+
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `CF_ACCOUNT_ID` | 是 | 你的 Account ID（32 位）。服务端接口用它确认来访者是本账号管理员，`/api/cf` 和 `/api/s3` 也只转发这个账号的请求。不填的话所有接口都会返回「服务端未配置」 |
+| `R2_ACCESS_KEY_ID` | 否 | R2 S3 API 密钥。不填时单个文件最大约 95 MB；填了以后 50 MB 以上的文件改用 S3 分片上传（每片 10 MB），可以传更大的文件 |
+| `R2_SECRET_ACCESS_KEY` | 否 | 同上 |
+
+### `wrangler.jsonc`：Pages 项目
+
+只有三项：项目名 `name`（默认 `flarepanel`）、构建输出目录 `pages_build_output_dir`（`.`，即仓库根目录整个发布）和 `compatibility_date`。`wrangler pages dev` / `wrangler pages deploy` 会读取它。根目录会整个发布，所以 `functions/_middleware.js` 会拦截内部文件（见「安全说明」）。
+
+### `sites.config.js`：站点
+
+有三部分。
 
 **`PANEL`：后台整体**
 
@@ -112,7 +136,7 @@ Pages 项目 → 设置 → 环境变量：
 | `viewTypes` | 浏览量统计的页面分类，按网址前缀匹配，例如 `{ key: 'posts', label: { zh: '文章', en: 'Posts' }, prefixes: ['/posts/'] }`。`label` 可以是普通文字或多语言对象（可加 `'zh-Hant'`，没写时繁体界面用 `zh`）。没匹配上的归入「其他页面」 |
 | `viewExcludes` | 浏览量统计里不显示的页面，网址里含这些关键词就跳过 |
 
-**`SITES`：每个站点一项**
+**`SITES`：每个站点一项**（站点顺序就是后台里站点按钮的顺序）
 
 | 字段 | 说明 |
 |---|---|
@@ -136,18 +160,9 @@ Pages 项目 → 设置 → 环境变量：
 | `kvNamespaceId` | 网关读取配置的 KV 命名空间 ID |
 | `configKey` | KV 里的配置键名，默认 `AI_GATEWAY_CONFIG` |
 
-## 数据表
+## 使用
 
-`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。配套账号 Worker 在 `users` 表上另外用到 `salt`、`token_version`、`recovery_code_hash` 三列（根目录 `schema.sql` 已包含，后台不读），并用到 `rate_limits` 表，建表语句在 `account/schema.sql`。
-
-| 表 | 所在库 | 主要字段 | 说明 |
-|---|---|---|---|
-| `comments` | 评论库 | `id`、`nick`、`comment`、`url`、`parent_id`、`ip`、`likes`、`is_author`、`created_at` | 评论。`parent_id` 是回复的评论 id；`is_author = 1` 表示站长在后台回复的；`created_at` 存 UTC |
-| `article_views` | 评论库 | `id`、`url`（唯一）、`views`、`updated_at` | 每个页面一行，网站每次访问 +1 |
-| `file_downloads` | 评论库 | `file_path`（主键）、`downloads` | R2 文件下载次数；后台重命名、移动文件时会同步路径 |
-| `users` | 账号库 | `id`、`username`（唯一）、`password_hash`、`created_at`、`last_login_at` | 会员账号。后台不读 `password_hash` |
-
-## 登录用的 API Token
+### 登录用的 API Token
 
 我的个人资料 → API 令牌 → 创建令牌 → 自定义令牌，账户级权限：
 
@@ -157,45 +172,37 @@ Pages 项目 → 设置 → 环境变量：
 | Workers R2 存储 → 编辑 | 文件分享 |
 | Workers KV 存储 → 编辑 | 只有开启 AI Hub 才需要 |
 
-Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」——退出会清掉 Token 和缓存的 S3 密钥。
+Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」，退出会清掉 Token 和缓存的 S3 密钥。
 
-## 安全说明
+### 数据表
 
-所有 `/api/*` 接口都要求调用者是 `CF_ACCOUNT_ID` 这个账号的管理员：用调用者的 Cloudflare API Token 去列一次本账号的 D1 数据库或 R2 存储桶，能列出来才放行。验证通过的结果按 Token 的 SHA-256 在内存里缓存约 1 分钟，避免每个请求都多问一次 Cloudflare。吊销或轮换 Token 后，同一 isolate 内最多约 1 分钟仍可能放行。
+`schema.sql` 里有完整建表语句和字段注释。后台只读写下面这些字段，你的网站可以加更多字段，后台不受影响。
 
-| 接口 | 保护措施 |
-|---|---|
-| `/api/cf/*` | 必须带管理员 Token（`Authorization: Bearer`），并且只转发 `accounts/<CF_ACCOUNT_ID>/...` 下的接口；别的账号 ID 返回 403，账号以外的路径（如 `user/...`）返回 403，带 `..` 跳出账号目录的路径也会被拒绝 |
-| `/api/s3/*` | 只转发到 `<CF_ACCOUNT_ID>.r2.cloudflarestorage.com`，请求头里的账号 ID 只用来核对，不一致返回 403。`Authorization` 里是 S3 签名，所以登录 Token 放在单独的 `x-cf-token` 头里校验（需要 R2 权限），这个头不会转发给 R2。CORS 预检已允许这个头 |
-| `/api/s3-credentials` | 管理员 Token（R2 权限）才能取到 S3 密钥 |
-| `/api/fetch-models` | 管理员 Token；只允许 https 公网 DNS 主机名（禁止 IP、localhost、内网主机名；不跟随重定向） |
-| `/api/test-telegram` | 管理员 Token。前端只通过这个接口发测试消息，不再从浏览器直连 Telegram；测试消息内容是通用文字，不含站点名 |
+| 表 | 所在库 | 主要字段 | 说明 |
+|---|---|---|---|
+| `comments` | 评论库 | `id`、`nick`、`comment`、`url`、`parent_id`、`ip`、`likes`、`is_author`、`created_at` | 评论。`parent_id` 是回复的评论 id；`is_author = 1` 表示站长在后台回复的；`created_at` 存 UTC |
+| `article_views` | 评论库 | `id`、`url`（唯一）、`views`、`updated_at` | 每个页面一行，网站每次访问 +1 |
+| `file_downloads` | 评论库 | `file_path`（主键）、`downloads` | R2 文件下载次数；后台重命名、移动文件时会同步路径 |
+| `users` | 账号库 | `id`、`username`（唯一）、`password_hash`、`created_at`、`last_login_at` | 会员账号。后台不读 `password_hash` |
 
-其他：
+配套评论 Worker 另外用到 `article_likes`、`item_likes`、`site_online`、`rate_limits` 四张表，后台不读，建表语句在 `worker/schema.sql`。配套账号 Worker 在 `users` 表上另外用到 `salt`、`token_version`、`recovery_code_hash` 三列（根目录 `schema.sql` 已包含，后台不读），并用到 `rate_limits` 表，建表语句在 `account/schema.sql`。
 
-- 接口的错误信息按请求头 `Accept-Language` 返回中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
-- 中间件会拦截 `.md`、`.sql`、点文件、`wrangler.*`、`scripts/`、`lib/` 等，不会被当成静态文件下载。
-- CI 每次提交都跑 gitleaks 密钥扫描。
-- 建议给后台域名加 Cloudflare Access（邮箱验证），页面本身谁都能打开，真正门槛是 API Token。
+### AI Hub（可选）
 
-发现安全问题请私下提交 GitHub Security Advisory，不要公开发 Issue。
-
-## AI Hub（可选）
-
-AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。配套网关在 [`gateway/`](gateway/README.md)，可以直接部署；不用就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关提供：
+AI Hub 管理一个 OpenAI 兼容的 AI 网关 Worker：服务商和模型存在 KV，网关读取后按降级链转发请求。配套网关在 [`gateway/`](gateway/README.md)，可以直接部署；不用就保持 `AI_HUB.enabled: false`，后台不显示这个栏目。网关主要接口：
 
 | 接口 | 用途 |
 |---|---|
 | `GET /v1/models` | 当前可用模型 |
 | `POST /v1/chat/completions` | 对话，支持流式 |
-| `GET /v1/stats?days=7` | 用量统计 |
+| `GET /v1/stats?days=7` | 用量统计，需要开发者密钥（Master Key） |
 | `POST /v1/reload` | 后台保存配置后通知网关刷新，`Authorization: Bearer <Master Key>` |
 
-后台域名要写进网关的 `ALLOWED_ORIGINS`，否则统计、测速和保存后刷新会被拒绝。部署和配置见 [`gateway/README.md`](gateway/README.md)。
+网关还提供图片、语音转发和健康检查接口，见 [`gateway/README.md`](gateway/README.md)。后台域名要写进网关的 `ALLOWED_ORIGINS`，否则统计、测速和保存后刷新会被拒绝。
 
 Telegram 告警的「发送测试通知」走本站的 `/api/test-telegram`，需要已登录后台。
 
-## 自动同步私有副本（可选）
+### 自动同步私有副本（可选）
 
 如果你 fork 后在自己的私有仓库里放个人配置，可以让本仓库 main 一有新提交就通知它同步，不用等定时任务：
 
@@ -211,16 +218,31 @@ on:
 
 没配置这两个 Secrets 时 `.github/workflows/notify-downstream.yml` 会直接跳过。
 
-## 本地预览
+## 安全说明
 
-```bash
-cp .dev.vars.example .dev.vars   # 填 CF_ACCOUNT_ID
-npx wrangler pages dev .
-```
+所有 `/api/*` 接口都要求调用者是 `CF_ACCOUNT_ID` 这个账号的管理员：用调用者的 Cloudflare API Token 去列一次本账号的 D1 数据库或 R2 存储桶，能列出来才放行。验证通过的结果按 Token 的 SHA-256 在内存里缓存约 1 分钟，避免每个请求都多问一次 Cloudflare。吊销或轮换 Token 后，同一 isolate 内最多约 1 分钟仍可能放行。
+
+| 接口 | 保护措施 |
+|---|---|
+| `/api/cf/*` | 必须带管理员 Token（`Authorization: Bearer`），并且只转发 `accounts/<CF_ACCOUNT_ID>/...` 下的接口；别的账号 ID 返回 403，账号以外的路径（如 `user/...`）返回 403，带 `..` 跳出账号目录的路径也会被拒绝 |
+| `/api/s3/*` | 只转发到 `<CF_ACCOUNT_ID>.r2.cloudflarestorage.com`，请求头里的账号 ID 只用来核对，不一致返回 403。`Authorization` 里是 S3 签名，所以登录 Token 放在单独的 `x-cf-token` 头里校验（需要 R2 权限），这个头不会转发给 R2。CORS 预检已允许这个头 |
+| `/api/s3-credentials` | 管理员 Token（R2 权限）才能取到 S3 密钥 |
+| `/api/fetch-models` | 管理员 Token；只允许 https 公网 DNS 主机名（禁止 IP、localhost、内网主机名；不跟随重定向） |
+| `/api/test-telegram` | 管理员 Token。前端只通过这个接口发测试消息，不从浏览器直连 Telegram；测试消息内容是通用文字，不含站点名 |
+
+其他：
+
+- 接口的错误信息按请求头 `Accept-Language` 返回中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
+- 中间件会拦截 `.md`、`.sql`、点文件、`wrangler.*`、`docs/`、`scripts/`、`lib/`、`worker/`、`account/`、`gateway/` 等，不会被当成静态文件下载。
+- CI 在每个 PR 和每次推送到 main 时跑 gitleaks 密钥扫描。
+
+发现安全问题请私下提交 GitHub Security Advisory，不要公开发 Issue。
 
 ## 技术栈
 
-原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。评论 Worker（`worker/`）是单文件 Cloudflare Worker，同样没有依赖。
+原生 HTML / CSS / ES Modules，后端是 Cloudflare Pages Functions。没有框架，没有构建，改完刷新就能看到。三个配套 Worker（`worker/`、`account/`、`gateway/`）都是单文件 Cloudflare Worker，同样没有 npm 依赖。
+
+CI（`.github/workflows/check.yml`）在每个 PR 和推送到 main 时运行：仓库卫生、Pages 配置格式、gitleaks、HTML 结构、全部 JS 语法、JSON / TOML / CSS 语法、站内链接和多语言词典。
 
 ## 相关教程
 
