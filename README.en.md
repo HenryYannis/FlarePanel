@@ -4,7 +4,7 @@
 
 One dashboard for all your Cloudflare-hosted sites: comments, page views, user accounts, R2 files, and an optional AI gateway config.
 
-[![CI](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml)
+[![CI](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![FlarePanel](docs/social-preview.png)
@@ -42,8 +42,8 @@ It runs entirely on Cloudflare Pages: no server and no build step. You sign in w
 ### 1. Fork or download this repository
 
 ```bash
-git clone https://github.com/HenryYannis/flarepanel.git
-cd flarepanel
+git clone https://github.com/HenryYannis/FlarePanel.git
+cd FlarePanel
 ```
 
 ### 2. Edit `sites.config.js`
@@ -262,8 +262,8 @@ The comments, page views, R2 files and AI gateway that FlarePanel manages are bu
 
 ## Related projects
 
-- [FlareRouter](https://github.com/HenryYannis/flarerouter): a personal AI gateway on a single Cloudflare Worker, serving OpenAI-compatible and Anthropic APIs with all your providers behind one URL and automatic failover.
+- [FlareRouter](https://github.com/HenryYannis/FlareRouter): a personal AI gateway on a single Cloudflare Worker, serving OpenAI-compatible and Anthropic APIs with all your providers behind one URL and automatic failover.
 
 ## License
 
-[MIT](LICENSE) © Henry Yannis
+[MIT](LICENSE) © 2026 Henry Yannis

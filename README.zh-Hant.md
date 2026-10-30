@@ -4,7 +4,7 @@
 
 一個後台管理你所有 Cloudflare 網站：評論、瀏覽量、會員帳號、R2 檔案，以及可選的 AI 閘道設定。
 
-[![CI](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml)
+[![CI](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![FlarePanel](docs/social-preview.png)
@@ -42,8 +42,8 @@
 ### 1. Fork 或下載本儲存庫
 
 ```bash
-git clone https://github.com/HenryYannis/flarepanel.git
-cd flarepanel
+git clone https://github.com/HenryYannis/FlarePanel.git
+cd FlarePanel
 ```
 
 ### 2. 改 `sites.config.js`
@@ -262,8 +262,8 @@ FlarePanel 管理的評論、瀏覽量、R2 檔案和 AI 閘道，背後的搭�
 
 ## 相關專案
 
-- [FlareRouter](https://github.com/HenryYannis/flarerouter)：部署在單個 Cloudflare Worker 上的個人 AI 閘道，同時提供 OpenAI 相容和 Anthropic 格式的 API，多家服務商一個地址、失敗自動切換。
+- [FlareRouter](https://github.com/HenryYannis/FlareRouter)：部署在單個 Cloudflare Worker 上的個人 AI 閘道，同時提供 OpenAI 相容和 Anthropic 格式的 API，多家服務商一個地址、失敗自動切換。
 
 ## 授權條款
 
-[MIT](LICENSE) © 程小宝
+[MIT](LICENSE) © 2026 程小宝

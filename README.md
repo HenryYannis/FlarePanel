@@ -4,7 +4,7 @@
 
 一个后台管理你所有 Cloudflare 网站：评论、浏览量、会员账号、R2 文件，以及可选的 AI 网关配置。
 
-[![CI](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/flarepanel/actions/workflows/check.yml)
+[![CI](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml/badge.svg)](https://github.com/HenryYannis/FlarePanel/actions/workflows/check.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![FlarePanel](docs/social-preview.png)
@@ -42,8 +42,8 @@
 ### 1. Fork 或下载本仓库
 
 ```bash
-git clone https://github.com/HenryYannis/flarepanel.git
-cd flarepanel
+git clone https://github.com/HenryYannis/FlarePanel.git
+cd FlarePanel
 ```
 
 ### 2. 改 `sites.config.js`
@@ -262,8 +262,8 @@ FlarePanel 管理的评论、浏览量、R2 文件和 AI 网关，背后的搭�
 
 ## 相关项目
 
-- [FlareRouter](https://github.com/HenryYannis/flarerouter)：部署在单个 Cloudflare Worker 上的个人 AI 网关，同时提供 OpenAI 兼容和 Anthropic 接口，多家服务商一个地址、失败自动切换。
+- [FlareRouter](https://github.com/HenryYannis/FlareRouter)：部署在单个 Cloudflare Worker 上的个人 AI 网关，同时提供 OpenAI 兼容和 Anthropic 接口，多家服务商一个地址、失败自动切换。
 
 ## 许可证
 
-[MIT](LICENSE) © 程小宝
+[MIT](LICENSE) © 2026 程小宝
