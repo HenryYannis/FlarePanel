@@ -244,4 +244,4 @@ The comments, page views, R2 files and AI gateway that FlarePanel manages are bu
 
 ## License
 
-[MIT](LICENSE) © 2026 Cheng Xiaobao
+[MIT](LICENSE) © 2026 Henry Yannis
