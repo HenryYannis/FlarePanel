@@ -238,6 +238,10 @@ FlarePanel 管理的评论、浏览量、R2 文件和 AI 网关，背后的搭�
 - [新手后台配置避坑全指南：从 SSL 到安全加速逐项拆解](https://xbkjz.cn/posts/2026/10-12-cloudflare-settings-guide/)
 - [Cloudflare 核心配置与避坑速查表](https://xbkjz.cn/wiki/cloudflare-settings/)
 
+## 相关项目
+
+- [FlareRouter](https://github.com/HenryYannis/FlareRouter)：部署在单个 Cloudflare Worker 上的个人 AI 网关，同时提供 OpenAI 兼容和 Anthropic 接口，多家服务商一个地址、失败自动切换。
+
 ## 许可证
 
 [MIT](LICENSE) © 2026 程小宝

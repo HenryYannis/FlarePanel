@@ -238,6 +238,10 @@ The comments, page views, R2 files and AI gateway that FlarePanel manages are bu
 - [Dashboard settings guide: SSL, security, speed](https://xbkjz.cn/posts/2026/10-12-cloudflare-settings-guide/)
 - [Cloudflare settings cheat sheet](https://xbkjz.cn/wiki/cloudflare-settings/)
 
+## Related
+
+- [FlareRouter](https://github.com/HenryYannis/FlareRouter): a personal AI gateway on a single Cloudflare Worker, serving OpenAI-compatible and Anthropic APIs with all your providers behind one URL and automatic failover.
+
 ## License
 
-[MIT](LICENSE) © 2026 Cheng Xiaobao (程小宝)
+[MIT](LICENSE) © 2026 Cheng Xiaobao
