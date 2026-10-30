@@ -1,6 +1,6 @@
 # 本地预览（npx wrangler pages dev .）用：复制为 .dev.vars 再填写。线上在 Pages 项目的「设置 → 环境变量」里填同样的变量。
 # 必填：你的 Cloudflare Account ID（32 位），服务端接口用它校验管理员
 CF_ACCOUNT_ID=
-# 可选：R2 S3 API 密钥，填了才能分片上传 100 MB 以上的大文件
+# 可选：R2 S3 API 密钥。不填时单个文件最大约 95 MB；填了以后 50 MB 以上的文件改用分片上传，可传更大的文件
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
