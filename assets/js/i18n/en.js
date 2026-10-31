@@ -358,7 +358,7 @@ export const en = {
     "nav.themeToDark": "Switch to dark mode",
     "nav.themeToLight": "Switch to light mode",
     "nav.logout": "Sign out",
-    "auth.title": "Connect to CloudFlare",
+    "auth.title": "Connect to Cloudflare",
     "auth.desc": "Get your Account ID and an API Token from the Cloudflare dashboard. For every panel feature to work, the token needs these permissions:",
     "auth.permD1": " (comments, accounts, page views)",
     "auth.permR2": " (file sharing and object storage)",
