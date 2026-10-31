@@ -36,7 +36,9 @@ import {
     getCurrentAiConfig, 
     setCurrentAiConfig, 
     isKvAuthError, 
-    maskApiKey 
+    maskApiKey,
+    toggleProviderKeyRevealed,
+    keyVisibilityIcon
 } from './routing.js';
 
 import { 
@@ -359,6 +361,28 @@ export function bindAiHubEvents(container, config) {
                 p.enabled = chk.checked;
                 renderAiHubView(container, config);
                 await syncAiConfig(t(p.enabled ? 'ai.providerEnabledSynced' : 'ai.providerDisabledSynced', { name: p.name }), false);
+            }
+        };
+    });
+
+    // 服务商密钥：点眼睛或 Key 文本，在等长星号与明文之间切换
+    container.querySelectorAll('.ai-provider-key-toggle, .ai-provider-key-val.is-toggle').forEach(el => {
+        el.onclick = (e) => {
+            e.stopPropagation();
+            const id = e.currentTarget.dataset.providerId;
+            if (!id) return;
+            const p = config.providers.find(item => item.id === id);
+            if (!p?.apiKey) return;
+            const shown = toggleProviderKeyRevealed(id);
+            const card = el.closest('.ai-provider-card');
+            if (!card) return;
+            const val = card.querySelector('.ai-provider-key-val');
+            const eye = card.querySelector('.ai-provider-key-toggle');
+            const raw = String(p.apiKey);
+            if (val) val.textContent = shown ? raw : '*'.repeat(raw.length);
+            if (eye) {
+                eye.innerHTML = keyVisibilityIcon(shown);
+                eye.setAttribute('aria-pressed', shown ? 'true' : 'false');
             }
         };
     });

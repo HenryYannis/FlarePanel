@@ -104,6 +104,38 @@ export function maskApiKey(key) {
     return `${key.slice(0, 4)}••••••••${key.slice(-4)}`;
 }
 
+// 两种图标同为 14px，切换时眼睛按钮尺寸不变
+const KEY_EYE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const KEY_EYE_OFF_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M6.06 6.06A18.45 18.45 0 0 0 2 12s3.5 7 10 7a9.9 9.9 0 0 0 5.42-1.58"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>';
+
+const revealedProviderKeyIds = new Set();
+
+export function toggleProviderKeyRevealed(id) {
+    if (revealedProviderKeyIds.has(id)) {
+        revealedProviderKeyIds.delete(id);
+        return false;
+    }
+    revealedProviderKeyIds.add(id);
+    return true;
+}
+
+/** revealed 为 true 时表示当前是明文，图标表示「再点隐藏」 */
+export function keyVisibilityIcon(revealed) {
+    return revealed ? KEY_EYE_OFF_SVG : KEY_EYE_SVG;
+}
+
+function renderProviderKeyCell(p) {
+    if (!p.apiKey) {
+        return `<span class="ai-provider-key-empty">${t('ai.notConfigured')}</span>`;
+    }
+    const shown = revealedProviderKeyIds.has(p.id);
+    const raw = String(p.apiKey);
+    const display = shown ? raw : '*'.repeat(raw.length);
+    const title = escapeAttr(t('ai.keyMasked'));
+    const id = escapeHtml(p.id);
+    return `<span class="ai-provider-key-cell"><code class="ai-provider-key-val is-toggle" data-provider-id="${id}" title="${title}">${escapeHtml(display)}</code><button type="button" class="btn btn-outline btn-sm ai-key-eye-btn ai-provider-key-toggle" data-provider-id="${id}" title="${title}" aria-label="${title}" aria-pressed="${shown ? 'true' : 'false'}">${keyVisibilityIcon(shown)}</button><button type="button" class="btn btn-outline btn-sm ai-copy-provider-key-btn" data-key="${escapeHtml(raw)}" title="${escapeAttr(t('ai.copyFullKey'))}">${t('common.copy')}</button></span>`;
+}
+
 // 渲染降级链条节点
 export function renderFallbackChainItems(providers, chainIds) {
     const providerMap = new Map(providers.map(p => [p.id, p]));
@@ -195,12 +227,9 @@ export function renderProviderCards(providers) {
             </div>
 
             <div class="ai-provider-body">
-                <div class="ai-provider-key-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
-                        <span class="ai-provider-label">API Key:</span>
-                        <code class="ai-provider-key-val" style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; color: var(--text-secondary);" title="${t('ai.keyMasked')}">${p.apiKey ? '••••••••••••••••' : '<span style="color: var(--text-secondary); font-style: italic; letter-spacing: normal;">' + t('ai.notConfigured') + '</span>'}</code>
-                    </div>
-                    ${p.apiKey ? `<button type="button" class="btn btn-outline btn-sm ai-copy-provider-key-btn" data-key="${escapeAttr(p.apiKey)}" style="padding: 2px 8px; font-size: 11px; flex-shrink: 0;" title="${t('ai.copyFullKey')}">${t('common.copy')}</button>` : ''}
+                <div class="ai-provider-key-row">
+                    <span class="ai-provider-label">API Key:</span>
+                    ${renderProviderKeyCell(p)}
                 </div>
                 <div class="ai-provider-models-block">
                     <div class="ai-provider-models-header">
