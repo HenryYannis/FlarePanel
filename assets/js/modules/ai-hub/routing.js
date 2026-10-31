@@ -80,7 +80,7 @@ export async function saveAiConfigToKv(config) {
         config.gateway.endpoint = OFFICIAL_AI_GATEWAY_URL;
     }
     currentAiConfig = config;
-    const jsonStr = JSON.stringify(config, null, 2);
+    const jsonStr = JSON.stringify(config);
     await putKvValue(AI_KV_NAMESPACE_ID, AI_KV_CONFIG_KEY, jsonStr);
     kvAuthError = false;
 

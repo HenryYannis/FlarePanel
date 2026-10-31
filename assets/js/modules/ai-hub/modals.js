@@ -24,6 +24,8 @@ let callbacks = {
     getConfig: () => null,
     getContext: () => null,
     renderAiHubView: () => {},
+    refreshProvidersUi: () => {},
+    refreshKeysUi: () => {},
     syncAiConfig: async () => {},
     fetchAiHubMetrics: async () => {},
     getSubTab: () => 'config',
@@ -834,8 +836,8 @@ export function initModalBindings() {
             if (modal) modal.style.display = 'none';
 
             const container = document.getElementById('ai-hub-container');
-            if (container) callbacks.renderAiHubView(container, currentAiConfig);
-            await callbacks.syncAiConfig(t(editingProviderId ? 'modal.providerUpdated' : 'modal.providerAdded', { name }), true);
+            if (container) callbacks.refreshProvidersUi(container, currentAiConfig);
+            await callbacks.syncAiConfig(t(editingProviderId ? 'modal.providerUpdated' : 'modal.providerAdded', { name }), false);
         };
     }
 
@@ -1028,8 +1030,8 @@ export function initModalBindings() {
                 currentAiConfig.gateway.masterKey = '';
                 keySlotModal.style.display = 'none';
                 const container = document.getElementById('ai-hub-container');
-                if (container) callbacks.renderAiHubView(container, currentAiConfig);
-                await callbacks.syncAiConfig(t('modal.keyDeleted', { name }), true);
+                if (container) callbacks.refreshKeysUi(container, currentAiConfig);
+                await callbacks.syncAiConfig(t('modal.keyDeleted', { name }), false);
             }
         };
     }
@@ -1072,8 +1074,8 @@ export function initModalBindings() {
             }
             keySlotModal.style.display = 'none';
             const container = document.getElementById('ai-hub-container');
-            if (container) callbacks.renderAiHubView(container, currentAiConfig);
-            await callbacks.syncAiConfig(t('modal.keySaved', { name }), true);
+            if (container) callbacks.refreshKeysUi(container, currentAiConfig);
+            await callbacks.syncAiConfig(t('modal.keySaved', { name }), false);
         };
     }
 }

@@ -114,6 +114,48 @@ export async function syncAiConfig(toastMessage = '', showLoadingSpinner = false
     }
 }
 
+/** 添加/编辑服务商后：只刷新服务商卡片与容灾链，不整页重绘 */
+export function refreshProvidersUi(container, config) {
+    if (!container || !config) return;
+    if (currentSubTab !== 'config') {
+        renderAiHubView(container, config);
+        return;
+    }
+    const activeProviders = config.providers.filter(p => p.enabled);
+    const grid = container.querySelector('#ai-providers-grid');
+    if (grid) grid.innerHTML = renderProviderCards(config.providers);
+    const chainEl = container.querySelector('#ai-fallback-chain');
+    if (chainEl) {
+        chainEl.innerHTML = renderFallbackChainItems(config.providers, config.sitePolicy?.fallbackChain || []);
+    }
+    const summary = grid?.closest('.ai-card')?.querySelector('p');
+    if (summary) summary.textContent = t('ai.providersSummary', { total: config.providers.length, active: activeProviders.length });
+    bindAiHubEvents(container, config);
+}
+
+/** 删除/保存密钥后：只刷新密钥条 */
+export function refreshKeysUi(container, config) {
+    if (!container || !config) return;
+    if (currentSubTab !== 'config') {
+        renderAiHubView(container, config);
+        return;
+    }
+    ensureGatewayKeys(config);
+    const old = container.querySelector('.ai-keys-grid');
+    if (old) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = renderKeysSlotsHtml(config.gateway.keys);
+        const next = wrap.firstElementChild;
+        if (next) old.replaceWith(next);
+    }
+    container.querySelectorAll('.ai-key-slot-btn').forEach(btn => {
+        btn.onclick = () => {
+            const idx = parseInt(btn.dataset.slotIndex);
+            if (!isNaN(idx)) openKeySlotModal(idx);
+        };
+    });
+}
+
 // 渲染主视图
 export function renderAiHubView(container, config) {
     const activeProviders = config.providers.filter(p => p.enabled);
@@ -453,6 +495,8 @@ export const AiHubModule = {
             getConfig: () => getCurrentAiConfig(),
             getContext: () => ctx,
             renderAiHubView: (container, cfg) => renderAiHubView(container, cfg),
+            refreshProvidersUi: (container, cfg) => refreshProvidersUi(container, cfg),
+            refreshKeysUi: (container, cfg) => refreshKeysUi(container, cfg),
             syncAiConfig: (msg, spinner) => syncAiConfig(msg, spinner),
             fetchAiHubMetrics: (days) => fetchAiHubMetrics(days, getCurrentAiConfig()),
             getSubTab: () => currentSubTab,
