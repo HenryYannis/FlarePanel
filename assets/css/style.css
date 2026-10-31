@@ -229,7 +229,7 @@ body {
 /* 主容器 */
 .tool-container-standard {
     max-width: 1400px;
-    margin: 32px auto;
+    margin: 16px auto 32px; /* 上 16 对齐 FlareRouter header 下间距 */
     padding: 32px;
     background: var(--glass-bg);
     backdrop-filter: var(--background-blur);
