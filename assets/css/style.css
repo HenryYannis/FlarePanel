@@ -10,16 +10,16 @@
     --primary-hover: #00a8c4;
     --primary-active: #008fa6;
     
-    --secondary-color: #ff3c3c;
-    --secondary-color-rgb: 255, 60, 60;
-    --secondary-hover: #e02828;
-    --secondary-active: #c41818;
+    --secondary-color: #ef4444;
+    --secondary-color-rgb: 239, 68, 68;
+    --secondary-hover: #dc2626;
+    --secondary-active: #b91c1c;
     
-    /* 危险操作 / 删除专用标准红色 */
-    --danger-color: #ff3c3c;
-    --danger-color-rgb: 255, 60, 60;
-    --danger-hover: #e02828;
-    --danger-active: #c41818;
+    /* 危险操作 / 删除（对齐 FlareRouter） */
+    --danger-color: #ef4444;
+    --danger-color-rgb: 239, 68, 68;
+    --danger-hover: #dc2626;
+    --danger-active: #b91c1c;
     
     --success-color: #10b981;
     --success-hover: #059669;
@@ -53,6 +53,20 @@
     /* 全网统一系统无衬线字体与等宽代码字体（对齐小宝科技站） */
     --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    /* 字号 / 字重 token（对齐 FlareRouter） */
+    --fs-brand: 17px;
+    --fs-nav: 14px;
+    --fs-section: 15px;
+    --fs-body: 14px;
+    --fs-btn: 13.5px;
+    --fs-btn-sm: 12.5px;
+    --fs-meta: 12.5px;
+    --fs-kpi: 20px;
+    --fs-dialog-title: 16px;
+    --fs-footer: 12px;
+    --fw-brand: 700;
+    --fw-ui: 600;
+    --fw-dialog: 700;
 }
 
 /* ==================== 天空背景系统 ==================== */
@@ -74,10 +88,10 @@ html.day-theme {
     --primary-hover: #00879e;
     --primary-active: #007084;
     
-    --danger-color: #ff3c3c;
-    --danger-color-rgb: 255, 60, 60;
-    --danger-hover: #e02828;
-    --danger-active: #c41818;
+    --danger-color: #ef4444;
+    --danger-color-rgb: 239, 68, 68;
+    --danger-hover: #dc2626;
+    --danger-active: #b91c1c;
     
     --glass-bg: rgba(255, 255, 255, 0.72);
     --glass-border: rgba(0, 157, 184, 0.2);
@@ -92,22 +106,22 @@ html.day-theme {
     --mystic-glow: 0 6px 20px rgba(0, 157, 184, 0.25);
 }
 
-/* 夜间模式 (纯色深邃夜黑背景 + 霓虹蓝与霓虹红) */
+/* 夜间模式 (纯色深邃夜黑背景 + 霓虹蓝；危险红对齐 FlareRouter) */
 html.night-theme {
     color-scheme: dark;
     background-color: #090a0f;
     background: #090a0f;
     
-    /* 霓虹黑色夜空下的任天堂 Switch 电光双子星色彩 */
+    /* 夜间主色保留青绿；危险红与网关一致 */
     --primary-color: #00c3e3;
     --primary-color-rgb: 0, 195, 227;
     --primary-hover: #2ad5f2;
     --primary-active: #00a8c4;
     
-    --danger-color: #ff3c3c;
-    --danger-color-rgb: 255, 60, 60;
-    --danger-hover: #ff5c5c;
-    --danger-active: #e02828;
+    --danger-color: #ef4444;
+    --danger-color-rgb: 239, 68, 68;
+    --danger-hover: #f87171;
+    --danger-active: #dc2626;
     
     --glass-bg: rgba(15, 23, 42, 0.75);
     --glass-border: rgba(255, 255, 255, 0.09);
@@ -165,6 +179,7 @@ html.night-theme {
 
 body {
     font-family: var(--font-sans);
+    font-size: var(--fs-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -199,8 +214,8 @@ body {
 
 /* 导航栏标题：纯色实体 (禁止渐变) */
 .navbar-title {
-    font-weight: 700;
-    font-size: 1.25rem;
+    font-weight: var(--fw-brand);
+    font-size: var(--fs-brand);
     color: var(--primary-color);
     letter-spacing: -0.2px;
 }
@@ -236,11 +251,11 @@ body {
 .auth-permissions { display: flex; flex-direction: column; gap: 6px; }
 
 /* 目标数据库与存储桶选择器 */
-.selector-label { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: block; }
+.selector-label { font-size: var(--fs-body); font-weight: var(--fw-ui); color: var(--text-primary); margin-bottom: 12px; display: block; }
 .selector-placeholder { font-size: 14px; color: var(--text-secondary); }
 
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-secondary); }
+.form-group label { display: block; margin-bottom: 8px; font-weight: var(--fw-ui); font-size: var(--fs-body); color: var(--text-secondary); }
 .form-control {
     width: 100%;
     padding: 12px 16px;
@@ -273,8 +288,8 @@ body {
     height: 38px;
     padding: 0 18px;
     border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    font-weight: 600;
+    font-size: var(--fs-btn);
+    font-weight: var(--fw-ui);
     cursor: pointer;
     border: 1px solid transparent;
     transition: var(--transition);
@@ -409,8 +424,8 @@ body {
 .btn-sm {
     height: 28px !important;
     padding: 0 10px !important;
-    font-size: 12.5px !important;
-    font-weight: 500 !important;
+    font-size: var(--fs-btn-sm) !important;
+    font-weight: var(--fw-ui) !important;
     border-radius: 6px !important;
     margin-left: 4px;
 }
@@ -499,8 +514,8 @@ body {
     background: var(--glass-bg);
 }
 table { width: 100%; border-collapse: collapse; text-align: left; }
-th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-th { font-weight: 600; color: var(--text-secondary); white-space: nowrap; background: rgba(0,0,0,0.02); }
+th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: var(--fs-body); }
+th { font-weight: var(--fw-ui); color: var(--text-secondary); white-space: nowrap; background: rgba(0,0,0,0.02); }
 html.night-theme th { background: rgba(255,255,255,0.02); }
 tr { transition: var(--transition); }
 tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
@@ -654,7 +669,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         padding: 10px 16px;
     }
     .navbar-title {
-        font-size: 1.1rem;
+        font-size: 16px;
     }
 
     /* 主容器边距与内衬自适应 (严格防撑破) */
@@ -803,7 +818,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 @media (max-width: 480px) {
     /* 针对 360px ~ 414px 紧凑型手机屏幕 */
     .navbar-title {
-        font-size: 1rem;
+        font-size: 16px;
     }
     .tool-container-standard {
         margin: 8px 4px;
@@ -863,7 +878,7 @@ html.i18n-pending body {
 /* 页脚：产品名 + GitHub */
 .site-footer {
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: var(--fs-footer);
     text-align: center;
     margin: 28px 0 16px;
 }

@@ -29,6 +29,13 @@
     gap: 12px;
 }
 
+.ai-hub-page-title {
+    font-size: var(--fs-brand, 17px);
+    font-weight: var(--fw-brand, 700);
+    color: var(--text-primary);
+    margin: 0;
+}
+
 .ai-hub-badge {
     display: inline-block;
     background: var(--primary-color);
@@ -111,8 +118,8 @@
 }
 
 .ai-card-title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--fs-section, 15px);
+    font-weight: var(--fw-ui, 600);
     color: var(--text-primary);
     margin-bottom: 14px;
 }
@@ -788,10 +795,10 @@ html.night-theme .ai-provider-card {
 }
 
 .ai-metric-value {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: var(--fs-kpi, 20px);
+    font-weight: var(--fw-ui, 600);
     color: var(--text-primary);
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     margin: 6px 0 4px 0;
     line-height: 1.1;
     white-space: nowrap;

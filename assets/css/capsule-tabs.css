@@ -41,8 +41,8 @@
     box-shadow: none;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--fs-nav, 14px);
+    font-weight: var(--fw-ui, 600);
     line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
@@ -119,7 +119,8 @@
 .capsule-tabs--sm > :not(.capsule-tabs-indicator),
 .capsule-tabs--sm > :not(.capsule-tabs-indicator):hover {
     padding: 4px 10px;
-    font-size: 12px;
+    font-size: var(--fs-btn-sm, 12.5px);
+    font-weight: var(--fw-ui, 600);
 }
 
 /* 居中摆放 */
