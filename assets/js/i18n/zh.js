@@ -489,5 +489,7 @@ export const zh = {
     "storage.selectFirst": "请先勾选要删除的文件或文件夹",
     "storage.batchTitle": "批量删除确认",
     "storage.batchMessage": "确定要永久删除选中的 {count} 个项目吗？\n（若包含文件夹，其内部所有文件将被一并清空且不可逆）",
-    "storage.batchDeleting": "正在批量删除选中的 {count} 个项目..."
+    "storage.batchDeleting": "正在批量删除选中的 {count} 个项目...",
+    "footer.brand": "FlarePanel",
+    "footer.github": "GitHub"
 };

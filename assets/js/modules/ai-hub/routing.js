@@ -198,7 +198,7 @@ export function renderProviderCards(providers) {
                 <div class="ai-provider-key-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
                         <span class="ai-provider-label">API Key:</span>
-                        <code class="ai-provider-key-val" style="font-family: monospace; font-size: 12px; letter-spacing: 1px; color: var(--text-secondary);" title="${t('ai.keyMasked')}">${p.apiKey ? '••••••••••••••••' : '<span style="color: var(--text-secondary); font-style: italic; letter-spacing: normal;">' + t('ai.notConfigured') + '</span>'}</code>
+                        <code class="ai-provider-key-val" style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; color: var(--text-secondary);" title="${t('ai.keyMasked')}">${p.apiKey ? '••••••••••••••••' : '<span style="color: var(--text-secondary); font-style: italic; letter-spacing: normal;">' + t('ai.notConfigured') + '</span>'}</code>
                     </div>
                     ${p.apiKey ? `<button type="button" class="btn btn-outline btn-sm ai-copy-provider-key-btn" data-key="${escapeAttr(p.apiKey)}" style="padding: 2px 8px; font-size: 11px; flex-shrink: 0;" title="${t('ai.copyFullKey')}">${t('common.copy')}</button>` : ''}
                 </div>
@@ -270,7 +270,7 @@ export function renderConfigTabHtml(config, activeProviders, chainIds) {
             <div class="form-group" style="margin-bottom: 14px;">
                 <label style="font-size: 12px; margin-bottom: 4px;">${t('ai.baseUrlLabel')}</label>
                 <div class="ai-endpoint-row">
-                    <input type="text" id="ai-endpoint-input" class="form-control" value="${OFFICIAL_AI_GATEWAY_URL}" readonly style="font-family: monospace; background: rgba(0,0,0,0.02);">
+                    <input type="text" id="ai-endpoint-input" class="form-control" value="${OFFICIAL_AI_GATEWAY_URL}" readonly style="font-family: var(--font-mono); background: rgba(0,0,0,0.02);">
                     <button class="btn btn-outline copy-btn" data-target="ai-endpoint-input" style="flex-shrink: 0;">${t('common.copy')}</button>
                 </div>
             </div>

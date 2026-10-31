@@ -408,7 +408,7 @@ export function ensureAiModals() {
                     <label for="ai-provider-key-input" style="margin: 0;">${t('modal.apiKeyLabel')}</label>
                     <button type="button" class="btn btn-outline btn-sm" id="ai-copy-modal-key-btn" style="padding: 2px 8px; font-size: 11px;" title="${t('modal.copyKeyTitle')}">${t('modal.copyKey')}</button>
                 </div>
-                <input type="text" id="ai-provider-key-input" class="form-control" placeholder="${t('modal.apiKeyPlaceholder')}" spellcheck="false" style="font-family: monospace;">
+                <input type="text" id="ai-provider-key-input" class="form-control" placeholder="${t('modal.apiKeyPlaceholder')}" spellcheck="false" style="font-family: var(--font-mono);">
             </div>
 
             <div class="form-group">
@@ -477,7 +477,7 @@ export function ensureAiModals() {
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <label style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-secondary);">${t('modal.responseLabel')}</label>
-                <span id="ai-test-timing" style="font-size: 12px; font-family: monospace; color: var(--primary-color);">${t('modal.timingEmpty')}</span>
+                <span id="ai-test-timing" style="font-size: 12px; font-family: var(--font-mono); color: var(--primary-color);">${t('modal.timingEmpty')}</span>
             </div>
             <div id="ai-test-result-box" class="ai-code-block" style="min-height: 120px; white-space: pre-wrap; font-size: 13px;">${t('modal.testIdle')}</div>
 
@@ -546,7 +546,7 @@ export function ensureAiModals() {
                         <button type="button" class="btn btn-outline btn-sm" id="ai-regen-keyslot-btn" style="padding: 2px 8px; font-size: 11px;">${t('modal.regenerate')}</button>
                     </div>
                 </div>
-                <input type="text" id="ai-keyslot-val-input" class="form-control" placeholder="sk-fp-..." spellcheck="false" style="font-family: monospace; font-size: 13px;">
+                <input type="text" id="ai-keyslot-val-input" class="form-control" placeholder="sk-fp-..." spellcheck="false" style="font-family: var(--font-mono); font-size: 13px;">
                 <p style="font-size: 11.5px; color: var(--text-secondary); margin: 6px 0 0 0;">${t('modal.keyHint')}</p>
             </div>
 

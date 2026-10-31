@@ -42,7 +42,7 @@ export function renderAccountsTable(tbody, data) {
         const safeIdText = escapeHtml(String(item.id));
         tr.innerHTML = `
             <td style="width: 40px;"><input type="checkbox" class="row-check" value="${safeId}"></td>
-            <td style="font-size:0.8rem; font-family:monospace;"><span class="account-id-badge">${safeIdText}</span></td>
+            <td style="font-size:0.8rem; font-family:var(--font-mono);"><span class="account-id-badge">${safeIdText}</span></td>
             <td><strong class="account-username">${escapeHtml(String(item.username))}</strong></td>
             <td class="cell-time" title="${formattedTime}">${formattedTime}</td>
             <td class="cell-time" title="${lastLogin}">${lastLogin}</td>
