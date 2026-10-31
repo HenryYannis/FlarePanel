@@ -491,5 +491,6 @@ export const zh = {
     "storage.batchMessage": "确定要永久删除选中的 {count} 个项目吗？\n（若包含文件夹，其内部所有文件将被一并清空且不可逆）",
     "storage.batchDeleting": "正在批量删除选中的 {count} 个项目...",
     "footer.brand": "FlarePanel",
+    "footer.tagline": "基于 Cloudflare 的站群控制台",
     "footer.github": "GitHub"
 };

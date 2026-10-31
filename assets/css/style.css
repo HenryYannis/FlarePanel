@@ -875,12 +875,17 @@ html.i18n-pending body {
     visibility: hidden;
 }
 
-/* 页脚：产品名 + GitHub */
+/* 页脚：品牌 + 短描述 + GitHub */
 .site-footer {
     color: var(--text-secondary);
     font-size: var(--fs-footer);
     text-align: center;
     margin: 28px 0 16px;
+    padding: 0 12px;
+    line-height: 1.5;
+}
+.site-footer .footer-brand {
+    font-weight: var(--fw-ui);
 }
 .site-footer a {
     color: inherit;

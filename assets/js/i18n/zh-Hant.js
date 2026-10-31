@@ -491,5 +491,6 @@ export const zhHant = {
     "storage.batchMessage": "確定要永久刪除選中的 {count} 個專案嗎？\n（若包含資料夾，其內部所有檔案將被一併清空且不可逆）",
     "storage.batchDeleting": "正在批次刪除選中的 {count} 個專案...",
     "footer.brand": "FlarePanel",
+    "footer.tagline": "基於 Cloudflare 的站群控制台",
     "footer.github": "GitHub"
 };
