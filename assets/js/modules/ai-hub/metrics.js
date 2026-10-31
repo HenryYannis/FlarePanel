@@ -33,7 +33,7 @@ function buildDateList(days) {
 
 let cachedLogsDbId; // undefined = 还没找过；null = 没找到
 
-// 找网关日志库：优先用 AI_HUB.logsDb 配置的库名；没配就在站点没用到的库里找有 ai_logs 表的那个
+// 找网关日志库：优先用 AI_HUB.logsDb 配置的库名；没配就逐个找有 ai_logs 表的库
 async function resolveLogsDbId() {
     if (cachedLogsDbId !== undefined) return cachedLogsDbId;
     const res = await fetchDatabases();
@@ -43,10 +43,12 @@ async function resolveLogsDbId() {
         cachedLogsDbId = found ? found.uuid : null;
         return cachedLogsDbId;
     }
+    // 站点没用到的库先找；有的网关把 ai_logs 建在站点会员库里，所以站点库也要找
     const used = new Set();
     sites.forEach(site => { if (site.commentDb) used.add(site.commentDb); if (site.accountDb) used.add(site.accountDb); });
+    const ordered = [...dbs.filter(d => !used.has(d.name)), ...dbs.filter(d => used.has(d.name))];
     cachedLogsDbId = null;
-    for (const db of dbs.filter(d => !used.has(d.name))) {
+    for (const db of ordered) {
         try {
             const r = await queryDatabase(db.uuid, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ai_logs'");
             if ((r.result?.[0]?.results || []).length) { cachedLogsDbId = db.uuid; break; }
