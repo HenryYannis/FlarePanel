@@ -26,6 +26,7 @@
 | 代理网关（可选） | KV | 管理 AI 网关的服务商、模型、降级链和用量统计，需要配套网关 Worker |
 
 - 一个后台可以管多个站点，顶部切换。某类资源一个站点都没配置时，那个栏目会自动隐藏。
+- 代理网关的服务商列表里，API Key 默认显示为与密钥等长的星号，点眼睛或星号可切换明文。
 - 仓库里带三个配套 Worker，都可以直接部署：网站这一侧写入评论和浏览量的评论 Worker 在 [`worker/`](worker/README.md)，会员注册登录的账号 Worker 在 [`account/`](account/README.md)，AI 网关 Worker 在 [`gateway/`](gateway/README.md)。
 
 ### 界面语言和夜间模式
@@ -173,7 +174,7 @@ npx wrangler pages dev .
 | Workers R2 存储 → 编辑 | 文件分享 |
 | Workers KV 存储 → 编辑 | 只有开启 AI Hub 才需要 |
 
-Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出登录」，退出会清掉 Token 和缓存的 S3 密钥。
+Account ID、API Token，以及（若配置了）R2 S3 密钥，只保存在你浏览器的 localStorage。请求经过本站 `/api/cf` 转发到 `api.cloudflare.com`（浏览器不能直接跨域调用），转发时不记录、不保存。登录时填的 Account ID 必须和环境变量 `CF_ACCOUNT_ID` 一致。在公用电脑上用完请点「退出账号」，退出会清掉 Token 和缓存的 S3 密钥。
 
 ### 数据表
 
@@ -233,7 +234,7 @@ on:
 
 其他：
 
-- 接口的错误信息按请求头 `Accept-Language` 返回中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
+- 接口的错误信息按请求头 `Accept-Language` 返回简体中文、繁体中文或英文，并带一个 `code` 字段；后台前端会按界面语言发送这个请求头。
 - 中间件会拦截 `.md`、`.sql`、点文件、`wrangler.*`、`docs/`、`scripts/`、`lib/`、`worker/`、`account/`、`gateway/` 等，不会被当成静态文件下载。
 - CI 在每个 PR 和每次推送到 main 时跑 gitleaks 密钥扫描。
 

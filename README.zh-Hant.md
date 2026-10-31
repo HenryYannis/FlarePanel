@@ -26,6 +26,7 @@
 | 代理閘道（可選） | KV | 管理 AI 閘道的服務商、模型、降級鏈和用量統計，需要配套閘道 Worker |
 
 - 一個後台可以管多個站點，頂部切換。某類資源一個站點都沒設定時，那個欄目會自動隱藏。
+- 代理閘道的服務商列表裡，API Key 預設顯示為與金鑰等長的星號，點眼睛或星號可切換明文。
 - 儲存庫裡帶三個配套 Worker，都可以直接部署：網站這一側寫入評論和瀏覽量的評論 Worker 在 [`worker/`](worker/README.md)，會員註冊登入的帳號 Worker 在 [`account/`](account/README.md)，AI 閘道 Worker 在 [`gateway/`](gateway/README.md)。
 
 ### 介面語言和夜間模式
@@ -173,7 +174,7 @@ npx wrangler pages dev .
 | Workers R2 儲存 → 編輯 | 檔案分享 |
 | Workers KV 儲存 → 編輯 | 只有開啟 AI Hub 才需要 |
 
-Account ID、API Token，以及（若設定了）R2 S3 金鑰，只儲存在你瀏覽器的 localStorage。請求經過本站 `/api/cf` 轉發到 `api.cloudflare.com`（瀏覽器不能直接跨域呼叫），轉發時不記錄、不儲存。登入時填的 Account ID 必須和環境變數 `CF_ACCOUNT_ID` 一致。在公用電腦上用完請點「登出」，登出會清掉 Token 和快取的 S3 金鑰。
+Account ID、API Token，以及（若設定了）R2 S3 金鑰，只儲存在你瀏覽器的 localStorage。請求經過本站 `/api/cf` 轉發到 `api.cloudflare.com`（瀏覽器不能直接跨域呼叫），轉發時不記錄、不儲存。登入時填的 Account ID 必須和環境變數 `CF_ACCOUNT_ID` 一致。在公用電腦上用完請點「退出帳號」，退出會清掉 Token 和快取的 S3 金鑰。
 
 ### 資料表
 
@@ -233,7 +234,7 @@ on:
 
 其他：
 
-- 端點的錯誤資訊按請求頭 `Accept-Language` 回傳中文或英文，並帶一個 `code` 欄位；後台前端會按介面語言傳送這個請求頭。
+- 端點的錯誤資訊按請求頭 `Accept-Language` 回傳簡體中文、繁體中文或英文，並帶一個 `code` 欄位；後台前端會按介面語言傳送這個請求頭。
 - 中介軟體會攔截 `.md`、`.sql`、點檔案、`wrangler.*`、`docs/`、`scripts/`、`lib/`、`worker/`、`account/`、`gateway/` 等，不會被當成靜態檔案下載。
 - CI 在每個 PR 和每次推送到 main 時跑 gitleaks 金鑰掃描。
 
