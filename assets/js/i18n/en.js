@@ -489,5 +489,7 @@ export const en = {
     "storage.selectFirst": "Select the files or folders to delete first",
     "storage.batchTitle": "Delete selected items?",
     "storage.batchMessage": "Permanently delete {count} selected items?\n(Folders are deleted with everything inside them. This cannot be undone.)",
-    "storage.batchDeleting": "Deleting {count} selected items..."
+    "storage.batchDeleting": "Deleting {count} selected items...",
+    "footer.brand": "FlarePanel",
+    "footer.github": "GitHub"
 };

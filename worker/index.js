@@ -742,7 +742,7 @@ function renderListing(cfg, prefix, rows) {
 <title>${title}</title>
 <style>
 :root { color-scheme: light dark; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 24px; line-height: 1.6; }
+body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; margin: 0; padding: 24px; line-height: 1.6; }
 h1 { font-size: 20px; font-weight: 600; word-break: break-all; }
 table { border-collapse: collapse; width: 100%; max-width: 960px; font-size: 14px; }
 th, td { text-align: left; padding: 6px 16px 6px 0; border-bottom: 1px solid rgba(128,128,128,.25); }

@@ -158,7 +158,7 @@
     font-size: 13px;
     cursor: pointer;
     user-select: none;
-    transition: all var(--transition-fast);
+    transition: var(--transition-fast);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -791,7 +791,7 @@ html.night-theme .ai-provider-card {
     font-size: 24px;
     font-weight: 700;
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    font-family: var(--font-mono);
     margin: 6px 0 4px 0;
     line-height: 1.1;
     white-space: nowrap;
@@ -902,7 +902,7 @@ html.night-theme .ai-provider-card {
     width: 100%;
     background: var(--primary-color);
     border-radius: 4px 4px 0 0;
-    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, filter 0.15s ease;
+    transition: height 0.4s var(--ease-liquid), opacity 0.15s var(--ease-liquid), filter 0.15s var(--ease-liquid);
     min-height: 4px;
 }
 .ai-trend-col:hover .ai-trend-bar {

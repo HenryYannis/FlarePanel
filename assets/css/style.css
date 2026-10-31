@@ -43,17 +43,22 @@
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* 全网统一系统无衬线字体与等宽代码字体 */
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    /* 动画曲线（对齐小宝科技站） */
+    --ease-liquid: cubic-bezier(.4, 0, .2, 1);
+    --ease-bounce: cubic-bezier(.68, -.55, .265, 1.55);
+    --transition: all 0.25s var(--ease-liquid);
+    --transition-fast: all 0.15s var(--ease-liquid);
+
+    /* 全网统一系统无衬线字体与等宽代码字体（对齐小宝科技站） */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* ==================== 天空背景系统 ==================== */
 html {
     min-height: 100%;
-    transition: background 0.4s ease-in-out;
+    transition: background 0.4s var(--ease-liquid);
     overflow-x: hidden;
 }
 
@@ -593,7 +598,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 #toast {
     position: fixed; bottom: 32px; left: 50%; transform: translate(-50%, 100px);
     padding: 12px 24px; border-radius: 999px; background: #111827; color: white; font-weight: 500; font-size: 14px;
-    opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000; box-shadow: var(--mystic-shadow);
+    opacity: 0; transition: all 0.4s var(--ease-bounce); z-index: 2000; box-shadow: var(--mystic-shadow);
 }
 #toast.show { transform: translate(-50%, 0); opacity: 1; }
 #toast.error { background: var(--danger-color); }
@@ -860,4 +865,32 @@ html[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
 /* 英文界面在文字填好前先隐藏，避免闪一下中文（index.html 头部脚本加上，i18n.js 去掉，2 秒后兜底去掉） */
 html.i18n-pending body {
     visibility: hidden;
+}
+
+/* 页脚：产品名 + GitHub */
+.site-footer {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: center;
+    margin: 28px 0 16px;
+}
+.site-footer a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.site-footer a:hover {
+    color: var(--primary-color);
+}
+
+/* 全局无障碍：为前庭功能障碍用户禁用动画与过渡 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

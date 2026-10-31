@@ -413,14 +413,14 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
 
             return `
             <tr>
-                <td style="font-family: monospace; font-size: 12px; color: var(--text-secondary);">${timeStr}</td>
+                <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">${timeStr}</td>
                 <td>${siteBadge}</td>
                 <td>${pageHtml}</td>
                 <td>${clientBadge}</td>
                 <td style="font-weight: 500;">${escapeHtml(log.provider || t('metrics.unknownProvider'))}</td>
                 <td><code style="font-size: 12px; font-weight: 600;">${escapeHtml(log.model || '-')}</code></td>
                 <td>${tokenTag}</td>
-                <td style="font-family: monospace; font-size: 12px;">${Number(log.latencyMs) || 0} ms</td>
+                <td style="font-family: var(--font-mono); font-size: 12px;">${Number(log.latencyMs) || 0} ms</td>
                 <td>${statusBadge}</td>
             </tr>
             `;
