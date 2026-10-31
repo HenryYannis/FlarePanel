@@ -159,6 +159,7 @@ Leave unused resources as empty strings and the matching section hides that site
 | `gatewayUrl` | Gateway URL, ending in `/v1` |
 | `kvNamespaceId` | ID of the KV namespace the gateway reads its config from |
 | `configKey` | Config key in KV, `AI_GATEWAY_CONFIG` by default |
+| `logsDb` | Name of the gateway's D1 log database (with the `ai_logs` table); the monitor queries it directly when the panel has no developer key. Leave empty to auto-detect |
 
 ## Usage
 

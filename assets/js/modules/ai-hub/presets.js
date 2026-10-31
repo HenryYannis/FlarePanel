@@ -16,6 +16,8 @@ const L = (zh, en, zhHant) => {
 };
 
 export const AI_KV_NAMESPACE_ID = AI_HUB.kvNamespaceId || '';
+// 网关 D1 日志库名（有 ai_logs 表）；留空时后台自动在站点没用到的库里找
+export const AI_LOGS_DB_NAME = AI_HUB.logsDb || '';
 export const AI_KV_CONFIG_KEY = AI_HUB.configKey || 'AI_GATEWAY_CONFIG';
 export const OFFICIAL_AI_GATEWAY_URL = (AI_HUB.gatewayUrl || '').replace(/\/+$/, '');
 
