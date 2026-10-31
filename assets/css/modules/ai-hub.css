@@ -30,7 +30,7 @@
 }
 
 .ai-hub-page-title {
-    font-size: var(--fs-brand, 17px);
+    font-size: 17px;
     font-weight: var(--fw-brand, 700);
     color: var(--text-primary);
     margin: 0;

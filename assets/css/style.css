@@ -54,7 +54,7 @@
     --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
     /* 字号 / 字重 token（对齐 FlareRouter） */
-    --fs-brand: 17px;
+    --fs-brand: 20px;
     --fs-nav: 14px;
     --fs-section: 15px;
     --fs-body: 14px;
