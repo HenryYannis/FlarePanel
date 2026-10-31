@@ -185,7 +185,6 @@
 .custom-dialog-btn-confirm {
     background: var(--primary-color);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb, 0, 195, 227), 0.35);
 }
 
 .custom-dialog-btn-confirm:hover {
@@ -195,7 +194,6 @@
 
 .custom-dialog-btn-confirm.danger {
     background: var(--danger-color, #ff3c3c);
-    box-shadow: 0 4px 14px rgba(255, 60, 60, 0.4);
 }
 
 .custom-dialog-btn-confirm.danger:hover {

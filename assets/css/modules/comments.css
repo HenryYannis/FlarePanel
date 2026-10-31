@@ -12,7 +12,6 @@
     background: var(--primary-color) !important;
     color: #ffffff !important;
     border-color: var(--primary-color) !important;
-    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4) !important;
     transform: translateY(-1px);
 }
 
