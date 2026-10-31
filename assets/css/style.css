@@ -67,6 +67,8 @@
     --fw-brand: 700;
     --fw-ui: 600;
     --fw-dialog: 700;
+    /* 内容区表单/按钮同高（btn-sm 默认仍 28；与 form-control 并排时跟齐） */
+    --control-h: 38px;
 }
 
 /* ==================== 天空背景系统 ==================== */
@@ -259,7 +261,9 @@ body {
 .form-group label { display: block; margin-bottom: 8px; font-weight: var(--fw-ui); font-size: var(--fs-body); color: var(--text-secondary); }
 .form-control {
     width: 100%;
-    padding: 12px 16px;
+    height: var(--control-h);
+    box-sizing: border-box;
+    padding: 0 16px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
     background: transparent;
@@ -268,6 +272,12 @@ body {
     font-size: 14px;
     transition: var(--transition);
     outline: none;
+}
+textarea.form-control {
+    height: auto;
+    min-height: 88px;
+    padding: 12px 16px;
+    resize: vertical;
 }
 .form-control:focus {
     border-color: var(--primary-color);
@@ -286,7 +296,7 @@ body {
 /* ==================== 统一按钮体系 ==================== */
 .btn {
     font-family: inherit;
-    height: 38px;
+    height: var(--control-h);
     padding: 0 18px;
     border-radius: var(--radius-sm);
     font-size: var(--fs-btn);
@@ -431,6 +441,18 @@ body {
     margin-left: 4px;
 }
 
+/* 与表单控件并排时，小按钮跟齐 --control-h（避免下拉 38 / 按钮 28） */
+.form-control + .btn-sm,
+.form-control + .btn.btn-sm,
+select.form-control ~ .btn-sm,
+select + .btn.btn-sm {
+    height: var(--control-h) !important;
+    padding: 0 14px !important;
+    font-size: var(--fs-btn) !important;
+    border-radius: var(--radius-sm) !important;
+    margin-left: 0;
+}
+
 #breadcrumb-bar {
     display: flex;
     align-items: center;
@@ -483,13 +505,13 @@ body {
     pointer-events: none;
 }
 .search-input {
-    height: 38px;
+    height: var(--control-h);
     padding: 0 14px 0 34px;
     border-radius: var(--radius-sm);
     box-sizing: border-box;
 }
 #url-filter {
-    height: 38px;
+    height: var(--control-h);
     padding: 0 36px 0 12px;
     line-height: 36px;
     font-size: 13.5px;

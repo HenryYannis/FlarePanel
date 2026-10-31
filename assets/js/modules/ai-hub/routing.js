@@ -136,7 +136,7 @@ export function renderFallbackChainItems(providers, chainIds) {
         }).join('')}
 
         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-            <select id="ai-chain-add-select" class="form-control" style="width: auto; height: 38px; padding: 4px 10px;">
+            <select id="ai-chain-add-select" class="form-control" style="width: auto;">
                 <option value="">${t('ai.addChainPlaceholder')}</option>
                 ${providers.filter(p => !chainIds.includes(p.id)).map(p => `
                     <option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.defaultModel || t('ai.defaultModel'))})</option>
