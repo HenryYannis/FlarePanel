@@ -357,7 +357,7 @@ export const zhHant = {
     "nav.langTitle": "介面語言",
     "nav.themeToDark": "切換到夜間模式",
     "nav.themeToLight": "切換到日間模式",
-    "nav.logout": "登出",
+    "nav.logout": "退出帳號",
     "auth.title": "連線到 CloudFlare",
     "auth.desc": "在 Cloudflare 儀表盤獲取 Account ID 和 API Token。為正常管理後臺各項功能，Token 需具備以下許可權：",
     "auth.permD1": "（評論管理、帳號管理、文章瀏覽數量）",
