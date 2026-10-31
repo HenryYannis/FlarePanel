@@ -357,7 +357,7 @@ export const zh = {
     "nav.langTitle": "界面语言",
     "nav.themeToDark": "切换到夜间模式",
     "nav.themeToLight": "切换到日间模式",
-    "nav.logout": "退出登录",
+    "nav.logout": "退出账号",
     "auth.title": "连接到 CloudFlare",
     "auth.desc": "在 Cloudflare 仪表盘获取 Account ID 和 API Token。为正常管理后台各项功能，Token 需具备以下权限：",
     "auth.permD1": "（评论管理、账号管理、文章浏览数量）",
