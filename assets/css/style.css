@@ -445,7 +445,7 @@ textarea.form-control {
 .form-control + .btn-sm,
 .form-control + .btn.btn-sm,
 select.form-control ~ .btn-sm,
-select + .btn.btn-sm {
+select.form-control + .btn.btn-sm {
     height: var(--control-h) !important;
     padding: 0 14px !important;
     font-size: var(--fs-btn) !important;
@@ -894,12 +894,22 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     background: #ffffff;
 }
 
-.theme-toggle {
-    width: 32px;
+/* 顶栏语言下拉也是 select，会误中上面的 select + .btn-sm，把主题按钮拉到 38px 高并加上左右 14px 内边距，图标被 32px 宽度挤扁。收成和两侧 .btn-sm 同高的方钮。 */
+#theme-toggle-btn.theme-toggle {
+    width: 28px;
+    min-width: 28px;
+    max-width: 28px;
+    height: 28px !important;
     padding: 0 !important;
+    flex: 0 0 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+#theme-toggle-btn.theme-toggle svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
 }
 .theme-toggle .theme-icon-sun { display: none; }
 html[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block; }
