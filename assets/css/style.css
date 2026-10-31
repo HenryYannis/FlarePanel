@@ -189,6 +189,7 @@ body {
     background-image: none;
     padding-bottom: 40px;
     transition: color 0.3s ease;
+    overflow-x: hidden; /* 与 html 一并兜住文档级横滑（尤其 WebKit） */
 }
 
 /* 导航栏 */
