@@ -26,6 +26,7 @@ It runs entirely on Cloudflare Pages: no server and no build step. You sign in w
 | AI Gateway (optional) | KV | Manage the AI gateway's providers, models, failover chain and usage stats; needs a companion gateway Worker |
 
 - One panel can manage several sites; switch between them at the top. When no site has a given kind of resource configured, that section is hidden automatically.
+- In the AI Gateway provider list, an API key is shown as asterisks of the same length as the key. The eye button or the asterisks switches between that mask and the plaintext.
 - Three companion Workers are included and ready to deploy: the comment Worker that writes comments and page views on the site side is in [`worker/`](worker/README.en.md), the account Worker for member sign-up and sign-in is in [`account/`](account/README.en.md), and the AI gateway Worker is in [`gateway/`](gateway/README.en.md).
 
 ### Interface language and dark mode
@@ -233,7 +234,7 @@ Every `/api/*` endpoint requires the caller to be an admin of the `CF_ACCOUNT_ID
 
 Also:
 
-- Endpoint errors come back in Chinese or English based on the `Accept-Language` request header, together with a `code` field; the panel sends this header to match the interface language.
+- Endpoint errors come back in Simplified Chinese, Traditional Chinese, or English based on the `Accept-Language` request header, together with a `code` field; the panel sends this header to match the interface language.
 - The middleware blocks `.md`, `.sql`, dotfiles, `wrangler.*`, `docs/`, `scripts/`, `lib/`, `worker/`, `account/`, `gateway/` and similar, so they can't be downloaded as static files.
 - CI runs a gitleaks secret scan on every pull request and every push to `main`.
 
