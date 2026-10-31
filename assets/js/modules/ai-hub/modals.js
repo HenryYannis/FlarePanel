@@ -12,7 +12,7 @@ import {
     generateRandomKey, 
     ensureGatewayKeys 
 } from './presets.js';
-import { getProviderPollModels } from './routing.js';
+import { getProviderPollModels, keyVisibilityIcon } from './routing.js';
 import { getCredentials } from '../../api.js';
 
 let editingProviderId = null;
@@ -156,6 +156,16 @@ export function openDefaultModelMenu(filterKeyword = '') {
     });
 }
 
+function hideProviderKeyInput() {
+    const input = document.getElementById('ai-provider-key-input');
+    const btn = document.getElementById('ai-provider-key-toggle');
+    if (input) input.type = 'password';
+    if (btn) {
+        btn.innerHTML = keyVisibilityIcon(false);
+        btn.setAttribute('aria-pressed', 'false');
+    }
+}
+
 // 模态框管理：服务商编辑
 export function openProviderModal(provider) {
     editingProviderId = provider ? provider.id : null;
@@ -167,6 +177,8 @@ export function openProviderModal(provider) {
     } = getProviderModalElements();
 
     if (!modal) return;
+
+    hideProviderKeyInput();
 
     if (title) title.textContent = provider ? t('modal.editProviderTitle', { name: provider.name }) : t('ai.addProvider');
 
@@ -406,11 +418,12 @@ export function ensureAiModals() {
             </div>
 
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <label for="ai-provider-key-input" style="margin: 0;">${t('modal.apiKeyLabel')}</label>
-                    <button type="button" class="btn btn-outline btn-sm" id="ai-copy-modal-key-btn" style="padding: 2px 8px; font-size: 11px;" title="${t('modal.copyKeyTitle')}">${t('modal.copyKey')}</button>
+                <label for="ai-provider-key-input">${t('modal.apiKeyLabel')}</label>
+                <div class="ai-provider-key-input-row">
+                    <input type="password" id="ai-provider-key-input" class="form-control" placeholder="${t('modal.apiKeyPlaceholder')}" spellcheck="false" autocomplete="off">
+                    <button type="button" class="btn btn-outline btn-sm ai-key-eye-btn" id="ai-provider-key-toggle" title="${t('ai.keyMasked')}" aria-label="${t('ai.keyMasked')}" aria-pressed="false">${keyVisibilityIcon(false)}</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="ai-copy-modal-key-btn" title="${t('modal.copyKeyTitle')}">${t('modal.copyKey')}</button>
                 </div>
-                <input type="text" id="ai-provider-key-input" class="form-control" placeholder="${t('modal.apiKeyPlaceholder')}" spellcheck="false" style="font-family: var(--font-mono);">
             </div>
 
             <div class="form-group">
@@ -848,6 +861,19 @@ export function initModalBindings() {
             closeDefaultModelMenu();
             const modal = document.getElementById('ai-provider-modal');
             if (modal) modal.style.display = 'none';
+        };
+    }
+
+    // 弹窗内 API Key：默认 password，眼睛切换明文，输入框宽度固定
+    const providerKeyToggleBtn = document.getElementById('ai-provider-key-toggle');
+    if (providerKeyToggleBtn) {
+        providerKeyToggleBtn.onclick = () => {
+            const { keyInput } = getProviderModalElements();
+            if (!keyInput) return;
+            const show = keyInput.type === 'password';
+            keyInput.type = show ? 'text' : 'password';
+            providerKeyToggleBtn.innerHTML = keyVisibilityIcon(show);
+            providerKeyToggleBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
         };
     }
 
