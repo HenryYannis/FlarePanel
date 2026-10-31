@@ -159,6 +159,7 @@ npx wrangler pages dev .
 | `gatewayUrl` | 閘道地址，以 `/v1` 結尾 |
 | `kvNamespaceId` | 閘道讀取設定的 KV 命名空間 ID |
 | `configKey` | KV 裡的設定鍵名，預設 `AI_GATEWAY_CONFIG` |
+| `logsDb` | 閘道綁定的 D1 日誌庫名（有 `ai_logs` 表）；後台沒有開發者金鑰時執行監控直接查它，留空自動尋找 |
 
 ## 使用
 

@@ -47,5 +47,7 @@ export const AI_HUB = {
     // 网关读取配置的 KV 命名空间 ID
     kvNamespaceId: '',
     // KV 里配置的键名
-    configKey: 'AI_GATEWAY_CONFIG'
+    configKey: 'AI_GATEWAY_CONFIG',
+    // 网关绑定的 D1 日志库名（有 ai_logs 表）；运行监控在没有开发者密钥时直接查它。留空会自动查找
+    logsDb: ''
 };

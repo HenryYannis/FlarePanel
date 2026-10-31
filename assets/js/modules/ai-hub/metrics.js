@@ -4,10 +4,10 @@
 // 规范：恪守 AGENTS.md（0 Emoji 铁律、D1 ai_logs 流水消费）
 // ====================================================
 
-import { getKvValue } from '../../api.js';
+import { getKvValue, fetchDatabases, queryDatabase } from '../../api.js';
 import { formatTokens, escapeHtml } from '../../utils.js';
-import { OFFICIAL_AI_GATEWAY_URL, AI_KV_NAMESPACE_ID } from './presets.js';
-import { getSiteByAiId, getSiteColorClass } from '../../sites.js';
+import { OFFICIAL_AI_GATEWAY_URL, AI_KV_NAMESPACE_ID, AI_LOGS_DB_NAME } from './presets.js';
+import { getSiteByAiId, getSiteColorClass, sites } from '../../sites.js';
 import { t, formatNumber } from '../../i18n.js';
 
 let currentMetricsData = null;
@@ -21,8 +21,123 @@ export function isMetricsDataLoading() {
     return isMetricsLoading;
 }
 
+// 按 UTC+8 分天，和网关默认的 STATS_UTC_OFFSET_MINUTES = 480 一致
+function buildDateList(days) {
+    const now = Date.now();
+    const list = [];
+    for (let i = 0; i < days; i++) {
+        list.push(new Date(now - i * 86400000 + 8 * 3600000).toISOString().split('T')[0]);
+    }
+    return list;
+}
+
+let cachedLogsDbId; // undefined = 还没找过；null = 没找到
+
+// 找网关日志库：优先用 AI_HUB.logsDb 配置的库名；没配就在站点没用到的库里找有 ai_logs 表的那个
+async function resolveLogsDbId() {
+    if (cachedLogsDbId !== undefined) return cachedLogsDbId;
+    const res = await fetchDatabases();
+    const dbs = Array.isArray(res?.result) ? res.result : [];
+    if (AI_LOGS_DB_NAME) {
+        const found = dbs.find(db => db.name === AI_LOGS_DB_NAME);
+        cachedLogsDbId = found ? found.uuid : null;
+        return cachedLogsDbId;
+    }
+    const used = new Set();
+    sites.forEach(site => { if (site.commentDb) used.add(site.commentDb); if (site.accountDb) used.add(site.accountDb); });
+    cachedLogsDbId = null;
+    for (const db of dbs.filter(d => !used.has(d.name))) {
+        try {
+            const r = await queryDatabase(db.uuid, "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ai_logs'");
+            if ((r.result?.[0]?.results || []).length) { cachedLogsDbId = db.uuid; break; }
+        } catch (e) { /* 没权限或不是这个库，继续找 */ }
+    }
+    return cachedLogsDbId;
+}
+
+const rowsOf = (res) => res?.result?.[0]?.results || [];
+
+// 字段和网关 GET /v1/stats 的 D1 分支一致
+async function fetchMetricsFromD1(days) {
+    const dbId = await resolveLogsDbId();
+    if (!dbId) return null;
+    const dateList = buildDateList(days);
+    const minDate = dateList[dateList.length - 1];
+    const [logsRes, dailyRes, provRes, siteRes] = await Promise.all([
+        queryDatabase(dbId, `SELECT id, time, date, timestamp, site_name AS site, site_id AS siteId,
+            client, COALESCE(user_name, user_id) AS user, provider_name AS provider, model, status,
+            latency_ms AS latencyMs, tokens, prompt_tokens AS promptTokens, completion_tokens AS completionTokens,
+            fallback, error, page_path AS pagePath, tool_name AS toolName
+          FROM ai_logs ORDER BY timestamp DESC LIMIT 50`),
+        queryDatabase(dbId, `SELECT date, COUNT(*) AS total,
+            SUM(CASE WHEN status >= 200 AND status < 300 THEN 1 ELSE 0 END) AS success,
+            SUM(CASE WHEN status < 200 OR status >= 300 THEN 1 ELSE 0 END) AS failed,
+            SUM(fallback) AS fallbackCount, SUM(latency_ms) AS latencySumMs, SUM(tokens) AS totalTokens,
+            SUM(prompt_tokens) AS promptTokens, SUM(completion_tokens) AS completionTokens,
+            SUM(CASE WHEN client = 'auth' THEN 1 ELSE 0 END) AS authRequests,
+            SUM(CASE WHEN client = 'unauth' THEN 1 ELSE 0 END) AS unauthRequests
+          FROM ai_logs WHERE date >= ? GROUP BY date`, [minDate]),
+        queryDatabase(dbId, `SELECT provider_id, MAX(provider_name) AS provider_name, COUNT(*) AS requests,
+            SUM(CASE WHEN status >= 200 AND status < 300 THEN 1 ELSE 0 END) AS success,
+            SUM(CASE WHEN status < 200 OR status >= 300 THEN 1 ELSE 0 END) AS failed, SUM(tokens) AS tokens
+          FROM ai_logs WHERE date >= ? GROUP BY provider_id`, [minDate]),
+        queryDatabase(dbId, `SELECT site_id, MAX(site_name) AS site_name, COUNT(*) AS requests,
+            SUM(CASE WHEN status >= 200 AND status < 300 THEN 1 ELSE 0 END) AS success,
+            SUM(CASE WHEN status < 200 OR status >= 300 THEN 1 ELSE 0 END) AS failed, SUM(tokens) AS tokens
+          FROM ai_logs WHERE date >= ? GROUP BY site_id`, [minDate])
+    ]);
+
+    const providersTotal = {};
+    rowsOf(provRes).forEach(r => {
+        const pid = r.provider_id || 'unknown';
+        providersTotal[pid] = { name: r.provider_name || pid, requests: r.requests || 0, success: r.success || 0, failed: r.failed || 0, tokens: r.tokens || 0 };
+    });
+    const sitesTotal = {};
+    rowsOf(siteRes).forEach(r => {
+        const sid = r.site_id || 'other';
+        sitesTotal[sid] = { name: r.site_name || sid, requests: r.requests || 0, success: r.success || 0, failed: r.failed || 0, tokens: r.tokens || 0 };
+    });
+    const dailyMap = Object.fromEntries(rowsOf(dailyRes).map(r => [r.date, r]));
+    const history = dateList.map(date => {
+        const r = dailyMap[date] || {};
+        const total = r.total || 0;
+        return {
+            date, total, success: r.success || 0, failed: r.failed || 0, fallbackCount: r.fallbackCount || 0,
+            latencySumMs: r.latencySumMs || 0, totalTokens: r.totalTokens || 0,
+            promptTokens: r.promptTokens || 0, completionTokens: r.completionTokens || 0,
+            avgLatencyMs: total > 0 ? Math.round((r.latencySumMs || 0) / total) : 0,
+            clientTypes: { master: total - (r.authRequests || 0) - (r.unauthRequests || 0), auth: r.authRequests || 0, unauth: r.unauthRequests || 0 }
+        };
+    });
+
+    const sum = (k) => history.reduce((acc, d) => acc + (d[k] || 0), 0);
+    const totalRequests = sum('total');
+    const totalSuccess = sum('success');
+    const today = history[0];
+    return {
+        status: 'success',
+        source: 'd1',
+        days,
+        today,
+        summary: {
+            totalRequests,
+            totalSuccess,
+            totalFailed: sum('failed'),
+            totalFallback: sum('fallbackCount'),
+            totalTokens: sum('totalTokens'),
+            todayTokens: today.totalTokens || 0,
+            successRate: totalRequests > 0 ? ((totalSuccess / totalRequests) * 100).toFixed(1) : '100.0',
+            avgLatencyMs: totalRequests > 0 ? Math.round(sum('latencySumMs') / totalRequests) : 0,
+            providersBreakdown: providersTotal,
+            sitesBreakdown: sitesTotal
+        },
+        history: history.reverse(),
+        recentLogs: rowsOf(logsRes).map(r => ({ ...r, fallback: !!r.fallback }))
+    };
+}
+
 /**
- * 获取网关度量监控统计（双通道：网关 /v1/stats 直出 + Cloudflare KV 兜底）
+ * 获取网关度量监控统计（三通道：网关 /v1/stats 直出 → D1 ai_logs → Cloudflare KV 兜底）
  */
 export async function fetchAiHubMetrics(days = 7, config = null) {
     isMetricsLoading = true;
@@ -48,10 +163,22 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
             }
         }
     } catch (e) {
-        console.warn('Gateway /v1/stats is unavailable; falling back to reading Cloudflare KV directly:', e.message);
+        console.warn('Gateway /v1/stats is unavailable; falling back to D1 / KV:', e.message);
     }
 
-    // 2. 兜底方案：直连 Cloudflare KV REST API (并发批量读取)
+    // 2. 网关把日志写在 D1 的 ai_logs 时：用后台登录 Token 直接查 D1（不需要开发者密钥）
+    try {
+        const d1Data = await fetchMetricsFromD1(days);
+        if (d1Data) {
+            currentMetricsData = d1Data;
+            isMetricsLoading = false;
+            return d1Data;
+        }
+    } catch (e) {
+        console.warn('Reading ai_logs from D1 failed; falling back to KV:', e.message);
+    }
+
+    // 3. 兜底方案：网关没绑 D1 时，直连 Cloudflare KV REST API (并发批量读取)
     try {
         const now = Date.now();
         const history = [];
