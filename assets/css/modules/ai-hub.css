@@ -470,11 +470,20 @@ html.night-theme .ai-provider-card {
     margin-left: 0;
     flex-shrink: 0;
 }
-.btn.ai-key-eye-btn {
+/* 压过 .form-control + .btn.btn-sm（38px 高、左右 14px 内边距）：
+   那条规则会把紧挨输入框的眼睛按钮拉成与输入框同高，再被 28px 宽度吃掉内容区，图标宽度变成 0。
+   这里固定成和旁边「复制」一样的 28px 方钮，图标保持 14px。 */
+.btn.btn-sm.ai-key-eye-btn {
     width: 28px;
     min-width: 28px;
+    height: 28px !important;
     padding: 0 !important;
     flex-shrink: 0;
+}
+.btn.btn-sm.ai-key-eye-btn svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
 }
 .ai-provider-key-input-row > .form-control {
     flex: 1 1 0;
