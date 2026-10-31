@@ -513,6 +513,14 @@ body {
     border: 1px solid var(--border-color);
     background: var(--glass-bg);
 }
+
+/* AI Hub 等宽表外层：只在容器内横滑，不撑文档 */
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
 table { width: 100%; border-collapse: collapse; text-align: left; }
 th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: var(--fs-body); }
 th { font-weight: var(--fw-ui); color: var(--text-secondary); white-space: nowrap; background: rgba(0,0,0,0.02); }
@@ -697,7 +705,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         padding: 8px 4px;
     }
 
-    /* 5大胶囊切换栏：支持横向弹性滑动与原生触控，杜绝溢出撑屏 */
+    /* 5大胶囊切换栏：栏内横滑，禁止 max-content 撑开整页 */
     .capsule-switch-wrapper {
         justify-content: flex-start;
         overflow-x: auto;
@@ -705,12 +713,16 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         padding: 4px 2px 10px 2px;
         margin-bottom: 20px;
         scrollbar-width: none;
+        min-width: 0;
+        max-width: 100%;
     }
     .capsule-switch-wrapper::-webkit-scrollbar {
         display: none;
     }
     .capsule-switch {
-        min-width: max-content;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
     }
 
     /* 目标数据库/存储桶选择器 */
