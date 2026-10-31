@@ -5,7 +5,7 @@
 
 export const PANEL = {
     // 后台标题（浏览器标签和顶部导航栏）
-    title: 'FlarePanel',
+    title: 'FlarePanel 控制台',
     // 在后台回复评论时显示的昵称（可写成 { zh: '站长', en: 'Admin' }，按界面语言选择）
     adminName: '站长',
     // 浏览量统计里的页面分类（按网址前缀匹配，没匹配上的归入「其他页面」）

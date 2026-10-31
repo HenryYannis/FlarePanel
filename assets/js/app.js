@@ -580,7 +580,7 @@ function initTheme() {
 
 // ==================== 按 sites.config.js 调整界面 ====================
 function applyPanelConfig() {
-    const title = PANEL.title || 'FlarePanel';
+    const title = PANEL.title || 'FlarePanel 控制台';
     document.title = title;
     document.querySelectorAll('.navbar-title').forEach(n => { n.textContent = title; });
     const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
