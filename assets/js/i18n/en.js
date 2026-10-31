@@ -491,5 +491,6 @@ export const en = {
     "storage.batchMessage": "Permanently delete {count} selected items?\n(Folders are deleted with everything inside them. This cannot be undone.)",
     "storage.batchDeleting": "Deleting {count} selected items...",
     "footer.brand": "FlarePanel",
+    "footer.tagline": "Site console on Cloudflare",
     "footer.github": "GitHub"
 };
