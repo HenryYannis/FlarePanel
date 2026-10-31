@@ -529,6 +529,9 @@ function applyTheme(isDark) {
     document.documentElement.classList.remove('day-theme', 'night-theme');
     document.documentElement.classList.add(isDark ? 'night-theme' : 'day-theme');
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+    const activeColor = isDark ? '#090a0f' : '#f0f9ff';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', activeColor));
 
     if (isDark) createSkyStars();
     else clearSkyStars();

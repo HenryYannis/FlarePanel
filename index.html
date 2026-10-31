@@ -6,6 +6,8 @@
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <meta name="color-scheme" content="light dark">
     <title>FlarePanel</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FlarePanel">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f0f9ff">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#090a0f">
@@ -29,6 +31,10 @@
             var isDark = savedTheme ? (savedTheme === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
             document.documentElement.classList.add(isDark ? 'night-theme' : 'day-theme');
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+            var activeColor = isDark ? '#090a0f' : '#f0f9ff';
+            var tc = document.querySelectorAll('meta[name="theme-color"]');
+            for (var i = 0; i < tc.length; i++) tc[i].setAttribute('content', activeColor);
 
             // 界面语言：手动选择 → 浏览器语言（繁体地区用繁体，其他 zh 用简体）→ 其他用英文（与 assets/js/i18n.js 一致）
             var lang = null;

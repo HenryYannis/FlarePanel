@@ -59,6 +59,7 @@ html {
 
 /* 日间模式 (纯色浅蓝白晴空背景 + 高对比电光蓝与标准红) */
 html.day-theme {
+    color-scheme: light;
     background-color: #f0f9ff;
     background: #f0f9ff;
     
@@ -88,6 +89,7 @@ html.day-theme {
 
 /* 夜间模式 (纯色深邃夜黑背景 + 霓虹蓝与霓虹红) */
 html.night-theme {
+    color-scheme: dark;
     background-color: #090a0f;
     background: #090a0f;
     
