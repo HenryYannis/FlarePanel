@@ -162,7 +162,7 @@ export function renderAiHubView(container, config) {
     const chainIds = config.sitePolicy?.fallbackChain || [];
 
     const warningBannerHtml = isKvAuthError() ? `
-    <div style="margin-top: 16px; padding: 14px 18px; background: rgba(255, 60, 60, 0.08); border: 1px solid rgba(255, 60, 60, 0.3); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+    <div style="margin-top: 16px; padding: 14px 18px; background: rgba(var(--danger-color-rgb), 0.08); border: 1px solid rgba(var(--danger-color-rgb), 0.3); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
         <div>
             <div style="font-weight: 700; color: var(--danger-color); font-size: 13.5px; margin-bottom: 2px;">
                 ${t('ai.kvWarnTitle')}
@@ -180,7 +180,7 @@ export function renderAiHubView(container, config) {
         <div class="ai-hub-header-card">
             <div class="ai-hub-header-left">
                 <div class="ai-hub-title-row">
-                    <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin: 0;">${t('ai.title')}</h2>
+                    <h2 class="ai-hub-page-title">${t('ai.title')}</h2>
                     <span class="ai-status-pill"><span class="ai-dot active"></span> ${t('ai.edgeReady')}</span>
                 </div>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
