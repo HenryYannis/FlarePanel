@@ -593,7 +593,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
         </div>
     </div>
 
-    <div class="ai-grid-3" style="margin-top: 20px;">
+    <div class="ai-grid-3" style="margin-top: 16px;">
         <div class="ai-card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="ai-card-header-flex">
@@ -640,7 +640,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
         </div>
     </div>
 
-    <div class="ai-card" style="margin-top: 20px;">
+    <div class="ai-card" style="margin-top: 16px;">
         <div class="ai-card-header-flex">
             <div>
                 <h3 class="ai-card-title" style="margin-bottom: 2px;">${t('metrics.logsTitle')}</h3>

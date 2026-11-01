@@ -199,7 +199,7 @@ export function renderAiHubView(container, config) {
 
         ${warningBannerHtml}
 
-        <div id="ai-subtab-content" style="margin-top: 18px;">
+        <div id="ai-subtab-content" style="margin-top: 16px;">
             ${currentSubTab === 'metrics' ? renderMetricsTabHtml(getCachedMetricsData(), currentMetricsDays) : renderConfigTabHtml(config, activeProviders, chainIds)}
         </div>
     </div>

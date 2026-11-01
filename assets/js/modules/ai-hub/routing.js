@@ -290,7 +290,7 @@ export function renderKeysSlotsHtml(keys) {
 export function renderConfigTabHtml(config, activeProviders, chainIds) {
     ensureGatewayKeys(config);
     return `
-    <div class="ai-grid-2" style="margin-top: 20px;">
+    <div class="ai-grid-2" style="margin-top: 16px;">
         <div class="ai-card">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
                 <h3 class="ai-card-title" style="margin-bottom: 0;">${t('ai.devEndpointTitle')}</h3>
@@ -356,7 +356,7 @@ export function renderConfigTabHtml(config, activeProviders, chainIds) {
         </div>
     </div>
 
-    <div class="ai-card" style="margin-top: 20px;">
+    <div class="ai-card" style="margin-top: 16px;">
         <div style="margin-bottom: 12px;">
             <h3 class="ai-card-title" style="margin-bottom: 2px;">${t('ai.chainTitle')}</h3>
             <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">${t('ai.chainDesc')}</p>
@@ -367,7 +367,7 @@ export function renderConfigTabHtml(config, activeProviders, chainIds) {
         </div>
     </div>
 
-    <div class="ai-card" style="margin-top: 20px;">
+    <div class="ai-card" style="margin-top: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
                 <h3 class="ai-card-title" style="margin-bottom: 2px;">${t('ai.providersTitle')}</h3>
