@@ -232,8 +232,8 @@ body {
 /* 主容器 */
 .tool-container-standard {
     max-width: 1400px;
-    margin: 16px auto 32px; /* 上 16 对齐 FlareRouter header 下间距 */
-    padding: 32px;
+    margin: 16px auto; /* 上下统一 16px 对齐 FlareRouter 规范 */
+    padding: 20px 32px;
     background: var(--glass-bg);
     backdrop-filter: var(--background-blur);
     -webkit-backdrop-filter: var(--background-blur);
@@ -249,7 +249,7 @@ body {
 /* 表单与按钮 */
 /* 登录与鉴权面板 */
 .auth-title { text-align: center; margin-bottom: 18px; color: var(--text-primary); }
-.auth-desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; }
+.auth-desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
 .auth-desc p { margin-bottom: 8px; }
 .auth-permissions { display: flex; flex-direction: column; gap: 6px; }
 
@@ -421,7 +421,7 @@ textarea.form-control {
 /* 帮助文本 */
 .help-text {
     padding: 16px; background: rgba(var(--primary-color-rgb), 0.05); border-left: 4px solid var(--primary-color);
-    border-radius: var(--radius-sm); font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;
+    border-radius: var(--radius-sm); font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;
 }
 
 /* ================= 胶囊型切换按钮 (Capsule Switch) ================= */
@@ -430,7 +430,7 @@ textarea.form-control {
     justify-content: center;
     align-items: center;
     width: 100%;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 }
 .btn-sm {
     height: 28px !important;
@@ -468,7 +468,7 @@ select.form-control + .btn.btn-sm {
 }
 
 /* ================= 数据表格与工具栏 ================= */
-.db-selector-wrapper { margin-bottom: 24px; }
+.db-selector-wrapper { margin-bottom: 16px; }
 .db-list-container {
     display: flex;
     flex-wrap: wrap;
@@ -606,7 +606,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 }
 
 /* 分页 */
-.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 16px; }
 .page-info { font-size: 14px; color: var(--text-secondary); }
 
 /* 加载动画 */
@@ -734,7 +734,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding: 4px 2px 10px 2px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         scrollbar-width: none;
         min-width: 0;
         max-width: 100%;
@@ -750,7 +750,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 
     /* 目标数据库/存储桶选择器 */
     .db-selector-wrapper {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
     }
 
     /* 面包屑导航栏 */
