@@ -705,7 +705,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 
     /* 主容器边距与内衬自适应 (严格防撑破) */
     .tool-container-standard {
-        margin: 12px 8px;
+        margin: 16px 8px;
         padding: 16px 12px;
         border-radius: 16px;
         max-width: calc(100% - 16px);
@@ -769,8 +769,8 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     .toolbar {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 12px;
+        margin-bottom: 16px;
     }
     .filter-group {
         width: 100%;
@@ -821,7 +821,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     /* 分页控件 */
     .pagination {
         gap: 10px;
-        margin-top: 18px;
+        margin-top: 16px;
     }
     .pagination .btn {
         height: 34px;
@@ -856,7 +856,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         font-size: 16px;
     }
     .tool-container-standard {
-        margin: 8px 4px;
+        margin: 16px 4px;
         padding: 14px 10px;
         border-radius: 12px;
         max-width: calc(100% - 8px);

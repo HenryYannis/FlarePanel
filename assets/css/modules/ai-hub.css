@@ -707,7 +707,7 @@ html.night-theme .ai-provider-card {
     }
     .ai-card {
         padding: 14px 12px;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
 
     /* Master Key 与特权端点：移动端分行与触控按钮自适应 */
@@ -742,7 +742,7 @@ html.night-theme .ai-provider-card {
     /* 服务商卡片响应式排版 */
     .ai-providers-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 16px;
     }
     .ai-provider-card {
         padding: 14px;
