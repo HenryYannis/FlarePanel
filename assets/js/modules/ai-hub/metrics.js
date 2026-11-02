@@ -593,7 +593,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
         </div>
     </div>
 
-    <div class="ai-grid-3" style="margin-top: 16px;">
+    <div class="ai-grid-3">
         <div class="ai-card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="ai-card-header-flex">
@@ -605,7 +605,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 </div>
                 ${chartHtml}
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
+            <div class="ai-card-footer-flex">
                 <span>${t('metrics.daysTotal', { days: currentMetricsDays, count: escapeHtml(formatNumber(summary.totalRequests || 0)) })}</span>
                 <span>${t('metrics.dayPeak', { peak: peakText })}</span>
             </div>
@@ -619,7 +619,7 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 </div>
                 ${sitesDistHtml}
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
+            <div class="ai-card-footer-flex">
                 <span>${t('metrics.channels', { count: siteEntries.length })}</span>
                 <span>${t('metrics.topSite', { name: escapeHtml(siteEntries[0]?.[1]?.name || siteEntries[0]?.[0] || '-') })}</span>
             </div>
@@ -633,14 +633,14 @@ export function renderMetricsTabHtml(data, currentMetricsDays = 7) {
                 </div>
                 ${providersDistHtml}
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
+            <div class="ai-card-footer-flex">
                 <span>${t('metrics.upstreams', { count: providerEntries.length })}</span>
                 <span>${t('metrics.topProvider', { name: escapeHtml(providerEntries[0]?.[1]?.name || providerEntries[0]?.[0] || '-') })}</span>
             </div>
         </div>
     </div>
 
-    <div class="ai-card" style="margin-top: 16px;">
+    <div class="ai-card">
         <div class="ai-card-header-flex">
             <div>
                 <h3 class="ai-card-title" style="margin-bottom: 2px;">${t('metrics.logsTitle')}</h3>
