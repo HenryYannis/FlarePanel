@@ -830,7 +830,8 @@ html.night-theme .ai-provider-card {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
-    margin-top: 14px;
+    margin-top: 16px;
+    margin-bottom: 16px;
     width: 100%;
     box-sizing: border-box;
 }
