@@ -1,4 +1,16 @@
 /*
   X-Robots-Tag: noindex, nofollow, noarchive
 
+# 1. 管理面板 HTML 入口：协商缓存（发版即时生效）
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
 
+# 2. 面板静态前端模块、样式与 Logo：不可变强缓存 30 天
+/assets/js/*
+  Cache-Control: public, max-age=2592000, s-maxage=2592000, immutable
+/assets/css/*
+  Cache-Control: public, max-age=2592000, s-maxage=2592000, immutable
+/assets/logo/*
+  Cache-Control: public, max-age=2592000, s-maxage=2592000, immutable
