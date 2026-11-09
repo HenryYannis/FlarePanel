@@ -65,6 +65,24 @@ export function getFileExt(filename) {
     return 'FILE';
 }
 
+/**
+ * 超长文件名中间截断 (保留关键扩展名与文件开头，省略号居中)
+ */
+export function formatMiddleEllipsis(fileName, maxLength = 56) {
+    if (!fileName || fileName.length <= maxLength) return fileName;
+    const lastDotIndex = fileName.lastIndexOf('.');
+    if (lastDotIndex === -1 || lastDotIndex === 0) {
+        return fileName.slice(0, maxLength - 3) + '...';
+    }
+    const ext = fileName.slice(lastDotIndex);
+    const baseName = fileName.slice(0, lastDotIndex);
+    const avail = maxLength - ext.length - 3;
+    if (avail < 4) return fileName;
+    const front = Math.ceil(avail / 2);
+    const back = Math.floor(avail / 2);
+    return `${baseName.slice(0, front)}...${baseName.slice(-back)}${ext}`;
+}
+
 export function getMatchedDbId(bucketName, databases) {
     const dbName = getBucketDbName(bucketName);
     if (!dbName) return null;
@@ -226,7 +244,7 @@ function renderStorageTableHTML() {
                     <span class="ext-tag">${escapeHtml(getFileExt(file.name))}</span>
                 </td>
                 <td>
-                    <span style="font-weight: 500; color: var(--text-primary);">${escapeHtml(file.name)}</span>
+                    <span style="font-weight: 500; color: var(--text-primary);" title="${escapeAttr(file.name)}">${escapeHtml(formatMiddleEllipsis(file.name, 56))}</span>
                 </td>
                 <td>${file.formattedSize}</td>
                 <td>${downloadsText}</td>

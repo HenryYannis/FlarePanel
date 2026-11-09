@@ -952,3 +952,47 @@ html.i18n-pending body {
         scroll-behavior: auto !important;
     }
 }
+
+/* ==========================================================================
+   大厂 UI 质感与微观排版升级规范 (Antigravity High-End Standards)
+   ========================================================================== */
+
+/* 1. 数字等宽锁死防抖 (Tabular Nums) - 避免监控卡片、QPS、延迟、Token 跳动乱晃 */
+.tabular-nums,
+.metric-value,
+.stat-number,
+.badge-count,
+.timer-text,
+.ai-metric-value,
+.stat-card-value {
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1 !important;
+}
+
+/* 2. 正文排版防孤行保护 */
+h1, h2, h3, .panel-title, .modal-title {
+    text-wrap: balance;
+}
+
+p, .help-text, .alert-desc {
+    text-wrap: pretty;
+}
+
+/* 3. 暗色模式视网膜光学欺骗术 (Dark Mode Halation Compensation) */
+html.night-theme,
+[data-theme="dark"] {
+    --fw-ui: 450;
+    --fw-hero: 600;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 4. 行内小图标中心垂直严丝合缝对齐 (下移 1/8 个字高) */
+.inline-icon,
+.btn-icon svg,
+.tag-icon,
+.badge svg {
+    display: inline-block;
+    vertical-align: -0.125em;
+}
+

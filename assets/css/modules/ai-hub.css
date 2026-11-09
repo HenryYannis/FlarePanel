@@ -878,6 +878,8 @@ html.night-theme .ai-provider-card {
     font-weight: var(--fw-ui, 600);
     color: var(--text-primary);
     font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
     margin: 6px 0 4px 0;
     line-height: 1.1;
     white-space: nowrap;
