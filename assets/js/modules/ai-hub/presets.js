@@ -126,8 +126,8 @@ export const PROVIDER_TEMPLATES = [
     {
         name: L('Cloudflare Workers AI (自带免费)', 'Cloudflare Workers AI (free tier)', 'Cloudflare Workers AI (自帶免費)'),
         baseUrl: 'cloudflare-workers-ai',
-        models: '@cf/meta/llama-3.3-70b-instruct, @cf/deepseek-ai/deepseek-r1-distill-qwen-32b, @cf/qwen/qwen2.5-72b-instruct',
-        defaultModel: '@cf/meta/llama-3.3-70b-instruct',
+        models: '@cf/meta/llama-3.3-70b-instruct-fp8-fast, @cf/zai-org/glm-4.7-flash, @cf/qwen/qwen2.5-72b-instruct',
+        defaultModel: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
         desc: L('CF 官方每日免费算力，免 API Key 兜底', 'Free daily Cloudflare quota, no API key needed', 'CF 官方每日免費算力，免 API Key 兜底')
     },
     {
