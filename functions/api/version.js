@@ -1,11 +1,11 @@
 // ============================================
-// FlarePanel 版本比对接口 (Commit-based)
-// 比对当前部署的 Commit 与上游主仓库的差异
+// FlarePanel 版本比对接口 (Release-based)
+// 比对当前版本与 GitHub Latest Release 的差异
 // 具备 1 小时边缘缓存，防止频繁请求 GitHub API
 // ============================================
 
 const UPSTREAM_REPO = 'HenryYannis/FlarePanel';
-const FALLBACK_COMMIT = 'a60c538'; // 当前发布版本的官方上游 Commit 锚点
+const CURRENT_VERSION = 'v1.0.0';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -19,8 +19,23 @@ const CACHE_HEADERS = {
     'Cache-Control': 'public, max-age=1800, s-maxage=3600'
 };
 
+function parseSemver(v) {
+    const m = String(v || '').trim().replace(/^v/i, '').split('-')[0].split('.');
+    return [parseInt(m[0], 10) || 0, parseInt(m[1], 10) || 0, parseInt(m[2], 10) || 0];
+}
+
+function compareSemver(a, b) {
+    const pa = parseSemver(a);
+    const pb = parseSemver(b);
+    for (let i = 0; i < 3; i++) {
+        if (pa[i] > pb[i]) return 1;
+        if (pa[i] < pb[i]) return -1;
+    }
+    return 0;
+}
+
 export async function onRequest(context) {
-    const { request, env } = context;
+    const { request } = context;
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -33,15 +48,11 @@ export async function onRequest(context) {
         });
     }
 
-    // Cloudflare Pages 部署时会自动注入 CF_PAGES_COMMIT_SHA
-    const rawCommit = (env && env.CF_PAGES_COMMIT_SHA) ? env.CF_PAGES_COMMIT_SHA : FALLBACK_COMMIT;
-    const currentCommit = String(rawCommit).trim();
-    const shortCurrent = currentCommit.slice(0, 7);
+    const fallbackUrl = `https://github.com/${UPSTREAM_REPO}/releases`;
 
     try {
-        let queryCommit = currentCommit;
-        let compareUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/compare/${queryCommit}...main`;
-        let ghRes = await fetch(compareUrl, {
+        const apiUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/releases/latest`;
+        const ghRes = await fetch(apiUrl, {
             headers: {
                 'User-Agent': 'FlarePanel-Version-Check/1.0',
                 'Accept': 'application/vnd.github.v3+json'
@@ -49,27 +60,14 @@ export async function onRequest(context) {
             cf: { cacheTtl: 3600, cacheEverything: true }
         });
 
-        // 若 404（下游私有仓/合并提交在官方上游不存在），回退到当前版本对应的官方上游锚点对比
-        if (!ghRes.ok && ghRes.status === 404 && queryCommit !== FALLBACK_COMMIT) {
-            queryCommit = FALLBACK_COMMIT;
-            compareUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/compare/${queryCommit}...main`;
-            ghRes = await fetch(compareUrl, {
-                headers: {
-                    'User-Agent': 'FlarePanel-Version-Check/1.0',
-                    'Accept': 'application/vnd.github.v3+json'
-                },
-                cf: { cacheTtl: 3600, cacheEverything: true }
-            });
-        }
-
         if (!ghRes.ok) {
+            // 仓库尚未发布任何 Release 时（404）或网络限流，默认当前为最新正式版
             return new Response(JSON.stringify({
                 success: true,
-                current: shortCurrent,
+                current: CURRENT_VERSION,
+                latest: CURRENT_VERSION,
                 status: 'latest',
-                behindBy: 0,
-                aheadBy: 0,
-                compareUrl: `https://github.com/${UPSTREAM_REPO}/commits/main`
+                releaseUrl: fallbackUrl
             }), {
                 status: 200,
                 headers: CACHE_HEADERS
@@ -77,38 +75,15 @@ export async function onRequest(context) {
         }
 
         const data = await ghRes.json();
-        let mappedStatus = 'latest';
-        let behindCount = 0;
-        let aheadCount = 0;
-
-        if (data.status === 'identical') {
-            mappedStatus = 'latest';
-        } else if (data.status === 'ahead' || (data.ahead_by > 0 && !data.behind_by)) {
-            if (data.ahead_by > 1) {
-                mappedStatus = 'behind';
-                behindCount = data.ahead_by;
-            } else {
-                mappedStatus = 'latest';
-            }
-        } else if (data.status === 'behind' || (data.behind_by > 0 && !data.ahead_by)) {
-            mappedStatus = 'ahead';
-            aheadCount = data.behind_by || 0;
-        } else if (data.status === 'diverged') {
-            if (data.ahead_by > 1) {
-                mappedStatus = 'behind';
-                behindCount = data.ahead_by;
-            } else {
-                mappedStatus = 'latest';
-            }
-        }
+        const latestTag = String(data.tag_name || '').trim() || CURRENT_VERSION;
+        const hasUpdate = compareSemver(latestTag, CURRENT_VERSION) > 0;
 
         return new Response(JSON.stringify({
             success: true,
-            current: shortCurrent,
-            status: mappedStatus,
-            behindBy: behindCount,
-            aheadBy: aheadCount,
-            compareUrl: data.html_url || `https://github.com/${UPSTREAM_REPO}/compare/${shortCurrent}...main`
+            current: CURRENT_VERSION,
+            latest: latestTag,
+            status: hasUpdate ? 'update' : 'latest',
+            releaseUrl: data.html_url || fallbackUrl
         }), {
             status: 200,
             headers: CACHE_HEADERS
@@ -116,11 +91,10 @@ export async function onRequest(context) {
     } catch (err) {
         return new Response(JSON.stringify({
             success: true,
-            current: shortCurrent,
+            current: CURRENT_VERSION,
+            latest: CURRENT_VERSION,
             status: 'latest',
-            behindBy: 0,
-            aheadBy: 0,
-            compareUrl: `https://github.com/${UPSTREAM_REPO}/commits/main`
+            releaseUrl: fallbackUrl
         }), {
             status: 200,
             headers: CACHE_HEADERS

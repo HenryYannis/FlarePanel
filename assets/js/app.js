@@ -649,29 +649,24 @@ async function initVersionCheck() {
         const data = await res.json();
         if (!data.success || !data.current) throw new Error('Bad data');
 
-        const shortCommit = data.current;
-        if (data.status === 'identical' || data.status === 'latest' || (data.behindBy <= 1 && data.status !== 'ahead')) {
-            badge.className = 'footer-version-badge latest';
-            badge.title = `${t('footer.version_latest')} (${shortCommit})`;
-            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
-        } else if (data.status === 'behind' && data.behindBy > 1) {
-            badge.className = 'footer-version-badge behind';
-            const behindText = t('footer.version_behind', { count: data.behindBy });
-            badge.title = `${behindText} (${shortCommit})`;
-            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${behindText}</a>`;
-        } else if (data.status === 'ahead' && data.aheadBy > 0) {
-            badge.className = 'footer-version-badge ahead';
-            const aheadText = t('footer.version_ahead', { count: data.aheadBy });
-            badge.title = `${aheadText} (${shortCommit})`;
-            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${aheadText}</a>`;
+        const currentVer = data.current || 'v1.0.0';
+        const latestVer = data.latest || currentVer;
+        const url = data.releaseUrl || 'https://github.com/HenryYannis/FlarePanel/releases';
+
+        if (data.status === 'update') {
+            badge.className = 'footer-version-badge update';
+            const updateLabel = t('footer.version_update', { version: latestVer });
+            badge.title = updateLabel;
+            text.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="version-link">${updateLabel}</a>`;
         } else {
             badge.className = 'footer-version-badge latest';
-            badge.title = `${t('footer.version_latest')} (${shortCommit})`;
-            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
+            const latestLabel = t('footer.version_latest', { version: currentVer });
+            badge.title = latestLabel;
+            text.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="version-link">${latestLabel}</a>`;
         }
     } catch (e) {
         badge.className = 'footer-version-badge';
-        text.textContent = t('footer.version_dev');
+        text.textContent = 'v1.0.0';
     }
 }
 

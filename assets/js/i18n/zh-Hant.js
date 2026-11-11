@@ -493,8 +493,6 @@ export const zhHant = {
     "footer.brand": "FlarePanel",
     "footer.tagline": "基於 Cloudflare 的站群控制台",
     "footer.github": "GitHub",
-    "footer.version_latest": "已是最新",
-    "footer.version_behind": "落後 {count} 個提交",
-    "footer.version_ahead": "領先 {count} 個提交",
-    "footer.version_dev": "開發版"
+    "footer.version_latest": "已是最新 ({version})",
+    "footer.version_update": "發現新版本 {version}"
 };

@@ -982,6 +982,7 @@ html.i18n-pending body {
 .footer-version-badge.latest a.version-link {
     color: #10b981;
 }
+.footer-version-badge.update a.version-link,
 .footer-version-badge.behind a.version-link {
     color: #f59e0b;
 }

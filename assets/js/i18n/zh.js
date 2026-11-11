@@ -493,8 +493,6 @@ export const zh = {
     "footer.brand": "FlarePanel",
     "footer.tagline": "基于 Cloudflare 的站群控制台",
     "footer.github": "GitHub",
-    "footer.version_latest": "已是最新",
-    "footer.version_behind": "落后 {count} 个提交",
-    "footer.version_ahead": "领先 {count} 个提交",
-    "footer.version_dev": "开发版"
+    "footer.version_latest": "已是最新 ({version})",
+    "footer.version_update": "发现新版本 {version}"
 };
