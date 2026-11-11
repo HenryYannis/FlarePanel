@@ -608,6 +608,19 @@ function applyPanelConfig() {
 
 // ==================== 系统总装启动 ====================
 // ==================== 界面语言 ====================
+const LANG_CODE = {
+    zh: 'SC',
+    'zh-Hant': 'TC',
+    en: 'EN'
+};
+
+function updateLangIcons(lang) {
+    const code = LANG_CODE[lang] || 'SC';
+    document.querySelectorAll('.lang-icon').forEach(el => {
+        el.textContent = code;
+    });
+}
+
 function initLanguage() {
     applyI18n();
     updatePagination(1, 1, 0);
@@ -616,11 +629,54 @@ function initLanguage() {
     select.innerHTML = '';
     LANGS.forEach(({ code, label }) => select.add(new Option(label, code)));
     select.value = getLang();
-    select.addEventListener('change', () => setLang(select.value));
+    updateLangIcons(select.value);
+    select.addEventListener('change', () => {
+        updateLangIcons(select.value);
+        setLang(select.value);
+    });
+}
+
+// ==================== 页脚版本更新检测 ====================
+async function initVersionCheck() {
+    const badge = document.getElementById('footer-version');
+    if (!badge) return;
+    const text = badge.querySelector('.version-text');
+    if (!text) return;
+
+    try {
+        const res = await fetch('/api/version');
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        if (!data.success || !data.current) throw new Error('Bad data');
+
+        const shortCommit = data.current;
+        if (data.status === 'identical') {
+            badge.className = 'footer-version-badge latest';
+            badge.title = `${t('footer.version_latest')} (${shortCommit})`;
+            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
+        } else if (data.status === 'behind' && data.behindBy > 0) {
+            badge.className = 'footer-version-badge behind';
+            const behindText = t('footer.version_behind', { count: data.behindBy });
+            badge.title = `${behindText} (${shortCommit})`;
+            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${behindText}</a>`;
+        } else if (data.status === 'ahead' && data.aheadBy > 0) {
+            badge.className = 'footer-version-badge ahead';
+            const aheadText = t('footer.version_ahead', { count: data.aheadBy });
+            badge.title = `${aheadText} (${shortCommit})`;
+            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${aheadText}</a>`;
+        } else {
+            badge.className = 'footer-version-badge';
+            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${shortCommit}</a>`;
+        }
+    } catch (e) {
+        badge.className = 'footer-version-badge';
+        text.textContent = t('footer.version_dev');
+    }
 }
 
 async function initSystem() {
     initLanguage();
+    initVersionCheck();
     applyPanelConfig();
     initTheme();
     initGlobalEvents();

@@ -15,9 +15,9 @@ const DICTS = { zh, 'zh-Hant': zhHant, en };
 
 /** 支持的语言，顺序即语言菜单里的顺序 */
 export const LANGS = [
-    { code: 'zh', label: '简体中文' },
-    { code: 'zh-Hant', label: '繁體中文' },
-    { code: 'en', label: 'English' }
+    { code: 'zh', label: 'SC · 简体中文' },
+    { code: 'zh-Hant', label: 'TC · 繁體中文' },
+    { code: 'en', label: 'EN · English' }
 ];
 
 function detectLang() {

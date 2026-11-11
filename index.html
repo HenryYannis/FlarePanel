@@ -60,11 +60,14 @@
             <span class="navbar-title">FlarePanel 控制台</span>
         </div>
         <div class="navbar-right">
-            <select id="lang-select" class="btn btn-outline btn-sm lang-select" data-i18n-title="nav.langTitle" data-i18n-aria-label="nav.langTitle">
-                <option value="zh">简体中文</option>
-                <option value="zh-Hant">繁體中文</option>
-                <option value="en">English</option>
-            </select>
+            <label class="btn btn-outline btn-sm icon-btn lang-btn" data-i18n-title="nav.langTitle" data-i18n-aria-label="nav.langTitle">
+                <span class="lang-icon" aria-hidden="true">SC</span>
+                <select id="lang-select" class="lang-select" data-lang-select data-i18n-title="nav.langTitle" data-i18n-aria-label="nav.langTitle">
+                    <option value="zh">SC · 简体中文</option>
+                    <option value="zh-Hant">TC · 繁體中文</option>
+                    <option value="en">EN · English</option>
+                </select>
+            </label>
             <button id="theme-toggle-btn" class="btn btn-outline btn-sm theme-toggle" type="button" data-i18n-title="nav.themeToDark" data-i18n-aria-label="nav.themeToDark">
                 <svg class="theme-icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <svg class="theme-icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -185,6 +188,11 @@
         <span data-i18n="footer.tagline">基于 Cloudflare 的站群控制台</span>
         <span aria-hidden="true"> · </span>
         <a href="https://github.com/HenryYannis/FlarePanel" target="_blank" rel="noopener noreferrer" data-i18n="footer.github">GitHub</a>
+        <span aria-hidden="true"> · </span>
+        <span id="footer-version" class="footer-version-badge" title="版本状态">
+            <span class="version-dot" aria-hidden="true"></span>
+            <span class="version-text">...</span>
+        </span>
     </footer>
 
     <!-- 全局加载遮罩 -->

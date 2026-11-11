@@ -492,5 +492,9 @@ export const en = {
     "storage.batchDeleting": "Deleting {count} selected items...",
     "footer.brand": "FlarePanel",
     "footer.tagline": "Site console on Cloudflare",
-    "footer.github": "GitHub"
+    "footer.github": "GitHub",
+    "footer.version_latest": "Up to date",
+    "footer.version_behind": "{count} commits behind",
+    "footer.version_ahead": "{count} commits ahead",
+    "footer.version_dev": "Dev"
 };

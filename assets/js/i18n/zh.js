@@ -492,5 +492,9 @@ export const zh = {
     "storage.batchDeleting": "正在批量删除选中的 {count} 个项目...",
     "footer.brand": "FlarePanel",
     "footer.tagline": "基于 Cloudflare 的站群控制台",
-    "footer.github": "GitHub"
+    "footer.github": "GitHub",
+    "footer.version_latest": "已是最新",
+    "footer.version_behind": "落后 {count} 个提交",
+    "footer.version_ahead": "领先 {count} 个提交",
+    "footer.version_dev": "开发版"
 };
