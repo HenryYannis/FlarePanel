@@ -650,7 +650,7 @@ async function initVersionCheck() {
         if (!data.success || !data.current) throw new Error('Bad data');
 
         const shortCommit = data.current;
-        if (data.status === 'identical') {
+        if (data.status === 'identical' || data.status === 'latest') {
             badge.className = 'footer-version-badge latest';
             badge.title = `${t('footer.version_latest')} (${shortCommit})`;
             text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
@@ -665,8 +665,9 @@ async function initVersionCheck() {
             badge.title = `${aheadText} (${shortCommit})`;
             text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${aheadText}</a>`;
         } else {
-            badge.className = 'footer-version-badge';
-            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${shortCommit}</a>`;
+            badge.className = 'footer-version-badge latest';
+            badge.title = `${t('footer.version_latest')} (${shortCommit})`;
+            text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
         }
     } catch (e) {
         badge.className = 'footer-version-badge';

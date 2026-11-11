@@ -969,12 +969,9 @@ html.i18n-pending body {
 
 /* 页脚版本状态指示器 */
 .footer-version-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    display: inline;
     font-size: var(--fs-footer);
     color: var(--text-secondary);
-    vertical-align: middle;
     user-select: none;
 }
 .footer-version-badge .version-dot {
@@ -983,6 +980,8 @@ html.i18n-pending body {
     border-radius: 50%;
     background-color: #94a3b8;
     display: inline-block;
+    vertical-align: 1.5px;
+    margin-right: 4px;
     transition: background-color 0.2s, box-shadow 0.2s;
 }
 .footer-version-badge.latest .version-dot {

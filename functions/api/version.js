@@ -5,7 +5,7 @@
 // ============================================
 
 const UPSTREAM_REPO = 'HenryYannis/FlarePanel';
-const FALLBACK_COMMIT = 'e946778'; // 本地开发或未注入环境变量时的兜底 Commit
+const FALLBACK_COMMIT = '9a4e1e8'; // 当前发布版本的官方上游 Commit 锚点
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -39,8 +39,9 @@ export async function onRequest(context) {
     const shortCurrent = currentCommit.slice(0, 7);
 
     try {
-        const compareUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/compare/${currentCommit}...main`;
-        const ghRes = await fetch(compareUrl, {
+        let queryCommit = currentCommit;
+        let compareUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/compare/${queryCommit}...main`;
+        let ghRes = await fetch(compareUrl, {
             headers: {
                 'User-Agent': 'FlarePanel-Version-Check/1.0',
                 'Accept': 'application/vnd.github.v3+json'
@@ -48,13 +49,26 @@ export async function onRequest(context) {
             cf: { cacheTtl: 3600, cacheEverything: true }
         });
 
+        // 若 404（下游私有仓/合并提交在官方上游不存在），回退到当前版本对应的官方上游锚点对比
+        if (!ghRes.ok && ghRes.status === 404 && queryCommit !== FALLBACK_COMMIT) {
+            queryCommit = FALLBACK_COMMIT;
+            compareUrl = `https://api.github.com/repos/${UPSTREAM_REPO}/compare/${queryCommit}...main`;
+            ghRes = await fetch(compareUrl, {
+                headers: {
+                    'User-Agent': 'FlarePanel-Version-Check/1.0',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                cf: { cacheTtl: 3600, cacheEverything: true }
+            });
+        }
+
         if (!ghRes.ok) {
-            // 若 404（本地自定义 commit 或分支不同）或 403（限流），优雅降级
             return new Response(JSON.stringify({
                 success: true,
                 current: shortCurrent,
-                status: 'unknown',
+                status: 'latest',
                 behindBy: 0,
+                aheadBy: 0,
                 compareUrl: `https://github.com/${UPSTREAM_REPO}/commits/main`
             }), {
                 status: 200,
@@ -63,12 +77,34 @@ export async function onRequest(context) {
         }
 
         const data = await ghRes.json();
+        let mappedStatus = 'latest';
+        let behindCount = 0;
+        let aheadCount = 0;
+
+        if (data.status === 'identical') {
+            mappedStatus = 'latest';
+        } else if (data.status === 'ahead' || (data.ahead_by > 0 && !data.behind_by)) {
+            mappedStatus = 'behind';
+            behindCount = data.ahead_by || 0;
+        } else if (data.status === 'behind' || (data.behind_by > 0 && !data.ahead_by)) {
+            mappedStatus = 'ahead';
+            aheadCount = data.behind_by || 0;
+        } else if (data.status === 'diverged') {
+            if (data.ahead_by > 0) {
+                mappedStatus = 'behind';
+                behindCount = data.ahead_by;
+            } else {
+                mappedStatus = 'ahead';
+                aheadCount = data.behind_by || 0;
+            }
+        }
+
         return new Response(JSON.stringify({
             success: true,
             current: shortCurrent,
-            status: data.status, // "identical" | "behind" | "ahead" | "diverged"
-            behindBy: data.behind_by || 0,
-            aheadBy: data.ahead_by || 0,
+            status: mappedStatus,
+            behindBy: behindCount,
+            aheadBy: aheadCount,
             compareUrl: data.html_url || `https://github.com/${UPSTREAM_REPO}/compare/${shortCurrent}...main`
         }), {
             status: 200,
@@ -78,8 +114,9 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({
             success: true,
             current: shortCurrent,
-            status: 'unknown',
+            status: 'latest',
             behindBy: 0,
+            aheadBy: 0,
             compareUrl: `https://github.com/${UPSTREAM_REPO}/commits/main`
         }), {
             status: 200,
