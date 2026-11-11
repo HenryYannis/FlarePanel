@@ -609,13 +609,13 @@ function applyPanelConfig() {
 // ==================== 系统总装启动 ====================
 // ==================== 界面语言 ====================
 const LANG_CODE = {
-    zh: 'SC',
-    'zh-Hant': 'TC',
+    zh: '简',
+    'zh-Hant': '繁',
     en: 'EN'
 };
 
 function updateLangIcons(lang) {
-    const code = LANG_CODE[lang] || 'SC';
+    const code = LANG_CODE[lang] || '简';
     document.querySelectorAll('.lang-icon').forEach(el => {
         el.textContent = code;
     });
