@@ -5,7 +5,7 @@
 // ============================================
 
 const UPSTREAM_REPO = 'HenryYannis/FlarePanel';
-const FALLBACK_COMMIT = '9a4e1e8'; // 当前发布版本的官方上游 Commit 锚点
+const FALLBACK_COMMIT = 'a60c538'; // 当前发布版本的官方上游 Commit 锚点
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -84,18 +84,21 @@ export async function onRequest(context) {
         if (data.status === 'identical') {
             mappedStatus = 'latest';
         } else if (data.status === 'ahead' || (data.ahead_by > 0 && !data.behind_by)) {
-            mappedStatus = 'behind';
-            behindCount = data.ahead_by || 0;
+            if (data.ahead_by > 1) {
+                mappedStatus = 'behind';
+                behindCount = data.ahead_by;
+            } else {
+                mappedStatus = 'latest';
+            }
         } else if (data.status === 'behind' || (data.behind_by > 0 && !data.ahead_by)) {
             mappedStatus = 'ahead';
             aheadCount = data.behind_by || 0;
         } else if (data.status === 'diverged') {
-            if (data.ahead_by > 0) {
+            if (data.ahead_by > 1) {
                 mappedStatus = 'behind';
                 behindCount = data.ahead_by;
             } else {
-                mappedStatus = 'ahead';
-                aheadCount = data.behind_by || 0;
+                mappedStatus = 'latest';
             }
         }
 

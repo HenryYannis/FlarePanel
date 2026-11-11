@@ -967,43 +967,29 @@ html.i18n-pending body {
     color: var(--primary-color);
 }
 
-/* 页脚版本状态指示器 */
+/* 页脚版本状态指示器（纯文字状态色） */
 .footer-version-badge {
     display: inline;
     font-size: var(--fs-footer);
-    color: var(--text-secondary);
     user-select: none;
 }
-.footer-version-badge .version-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #94a3b8;
-    display: inline-block;
-    vertical-align: 1.5px;
-    margin-right: 4px;
-    transition: background-color 0.2s, box-shadow 0.2s;
-}
-.footer-version-badge.latest .version-dot {
-    background-color: #10b981;
-    box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-}
-.footer-version-badge.behind .version-dot {
-    background-color: #f59e0b;
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
-}
-.footer-version-badge.ahead .version-dot {
-    background-color: #3b82f6;
-    box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
-}
 .footer-version-badge a.version-link {
-    color: inherit;
+    color: var(--text-secondary);
     text-decoration: underline;
     text-underline-offset: 2px;
-    transition: color 0.15s;
+    transition: color 0.15s, opacity 0.15s;
+}
+.footer-version-badge.latest a.version-link {
+    color: #10b981;
+}
+.footer-version-badge.behind a.version-link {
+    color: #f59e0b;
+}
+.footer-version-badge.ahead a.version-link {
+    color: #3b82f6;
 }
 .footer-version-badge a.version-link:hover {
-    color: var(--primary-color);
+    opacity: 0.8;
 }
 
 /* 全局无障碍：为前庭功能障碍用户禁用动画与过渡 */

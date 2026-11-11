@@ -650,11 +650,11 @@ async function initVersionCheck() {
         if (!data.success || !data.current) throw new Error('Bad data');
 
         const shortCommit = data.current;
-        if (data.status === 'identical' || data.status === 'latest') {
+        if (data.status === 'identical' || data.status === 'latest' || (data.behindBy <= 1 && data.status !== 'ahead')) {
             badge.className = 'footer-version-badge latest';
             badge.title = `${t('footer.version_latest')} (${shortCommit})`;
             text.innerHTML = `<a href="${data.compareUrl}" target="_blank" rel="noopener noreferrer" class="version-link">${t('footer.version_latest')} (${shortCommit})</a>`;
-        } else if (data.status === 'behind' && data.behindBy > 0) {
+        } else if (data.status === 'behind' && data.behindBy > 1) {
             badge.className = 'footer-version-badge behind';
             const behindText = t('footer.version_behind', { count: data.behindBy });
             badge.title = `${behindText} (${shortCommit})`;
