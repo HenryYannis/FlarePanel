@@ -848,6 +848,20 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         border-radius: var(--radius-md);
         box-sizing: border-box;
     }
+
+    /* 页脚移动端自适应三行居中 */
+    .site-footer .footer-sep {
+        display: none;
+    }
+    .site-footer .footer-brand,
+    .site-footer .footer-tagline,
+    .site-footer .footer-version-badge {
+        display: block;
+    }
+    .site-footer .footer-tagline {
+        margin: 3px 0;
+        opacity: 0.9;
+    }
 }
 
 @media (max-width: 480px) {
@@ -972,6 +986,7 @@ html.i18n-pending body {
     display: inline;
     font-size: var(--fs-footer);
     user-select: none;
+    white-space: nowrap;
 }
 .footer-version-badge a.version-link {
     color: var(--text-secondary);
