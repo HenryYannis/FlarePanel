@@ -5,7 +5,7 @@
 // ============================================
 
 const UPSTREAM_REPO = 'HenryYannis/FlarePanel';
-const CURRENT_VERSION = 'v1.0.0';
+const CURRENT_VERSION = 'v1.0.1';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',

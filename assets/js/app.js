@@ -649,7 +649,7 @@ async function initVersionCheck() {
         const data = await res.json();
         if (!data.success || !data.current) throw new Error('Bad data');
 
-        const currentVer = data.current || 'v1.0.0';
+        const currentVer = data.current || 'v1.0.1';
         const latestVer = data.latest || currentVer;
         const url = data.releaseUrl || 'https://github.com/HenryYannis/FlarePanel/releases';
 
@@ -666,7 +666,7 @@ async function initVersionCheck() {
         }
     } catch (e) {
         badge.className = 'footer-version-badge';
-        text.textContent = 'v1.0.0';
+        text.textContent = 'v1.0.1';
     }
 }
 
