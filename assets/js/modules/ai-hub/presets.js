@@ -149,27 +149,13 @@ export function ensureGatewayKeys(config) {
     if (!Array.isArray(config.gateway.keys)) {
         config.gateway.keys = [];
     }
-    // 不再限制数量：只保留已配置的密钥，空槽位统一由界面末尾的「新建」按钮承担
-    const legacyMaster = config.gateway.masterKey;
+    // 只保留已配置且启用的有效密钥，空槽位统一由界面末尾的「新建」按钮承担
     config.gateway.keys = config.gateway.keys.filter(k => k && k.enabled !== false && k.key && k.key.trim() && k.name && k.name.trim());
-    // 兼容历史单 masterKey：若没有任何密钥，且有历史 masterKey，则安全迁移为第 1 组
-    if (config.gateway.keys.length === 0 && legacyMaster) {
-        config.gateway.keys[0] = {
-            id: 'key_1',
-            name: 'VS Code Continue',
-            key: legacyMaster,
-            enabled: true
-        };
-    }
-    // 兼容老字段 masterKey
-    const firstActive = config.gateway.keys.find(k => k && k.enabled && k.key);
-    config.gateway.masterKey = firstActive ? firstActive.key : (config.gateway.keys[0]?.key || '');
 }
 
 export const DEFAULT_AI_CONFIG = {
     version: 1,
     gateway: {
-        masterKey: '',
         endpoint: OFFICIAL_AI_GATEWAY_URL,
         keys: []
     },

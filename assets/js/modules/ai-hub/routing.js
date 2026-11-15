@@ -86,9 +86,9 @@ export async function saveAiConfigToKv(config) {
 
     // 触发网关边缘秒级刷新内存缓存（破除 60 分钟缓存，实现保存即生效）
     try {
-        const masterKey = config?.gateway?.masterKey || (Array.isArray(config?.gateway?.keys) && config.gateway.keys[0]?.key);
+        const activeKey = (Array.isArray(config?.gateway?.keys) && config.gateway.keys.find(k => k && k.enabled && k.key)?.key) || config?.gateway?.keys?.[0]?.key || '';
         const reloadHeaders = {};
-        if (masterKey) reloadHeaders['Authorization'] = `Bearer ${masterKey}`;
+        if (activeKey) reloadHeaders['Authorization'] = `Bearer ${activeKey}`;
         fetch(`${OFFICIAL_AI_GATEWAY_URL}/v1/reload`, {
             method: 'POST',
             headers: reloadHeaders

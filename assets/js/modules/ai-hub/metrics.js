@@ -138,19 +138,33 @@ async function fetchMetricsFromD1(days) {
     };
 }
 
+// 60秒内存快照缓存，实现频繁切回 AI Hub 胶囊与标签时 0 毫秒秒开
+const METRICS_CACHE_TTL = 60 * 1000;
+let metricsMemoryCache = { data: null, time: 0, days: 0 };
+
+export function clearMetricsCache() {
+    metricsMemoryCache = { data: null, time: 0, days: 0 };
+}
+
 /**
  * 获取网关度量监控统计（三通道：网关 /v1/stats 直出 → D1 ai_logs → Cloudflare KV 兜底）
  */
-export async function fetchAiHubMetrics(days = 7, config = null) {
+export async function fetchAiHubMetrics(days = 7, config = null, forceRefresh = false) {
+    if (!forceRefresh && metricsMemoryCache.data && metricsMemoryCache.days === days && Date.now() - metricsMemoryCache.time < METRICS_CACHE_TTL) {
+        currentMetricsData = metricsMemoryCache.data;
+        isMetricsLoading = false;
+        return metricsMemoryCache.data;
+    }
+
     isMetricsLoading = true;
     const endpoint = OFFICIAL_AI_GATEWAY_URL;
-    const masterKey = config?.gateway?.masterKey;
+    const activeKey = (config?.gateway?.keys || []).find(k => k && k.enabled && k.key)?.key || config?.gateway?.keys?.[0]?.key || '';
     const statsUrl = endpoint.endsWith('/v1') ? `${endpoint}/stats?days=${days}` : `${endpoint}/v1/stats?days=${days}`;
 
     // 1. 优先尝试直连网关监控端点 (10秒超时，网关已启用 Promise.all 并发极速响应)
     try {
         const headers = {};
-        if (masterKey) headers['Authorization'] = `Bearer ${masterKey}`;
+        if (activeKey) headers['Authorization'] = `Bearer ${activeKey}`;
         const res = await fetch(statsUrl, {
             method: 'GET',
             headers,
@@ -160,6 +174,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
             const data = await res.json();
             if (data && data.status === 'success') {
                 currentMetricsData = data;
+                metricsMemoryCache = { data, time: Date.now(), days };
                 isMetricsLoading = false;
                 return data;
             }
@@ -173,6 +188,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
         const d1Data = await fetchMetricsFromD1(days);
         if (d1Data) {
             currentMetricsData = d1Data;
+            metricsMemoryCache = { data: d1Data, time: Date.now(), days };
             isMetricsLoading = false;
             return d1Data;
         }
@@ -297,6 +313,7 @@ export async function fetchAiHubMetrics(days = 7, config = null) {
             history: history.reverse(),
             recentLogs
         };
+        metricsMemoryCache = { data: currentMetricsData, time: Date.now(), days };
         isMetricsLoading = false;
         return currentMetricsData;
     } catch (kvErr) {

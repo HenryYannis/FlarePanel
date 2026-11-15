@@ -35,8 +35,9 @@ CREATE INDEX IF NOT EXISTS idx_article_views_views ON article_views(views);
 
 -- R2 文件下载次数（文件管理里显示，重命名/移动文件时后台会同步路径）
 CREATE TABLE IF NOT EXISTS file_downloads (
-    file_path   TEXT    PRIMARY KEY,              -- 存储桶里的对象 Key
-    downloads   INTEGER DEFAULT 0
+    file_path          TEXT     PRIMARY KEY,              -- 存储桶里的对象 Key
+    downloads          INTEGER  DEFAULT 0,
+    last_downloaded_at DATETIME                           -- 最近一次下载时间（UTC）
 );
 
 -- ====================================================

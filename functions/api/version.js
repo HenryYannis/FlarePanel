@@ -4,8 +4,9 @@
 // 具备 1 小时边缘缓存，防止频繁请求 GitHub API
 // ============================================
 
+import { CURRENT_VERSION } from '../../lib/version.js';
+
 const UPSTREAM_REPO = 'HenryYannis/FlarePanel';
-const CURRENT_VERSION = 'v1.0.1';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',

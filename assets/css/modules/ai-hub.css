@@ -144,21 +144,6 @@
     min-width: 0;
 }
 
-.ai-masterkey-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-.ai-masterkey-input-wrapper {
-    flex: 1;
-    min-width: 0;
-}
-.ai-masterkey-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
 /* 独立开发者专用密钥 (3 个槽位横向排列) */
 .ai-keys-grid {
     display: grid;
@@ -726,29 +711,6 @@ html.night-theme .ai-provider-card {
     .ai-grid-2 > .ai-card,
     .ai-grid-3 > .ai-card {
         margin: 0 !important;
-    }
-
-    /* Master Key 与特权端点：移动端分行与触控按钮自适应 */
-    .ai-masterkey-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-    .ai-masterkey-input-wrapper {
-        width: 100%;
-    }
-    .ai-masterkey-actions {
-        display: flex;
-        gap: 6px;
-        width: 100%;
-    }
-    .ai-masterkey-actions .btn {
-        flex: 1 1 0;
-        min-width: 0;
-        padding: 0 4px;
-        font-size: 12px;
-        height: 36px;
-        justify-content: center;
     }
 
     /* Telegram 与防刷配置在移动端单列排布 */

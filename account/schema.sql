@@ -5,10 +5,7 @@
 --
 -- users 表和仓库根目录 schema.sql 一致。FlarePanel「账号管理」读写前五列（不读 password_hash）；后面三列只有 Worker 用，后台不读。
 --
--- 用旧版根目录 schema.sql（v1.0.0）建过 users 表的，CREATE TABLE 会被跳过，需要手动补上 Worker 用的三列（每条只执行一次）：
---   ALTER TABLE users ADD COLUMN salt TEXT NOT NULL DEFAULT '';
---   ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;
---   ALTER TABLE users ADD COLUMN recovery_code_hash TEXT;
+-- 历史旧库增量升级补列见 scripts/migrations/2026-11-db-upgrade.sql
 -- ====================================================
 
 -- 会员账号（FlarePanel「账号管理」）

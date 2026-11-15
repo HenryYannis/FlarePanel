@@ -40,8 +40,7 @@ The config the panel writes to KV (the gateway only reads these fields):
 {
   "version": 1,
   "gateway": {
-    "keys": [{ "id": "key_1", "name": "VS Code", "key": "sk-fp-...", "enabled": true }], // developer keys
-    "masterKey": "sk-fp-..."                       // legacy single key, still accepted
+    "keys": [{ "id": "key_1", "name": "VS Code", "key": "sk-fp-...", "enabled": true }] // developer keys
   },
   "sitePolicy": {
     "fallbackChain": ["provider_a", "provider_b"], // failover order; other enabled providers follow as a last resort
@@ -80,7 +79,7 @@ Within a provider, all selected models are tried before moving on. Timeouts, net
 
 | Caller | How it is recognised | Limits |
 |---|---|---|
-| Developer | `Authorization: Bearer <key>` (`x-api-key` also works); any key from the panel's developer keys, the legacy `masterKey`, or the `MASTER_KEY` Secret | Unlimited, all endpoints |
+| Developer | `Authorization: Bearer <key>` (`x-api-key` also works); any key from the panel's developer keys or the `MASTER_KEY` Secret | Unlimited, all endpoints |
 | Signed-in site user | With `PUBLIC_ACCESS=true` and `JWT_SECRET` set: an HS256 JWT sent from an allowed site (user ID in `sub`, `id` or `userId`) | `authDailyLimit` per day, models and chat only |
 | Anonymous visitor | With `PUBLIC_ACCESS=true`: browser requests from a site in `ALLOWED_ORIGINS` | `unauthDailyLimit` per day (counted per IP hash), models and chat only |
 

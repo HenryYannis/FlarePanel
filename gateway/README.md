@@ -40,8 +40,7 @@ FlarePanel「代理网关」栏目的配套后端：一个 OpenAI 兼容的 Clou
 {
   "version": 1,
   "gateway": {
-    "keys": [{ "id": "key_1", "name": "VS Code", "key": "sk-fp-...", "enabled": true }], // 开发者密钥
-    "masterKey": "sk-fp-..."                       // 旧版单密钥，仍然认
+    "keys": [{ "id": "key_1", "name": "VS Code", "key": "sk-fp-...", "enabled": true }] // 开发者密钥
   },
   "sitePolicy": {
     "fallbackChain": ["provider_a", "provider_b"], // 降级链顺序；其余启用的服务商排在后面兜底
@@ -80,7 +79,7 @@ FlarePanel「代理网关」栏目的配套后端：一个 OpenAI 兼容的 Clou
 
 | 调用方 | 怎么认 | 限制 |
 |---|---|---|
-| 开发者 | `Authorization: Bearer <密钥>`（也认 `x-api-key`），密钥是后台「开发者密钥」里的任意一个、旧版 `masterKey` 或 Secret `MASTER_KEY` | 不限次数，可以用全部接口 |
+| 开发者 | `Authorization: Bearer <密钥>`（也认 `x-api-key`），密钥是后台「开发者密钥」里的任意一个或 Secret `MASTER_KEY` | 不限次数，可以用全部接口 |
 | 站点登录用户 | `PUBLIC_ACCESS=true` 且设置了 `JWT_SECRET` 时，白名单网站带的 HS256 JWT（`sub`、`id` 或 `userId` 为用户 ID） | 每天 `authDailyLimit` 次，只能用 models 和 chat |
 | 站点游客 | `PUBLIC_ACCESS=true` 时，`ALLOWED_ORIGINS` 里网站的浏览器请求 | 每天 `unauthDailyLimit` 次（按 IP 哈希计），只能用 models 和 chat |
 

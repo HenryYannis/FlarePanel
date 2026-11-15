@@ -90,28 +90,59 @@ export function getMatchedDbId(bucketName, databases) {
     return found ? found.uuid : null;
 }
 
-// 批量查询当前目录下的 D1 历史下载量
+// 内存下载量缓存（60秒TTL，避免大目录频繁反复查询 D1）
+const DOWNLOAD_CACHE_TTL = 60 * 1000;
+const downloadCountsCache = new Map();
+
+export function clearDownloadCountsCache() {
+    downloadCountsCache.clear();
+}
+
+// 批量查询当前目录下的 D1 历史下载量（带内存快照缓存）
 async function fetchDownloadCounts(dbId, fileKeys) {
     if (!dbId || !fileKeys || fileKeys.length === 0) return {};
+    const now = Date.now();
+    const map = {};
+    const missingKeys = [];
+
+    fileKeys.forEach(k => {
+        const cacheKey = `${dbId}:${k}`;
+        const cached = downloadCountsCache.get(cacheKey);
+        if (cached && now - cached.time < DOWNLOAD_CACHE_TTL) {
+            map[k] = cached.count;
+        } else {
+            missingKeys.push(k);
+        }
+    });
+
+    if (missingKeys.length === 0) return map;
+
     try {
-        // D1 单条语句最多绑定 100 个参数，文件多时分批并行查询
+        // D1 单条语句最多绑定 100 个参数，未命中缓存的文件分批并行查询
         const chunks = [];
-        for (let i = 0; i < fileKeys.length; i += 90) chunks.push(fileKeys.slice(i, i + 90));
+        for (let i = 0; i < missingKeys.length; i += 90) chunks.push(missingKeys.slice(i, i + 90));
         const results = await Promise.all(chunks.map(keys => {
             const placeholders = keys.map(() => '?').join(',');
             const sql = `SELECT file_path, downloads FROM file_downloads WHERE file_path IN (${placeholders})`;
             return queryDatabase(dbId, sql, keys);
         }));
-        const map = {};
         results.forEach(res => {
             (res.result?.[0]?.results || []).forEach(r => {
                 map[r.file_path] = r.downloads;
+                downloadCountsCache.set(`${dbId}:${r.file_path}`, { count: r.downloads, time: now });
             });
+        });
+        // 没有下载记录的文件（下载量为 0）也写入缓存，避免重复查询 D1
+        missingKeys.forEach(k => {
+            if (!(k in map)) {
+                map[k] = 0;
+                downloadCountsCache.set(`${dbId}:${k}`, { count: 0, time: now });
+            }
         });
         return map;
     } catch (err) {
         console.error("Failed to load download stats:", err);
-        return {};
+        return map;
     }
 }
 
@@ -389,6 +420,7 @@ function getStorageCacheKey() {
 
 export function clearStorageCache() {
     storageCache.clear();
+    downloadCountsCache.clear();
 }
 
 // 读取某个目录（只列当前一层），下载次数另行补充

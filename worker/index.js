@@ -101,10 +101,8 @@ export default {
         const sortByTime = url.searchParams.get('sort') === 'time';
 
         const normalized = normalizeUrl(pageUrl);
-        // 兼容旧数据里带 / 、.html 的写法
-        const variants = [...new Set([normalized, normalized + '/', normalized + '.html', normalized + '/index.html'])];
-        let where = `WHERE url IN (${variants.map(() => '?').join(',')})`;
-        const params = [...variants];
+        let where = 'WHERE url = ?';
+        const params = [normalized];
         if (keyword) {
           where += " AND (nick LIKE ? ESCAPE '\\' OR comment LIKE ? ESCAPE '\\')";
           const like = `%${keyword.replace(/[\\%_]/g, (c) => '\\' + c)}%`;
@@ -626,9 +624,18 @@ async function handleFiles(request, env, ctx, cfg) {
     const hasBody = 'body' in object && object.body;
     if (hasBody && request.method === 'GET' && (!range || /^bytes=0-/.test(range)) && env.DB) {
       ctx.waitUntil(env.DB.prepare(`
-        INSERT INTO file_downloads (file_path, downloads) VALUES (?, 1)
-        ON CONFLICT(file_path) DO UPDATE SET downloads = downloads + 1
-      `).bind(key).run().catch((err) => console.error('download count error:', err)));
+        INSERT INTO file_downloads (file_path, downloads, last_downloaded_at) VALUES (?, 1, CURRENT_TIMESTAMP)
+        ON CONFLICT(file_path) DO UPDATE SET downloads = downloads + 1, last_downloaded_at = CURRENT_TIMESTAMP
+      `).bind(key).run().catch((err) => {
+        // 兼容尚未添加 last_downloaded_at 列的旧库
+        if (/no such column/i.test(err?.message || '')) {
+          return env.DB.prepare(`
+            INSERT INTO file_downloads (file_path, downloads) VALUES (?, 1)
+            ON CONFLICT(file_path) DO UPDATE SET downloads = downloads + 1
+          `).bind(key).run().catch((e) => console.error('download count fallback error:', e));
+        }
+        console.error('download count error:', err);
+      }));
     }
 
     const headers = new Headers();

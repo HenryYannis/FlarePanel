@@ -20,7 +20,7 @@ import { CommentsModule } from './modules/comments.js';
 import { AccountsModule } from './modules/accounts.js';
 import { StatsModule } from './modules/stats.js';
 import { StorageModule, prefetchStorageDirectory } from './modules/storage.js';
-import { AiHubModule } from './modules/ai-hub.js';
+import { AiHubModule } from './modules/ai-hub/index.js';
 import { syncS3CredentialsFromServer } from './upload-manager.js';
 
 // 胶囊控制器字典
@@ -649,7 +649,7 @@ async function initVersionCheck() {
         const data = await res.json();
         if (!data.success || !data.current) throw new Error('Bad data');
 
-        const currentVer = data.current || 'v1.0.1';
+        const currentVer = data.current;
         const latestVer = data.latest || currentVer;
         const url = data.releaseUrl || 'https://github.com/HenryYannis/FlarePanel/releases';
 
@@ -666,7 +666,7 @@ async function initVersionCheck() {
         }
     } catch (e) {
         badge.className = 'footer-version-badge';
-        text.textContent = 'v1.0.1';
+        text.textContent = '';
     }
 }
 

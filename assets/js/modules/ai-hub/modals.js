@@ -334,7 +334,7 @@ export function openCodeModal() {
     if (!modal || !currentAiConfig) return;
 
     const firstActiveKey = currentAiConfig.gateway?.keys?.find(k => k && k.enabled && k.key);
-    const masterKey = firstActiveKey?.key || currentAiConfig.gateway?.keys?.[0]?.key || currentAiConfig.gateway?.masterKey || 'sk-fp-...';
+    const activeKey = firstActiveKey?.key || currentAiConfig.gateway?.keys?.[0]?.key || 'sk-fp-...';
     const firstEnabledProvider = currentAiConfig.providers.find(p => p.enabled);
     let sampleModel = 'MiniMax-M3';
     if (firstEnabledProvider) {
@@ -348,13 +348,13 @@ export function openCodeModal() {
                 title: t('modal.continueTitle', { model: sampleModel }),
                 provider: "openai",
                 model: sampleModel,
-                apiKey: masterKey,
+                apiKey: activeKey,
                 apiBase: OFFICIAL_AI_GATEWAY_URL
             }
         ]
     };
     if (codeContinue) codeContinue.value = JSON.stringify(continueConfig, null, 2);
-    if (codeHermes) codeHermes.value = `export OPENAI_API_BASE="${OFFICIAL_AI_GATEWAY_URL}"\nexport OPENAI_API_KEY="${masterKey}"`;
+    if (codeHermes) codeHermes.value = `export OPENAI_API_BASE="${OFFICIAL_AI_GATEWAY_URL}"\nexport OPENAI_API_KEY="${activeKey}"`;
 
     modal.style.display = 'flex';
 }
@@ -906,7 +906,7 @@ export function initModalBindings() {
 
             const prompt = promptInput?.value.trim() || t('modal.defaultPrompt');
             const endpoint = OFFICIAL_AI_GATEWAY_URL;
-            const masterKey = currentAiConfig.gateway.masterKey;
+            const activeKey = (currentAiConfig.gateway?.keys || []).find(k => k && k.enabled && k.key)?.key || currentAiConfig.gateway?.keys?.[0]?.key || '';
             const targetVal = targetSelect ? targetSelect.value : '__AUTO__';
 
             const requestBody = {
@@ -932,12 +932,11 @@ export function initModalBindings() {
             const startTime = Date.now();
             try {
                 const url = endpoint.endsWith('/') ? `${endpoint}chat/completions` : `${endpoint}/chat/completions`;
+                const headers = { 'Content-Type': 'application/json' };
+                if (activeKey) headers['Authorization'] = `Bearer ${activeKey}`;
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${masterKey}`
-                    },
+                    headers,
                     body: JSON.stringify(requestBody)
                 });
 
@@ -1052,8 +1051,6 @@ export function initModalBindings() {
             });
             if (ok) {
                 currentAiConfig.gateway.keys.splice(currentEditingSlotIndex, 1);
-                // 先清空旧 masterKey，避免删光后被兼容逻辑迁移回来；同步时会按剩余第一组重新计算
-                currentAiConfig.gateway.masterKey = '';
                 keySlotModal.style.display = 'none';
                 const container = document.getElementById('ai-hub-container');
                 if (container) callbacks.refreshKeysUi(container, currentAiConfig);
@@ -1095,9 +1092,6 @@ export function initModalBindings() {
                 key: key,
                 enabled: true
             };
-            if (currentEditingSlotIndex === 0) {
-                currentAiConfig.gateway.masterKey = key;
-            }
             keySlotModal.style.display = 'none';
             const container = document.getElementById('ai-hub-container');
             if (container) callbacks.refreshKeysUi(container, currentAiConfig);

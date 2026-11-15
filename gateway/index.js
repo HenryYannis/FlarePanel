@@ -121,7 +121,7 @@ let memoryConfigTime = 0;
 
 const EMPTY_CONFIG = {
   version: 1,
-  gateway: { masterKey: '', keys: [] },
+  gateway: { keys: [] },
   sitePolicy: { fallbackChain: [] },
   telegram: { enabled: false, botToken: '', chatId: '' },
   providers: []
@@ -276,7 +276,7 @@ function extractToken(request) {
   return (request.headers.get('x-api-key') || request.headers.get('api-key') || '').trim();
 }
 
-// 开发者密钥：KV 里的 gateway.keys（后台「开发者密钥」）、旧版 gateway.masterKey、Secret MASTER_KEY
+// 开发者密钥：KV 里的 gateway.keys（后台「开发者密钥」）、Secret MASTER_KEY
 async function matchMasterKey(config, token, env) {
   if (!token) return null;
   const candidates = [];
@@ -286,7 +286,6 @@ async function matchMasterKey(config, token, env) {
       candidates.push({ id: k.id || `key_${i + 1}`, name: k.name || `key_${i + 1}`, key: String(k.key).trim() });
     }
   });
-  if (config.gateway?.masterKey) candidates.push({ id: 'key_master', name: 'Master Key', key: String(config.gateway.masterKey).trim() });
   if (env.MASTER_KEY) candidates.push({ id: 'key_master', name: 'Master Key', key: String(env.MASTER_KEY).trim() });
 
   // 逐个常量时间比较，并且不提前退出，避免从耗时推出命中位置

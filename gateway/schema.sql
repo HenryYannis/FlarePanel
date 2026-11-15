@@ -32,5 +32,8 @@ CREATE TABLE IF NOT EXISTS ai_logs (
     tool_name         TEXT,                          -- 图片 / 语音接口名
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_ai_logs_date      ON ai_logs(date);
-CREATE INDEX IF NOT EXISTS idx_ai_logs_timestamp ON ai_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_ai_logs_date          ON ai_logs(date);
+CREATE INDEX IF NOT EXISTS idx_ai_logs_timestamp     ON ai_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_ai_logs_date_provider ON ai_logs(date, provider_id);
+CREATE INDEX IF NOT EXISTS idx_ai_logs_date_site     ON ai_logs(date, site_id);
+CREATE INDEX IF NOT EXISTS idx_ai_logs_created       ON ai_logs(created_at);

@@ -19,6 +19,7 @@ import {
 
 import { 
     fetchAiHubMetrics, 
+    clearMetricsCache,
     renderMetricsTabHtml, 
     renderVerticalBarChart,
     getCachedMetricsData,
@@ -62,10 +63,6 @@ export async function syncAiConfig(toastMessage = '', showLoadingSpinner = false
     if (!currentAiConfig) return;
     ensureGatewayKeys(currentAiConfig);
 
-    const firstActive = currentAiConfig.gateway?.keys?.find(k => k && k.enabled && k.key);
-    if (currentAiConfig.gateway) {
-        currentAiConfig.gateway.masterKey = firstActive ? firstActive.key : (currentAiConfig.gateway.keys?.[0]?.key || '');
-    }
     const unauthLimitInput = document.getElementById('ai-unauth-limit');
     if (unauthLimitInput) {
         currentAiConfig.sitePolicy.unauthDailyLimit = parseInt(unauthLimitInput.value) || 9;
@@ -235,7 +232,7 @@ export function bindAiHubEvents(container, config) {
                 currentMetricsDays = days;
                 if (ctx?.showLoading) ctx.showLoading(t('ai.loadingDays', { days }));
                 try {
-                    await fetchAiHubMetrics(currentMetricsDays, config);
+                    await fetchAiHubMetrics(currentMetricsDays, config, true);
                     renderAiHubView(container, config);
                 } catch (err) {
                     if (ctx?.showToast) ctx.showToast(t('ai.switchDaysFailed', { msg: err.message }), true);
@@ -253,7 +250,7 @@ export function bindAiHubEvents(container, config) {
             refreshMetricsBtn.disabled = true;
             refreshMetricsBtn.textContent = t('ai.refreshing');
             try {
-                await fetchAiHubMetrics(currentMetricsDays, config);
+                await fetchAiHubMetrics(currentMetricsDays, config, true);
                 renderAiHubView(container, config);
                 if (ctx?.showToast) ctx.showToast(t('ai.metricsRefreshed'));
             } catch (err) {
@@ -585,6 +582,7 @@ export {
     loadAiConfig,
     saveAiConfigToKv,
     fetchAiHubMetrics,
+    clearMetricsCache,
     maskApiKey,
     getProviderPollModels
 };
