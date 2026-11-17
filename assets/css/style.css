@@ -908,7 +908,7 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 }
 .lang-btn .lang-icon {
     font-family: var(--font-sans);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0;
     line-height: 1;
@@ -949,21 +949,14 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     user-select: none;
     box-sizing: border-box;
 }
-#theme-toggle-btn.theme-toggle .theme-icon-moon,
-#theme-toggle-btn.theme-toggle .theme-icon-sun,
-.theme-toggle .theme-icon-moon,
-.theme-toggle .theme-icon-sun {
-    font-size: 13px;
-    line-height: 1;
+#theme-toggle-btn.theme-toggle svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
 }
-#theme-toggle-btn .theme-icon-moon,
-.theme-toggle .theme-icon-moon { display: block; }
-#theme-toggle-btn .theme-icon-sun,
 .theme-toggle .theme-icon-sun { display: none; }
-html[data-theme="dark"] #theme-toggle-btn .theme-icon-moon,
-html[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
-html[data-theme="dark"] #theme-toggle-btn .theme-icon-sun,
 html[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block; }
+html[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
 
 /* 英文界面在文字填好前先隐藏，避免闪一下中文（index.html 头部脚本加上，i18n.js 去掉，2 秒后兜底去掉） */
 html.i18n-pending body {
