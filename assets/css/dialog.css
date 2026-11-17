@@ -31,7 +31,7 @@
 
 .custom-dialog-box {
     background: var(--glass-bg, rgba(255, 255, 255, 0.9));
-    border: 1px solid var(--glass-border, rgba(0, 195, 227, 0.25));
+    border: 1px solid var(--glass-border, transparent);
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
     border-radius: var(--radius-lg, 20px);
     width: 100%;

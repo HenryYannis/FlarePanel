@@ -30,14 +30,14 @@
     --bg-secondary: #f8fafc;
     --dropdown-bg: #ffffff;
     --dropdown-hover: rgba(0, 195, 227, 0.08);
-    --glass-bg: rgba(255, 255, 255, 0.68);
-    --glass-border: rgba(0, 195, 227, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.88);
+    --glass-border: transparent;
     --text-primary: #1e293b;
     --text-secondary: #475569;
     --border-color: rgba(0, 195, 227, 0.16);
     
     --background-blur: blur(20px);
-    --mystic-shadow: 0 8px 32px 0 rgba(0, 195, 227, 0.08);
+    --mystic-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     --mystic-glow: 0 8px 24px rgba(0, 195, 227, 0.25);
     
     --radius-sm: 8px;
@@ -95,8 +95,8 @@ html.day-theme {
     --danger-hover: #dc2626;
     --danger-active: #b91c1c;
     
-    --glass-bg: rgba(255, 255, 255, 0.72);
-    --glass-border: rgba(0, 157, 184, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.88);
+    --glass-border: transparent;
     --bg-primary: #ffffff;
     --bg-secondary: #f1f5f9;
     --dropdown-bg: #ffffff;
@@ -104,7 +104,7 @@ html.day-theme {
     --text-primary: #1e293b;
     --text-secondary: #475569;
     --border-color: rgba(0, 157, 184, 0.16);
-    --mystic-shadow: 0 8px 32px 0 rgba(0, 157, 184, 0.08);
+    --mystic-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     --mystic-glow: 0 6px 20px rgba(0, 157, 184, 0.25);
 }
 
@@ -125,8 +125,8 @@ html.night-theme {
     --danger-hover: #f87171;
     --danger-active: #dc2626;
     
-    --glass-bg: rgba(15, 23, 42, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.09);
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --bg-primary: #1e293b;
     --bg-secondary: #0f172a;
     --dropdown-bg: #1e293b;
@@ -134,7 +134,7 @@ html.night-theme {
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --border-color: rgba(255, 255, 255, 0.12);
-    --mystic-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    --mystic-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     --mystic-glow: 0 6px 24px rgba(0, 195, 227, 0.35);
 }
 
