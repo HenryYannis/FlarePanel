@@ -194,19 +194,25 @@ body {
     overflow-x: hidden; /* 与 html 一并兜住文档级横滑（尤其 WebKit） */
 }
 
-/* 导航栏 */
+/* 导航栏（圆角浮动风格，对齐下方主容器与 FlareRouter 规范） */
 #navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 32px;
+    max-width: 1400px;
+    width: calc(100% - 32px);
+    margin: 16px auto 0;
+    padding: 14px 28px;
     background: var(--glass-bg);
     backdrop-filter: var(--background-blur);
     -webkit-backdrop-filter: var(--background-blur);
-    border-bottom: 1px solid var(--glass-border);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--mystic-shadow);
     position: sticky;
-    top: 0;
+    top: 12px;
     z-index: 100;
+    box-sizing: border-box;
 }
 
 .navbar-left {
@@ -232,6 +238,7 @@ body {
 /* 主容器 */
 .tool-container-standard {
     max-width: 1400px;
+    width: calc(100% - 32px);
     margin: 16px auto; /* 上下统一 16px 对齐 FlareRouter 规范 */
     padding: 20px 32px;
     background: var(--glass-bg);
@@ -240,6 +247,7 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--mystic-shadow);
+    box-sizing: border-box;
 }
 
 /* 动画 */
@@ -695,9 +703,14 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
         padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
-    /* 顶部导航栏紧凑化 */
+    /* 顶部导航栏紧凑化（圆角浮动，随下方容器 16px 圆角） */
     #navbar {
+        margin: 12px 8px 0;
         padding: 10px 16px;
+        border-radius: 16px;
+        max-width: calc(100% - 16px);
+        width: calc(100% - 16px);
+        top: 8px;
     }
     .navbar-right {
         gap: 6px;
@@ -705,10 +718,11 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 
     /* 主容器边距与内衬自适应 (严格防撑破) */
     .tool-container-standard {
-        margin: 16px 8px;
+        margin: 12px 8px 16px;
         padding: 16px 12px;
         border-radius: 16px;
         max-width: calc(100% - 16px);
+        width: calc(100% - 16px);
         box-sizing: border-box;
         overflow-x: hidden;
     }
@@ -865,12 +879,21 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 }
 
 @media (max-width: 480px) {
-    /* 针对 360px ~ 414px 紧凑型手机屏幕 */
+    /* 针对 360px ~ 414px 紧凑型手机屏幕（圆角浮动，随下方容器 12px 圆角） */
+    #navbar {
+        margin: 10px 4px 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        max-width: calc(100% - 8px);
+        width: calc(100% - 8px);
+        top: 6px;
+    }
     .tool-container-standard {
-        margin: 16px 4px;
+        margin: 10px 4px 16px;
         padding: 14px 10px;
         border-radius: 12px;
         max-width: calc(100% - 8px);
+        width: calc(100% - 8px);
         box-sizing: border-box;
         overflow-x: hidden;
     }
