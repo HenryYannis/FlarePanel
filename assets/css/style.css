@@ -945,11 +945,15 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
 }
-#theme-toggle-btn.theme-toggle svg {
-    width: 15px;
-    height: 15px;
-    flex: none;
+#theme-toggle-btn.theme-toggle .theme-icon-moon,
+#theme-toggle-btn.theme-toggle .theme-icon-sun {
+    font-size: 13px;
+    line-height: 1;
+    display: block;
 }
 .theme-toggle .theme-icon-sun { display: none; }
 html[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block; }
