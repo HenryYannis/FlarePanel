@@ -879,21 +879,21 @@ tr:hover td { background-color: rgba(var(--primary-color-rgb), 0.03); }
 }
 
 @media (max-width: 480px) {
-    /* 针对 360px ~ 414px 紧凑型手机屏幕（圆角浮动，随下方容器 12px 圆角） */
+    /* 针对 360px ~ 414px 紧凑型手机屏幕（两侧统一保持 8px 黄金留白，对齐 FlareRouter） */
     #navbar {
-        margin: 10px 4px 0;
+        margin: 10px 8px 0;
         padding: 10px 12px;
-        border-radius: 12px;
-        max-width: calc(100% - 8px);
-        width: calc(100% - 8px);
+        border-radius: 14px;
+        max-width: calc(100% - 16px);
+        width: calc(100% - 16px);
         top: 6px;
     }
     .tool-container-standard {
-        margin: 10px 4px 16px;
+        margin: 10px 8px 16px;
         padding: 14px 10px;
-        border-radius: 12px;
-        max-width: calc(100% - 8px);
-        width: calc(100% - 8px);
+        border-radius: 14px;
+        max-width: calc(100% - 16px);
+        width: calc(100% - 16px);
         box-sizing: border-box;
         overflow-x: hidden;
     }
