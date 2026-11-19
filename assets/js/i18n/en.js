@@ -1,5 +1,7 @@
 // English dictionary (same keys as zh.js)
 export const en = {
+    "header.title": "FlarePanel Dashboard",
+    "accounts.colId": "User ID (UUID)",
     "accounts.colUsername": "Username",
     "accounts.colCreated": "Created",
     "accounts.colLastLogin": "Last sign-in",
@@ -436,6 +438,7 @@ export const en = {
     "stats.batchMessage": "Permanently delete {count} selected view records? This cannot be undone.",
     "stats.batchDeleting": "Deleting {count} records...",
     "storage.root": "Root",
+    "storage.dirTag": "DIR",
     "storage.emptyDir": "This folder is empty",
     "storage.copyShareTitle": "Copy this folder's share link",
     "storage.copyShare": "Copy share link",
@@ -493,6 +496,7 @@ export const en = {
     "footer.brand": "FlarePanel",
     "footer.tagline": "Site console on Cloudflare",
     "footer.github": "GitHub",
+    "footer.versionTitle": "Version status",
     "footer.version_latest": "Up to date ({version})",
     "footer.version_update": "New version {version} available"
 };

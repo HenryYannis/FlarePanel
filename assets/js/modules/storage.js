@@ -238,7 +238,7 @@ function renderStorageTableHTML() {
                     <input type="checkbox" class="row-check" data-type="folder" data-path="${escapeAttr(folder.fullPath)}" data-name="${escapeAttr(folder.name)}">
                 </td>
                 <td style="width: 50px; text-align: center;">
-                    <span class="ext-tag">DIR</span>
+                    <span class="ext-tag">${t('storage.dirTag')}</span>
                 </td>
                 <td>
                     <a href="javascript:void(0)" class="folder-link" data-path="${escapeAttr(folder.fullPath)}" style="font-weight: 600; color: var(--primary-color); text-decoration: none;">

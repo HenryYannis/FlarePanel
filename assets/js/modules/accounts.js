@@ -203,7 +203,7 @@ export const AccountsModule = {
             thead.innerHTML = `
                 <tr>
                     <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
-                    <th>ID (UUID)</th>
+                    <th>${t('accounts.colId')}</th>
                     ${sortTh('username')}
                     ${sortTh('created_at')}
                     ${sortTh('last_login_at')}

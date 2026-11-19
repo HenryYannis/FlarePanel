@@ -1,5 +1,7 @@
 // 繁體中文詞典（由 zh.js 用 OpenCC s2twp 轉換並修正用詞，鍵與 zh.js 一一對應）
 export const zhHant = {
+    "header.title": "FlarePanel 主控台",
+    "accounts.colId": "使用者 ID (UUID)",
     "accounts.colUsername": "使用者名稱",
     "accounts.colCreated": "建立時間",
     "accounts.colLastLogin": "最後登入",
@@ -436,6 +438,7 @@ export const zhHant = {
     "stats.batchMessage": "確定要永久刪除選中的 {count} 條訪問記錄嗎？此操作不可逆。",
     "stats.batchDeleting": "正在批次刪除 {count} 條記錄...",
     "storage.root": "根目錄",
+    "storage.dirTag": "目錄",
     "storage.emptyDir": "當前目錄下暫無檔案或資料夾",
     "storage.copyShareTitle": "複製該目錄受限分享連結",
     "storage.copyShare": "複製分享連結",
@@ -493,6 +496,7 @@ export const zhHant = {
     "footer.brand": "FlarePanel",
     "footer.tagline": "基於 Cloudflare 的站群控制台",
     "footer.github": "GitHub",
+    "footer.versionTitle": "版本狀態",
     "footer.version_latest": "已是最新 ({version})",
     "footer.version_update": "發現新版本 {version}"
 };

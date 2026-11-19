@@ -1,5 +1,7 @@
 // 简体中文词典（与 en.js 的键一一对应）
 export const zh = {
+    "header.title": "FlarePanel 控制台",
+    "accounts.colId": "用户 ID (UUID)",
     "accounts.colUsername": "用户名",
     "accounts.colCreated": "创建时间",
     "accounts.colLastLogin": "最后登录",
@@ -436,6 +438,7 @@ export const zh = {
     "stats.batchMessage": "确定要永久删除选中的 {count} 条访问记录吗？此操作不可逆。",
     "stats.batchDeleting": "正在批量删除 {count} 条记录...",
     "storage.root": "根目录",
+    "storage.dirTag": "目录",
     "storage.emptyDir": "当前目录下暂无文件或文件夹",
     "storage.copyShareTitle": "复制该目录受限分享链接",
     "storage.copyShare": "复制分享链接",
@@ -493,6 +496,7 @@ export const zh = {
     "footer.brand": "FlarePanel",
     "footer.tagline": "基于 Cloudflare 的站群控制台",
     "footer.github": "GitHub",
+    "footer.versionTitle": "版本状态",
     "footer.version_latest": "已是最新 ({version})",
     "footer.version_update": "发现新版本 {version}"
 };
